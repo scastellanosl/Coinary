@@ -48,5 +48,47 @@
         <item>Other</item>
     </string-array>
 
+    /////////////// NotificationsScreen.kt //////////////////
+
+    <string name="notifications">Notifications</string>
+    <string name="reminder">Reminder</string>
+    <string name="reminder_for">Remind to pay...</string>
+    <string name="daily_expenses">Remember to add today\'s expenses</string>
+
+    /////////////// ProfileScreen.kt //////////////////
+
+    <string name="profile_configuration">Profile configuration</string>
+    <string name="your_info">Your info</string>
+    <string name="email">Email</string>
+    <string name="hour">Hour for daily reminder</string>
+    <string name="change_password">Wanna change your password?</string>
+    <string name="current_password">Digit your actual password</string>
+    <string name="new_password">Digit your new password</string>
+    <string name="confirm_password">Confirm your new password</string>
+    <string name="save_changes">Save changes</string>
+    <string name="logout">Close session</string>>
+
+    /////////////// RegisterScreen.kt //////////////////
+
+    <string name="mail_error">Invalid email format</string>
+    <string name="password_error">Password must be at least 6 characters</string>
+    <string name="passwords_not_match">Passwords do not match</string>
+    <string name="description">Chart your financial\njourney with Coinary</string>
+    <string name="confirm_password_label">Confirm Password</string>
+    <string name="register_success">Registration successful</string>
+    <string name="create_account">Create account</string>
+    <string name="already_account">Already have an account?</string>
+    <string name="login">Login</string>
+    <string name="google_sign_in">Sign in with Google</string>
+
+    /////////////// ReminderScreen.kt //////////////////
+
+    <string name="create_reminder">Create a new reminder</string>
+    <string name="name_reminder">Name your reminder</string>
+
+    /////////////// StatsScreen.kt //////////////////
+
+    <string name="stats">Your expenses look like this</string>
+
 
 </resources>

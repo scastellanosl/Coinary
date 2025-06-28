@@ -48,7 +48,47 @@
         <item>Otros</item>
     </string-array>
 
+    /////////////// NotificationsScreen.kt //////////////////
 
+    <string name="notifications">Notificaciones</string>
+    <string name="reminder">Recordatorio</string>
+    <string name="reminder_for">Recuerda pagar...</string>
+    <string name="daily_expenses">Recuerda registrar tus gastos diarios</string>
+
+    /////////////// ProfileScreen.kt //////////////////
+
+    <string name="profile_configuration">Configuración del perfil</string>
+    <string name="your_info">Tu información</string>
+    <string name="email">Email</string>
+    <string name="hour">Hora para el recordatorio diario</string>
+    <string name="change_password">¿Quieres cambiar tu contraseña?</string>
+    <string name="current_password">Digita tu contraseña actual</string>
+    <string name="new_password">Digita tu nueva contraseña</string>
+    <string name="confirm_password">Confirma tu nueva contraseña</string>
+    <string name="save_changes">Guardar cambios</string>
+    <string name="logout">Cerrar sesión</string>>
+
+    /////////////// RegisterScreen.kt //////////////////
+
+    <string name="mail_error">Formato de correo electrónico inválido</string>
+    <string name="password_error">La contraseña debe tener al menos 6 caracteres</string>
+    <string name="passwords_not_match">Las contraseñas no coinciden</string>
+    <string name="description">Gestiona tu vida financiera\ncon Coinary</string>
+    <string name="confirm_password_label">Confirma tu contraseña</string>
+    <string name="register_success">Registro satisfactorio</string>
+    <string name="create_account">Crear cuenta</string>
+    <string name="already_account">¿Ya tienes una cuenta?</string>
+    <string name="login">Iniciar sesión</string>
+    <string name="google_sign_in">Iniciar sesión con Google</string>
+
+    /////////////// ReminderScreen.kt //////////////////
+
+    <string name="create_reminder">Crea un nuevo recordatorio</string>
+    <string name="name_reminder">Nombra tu recordatorio</string>
+
+    /////////////// StatsScreen.kt //////////////////
+
+    <string name="stats">Tus gastos lucen así</string>
 
 
 </resources>

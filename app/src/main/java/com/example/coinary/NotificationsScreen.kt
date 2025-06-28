@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -40,6 +41,7 @@ fun NotificationsScreen(
     onBackClick: () -> Unit = { },
     onLogout: () -> Unit = { }
 ) {
+    val context = LocalContext.current
     val systemUiController = rememberSystemUiController()
     val statusBarColor = Color.Black
     SideEffect {
@@ -66,7 +68,7 @@ fun NotificationsScreen(
                     tint = Color.White
                 )
             }
-            Text(text = "Notifications", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
+            Text(text = context.getString(R.string.notifications), color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
         }
         Box(
             modifier = Modifier
@@ -87,20 +89,17 @@ fun NotificationsScreen(
             ) {
                 // el composable es reutilizado para cada notificación
                 NotificationCard(
-                    message = "Remember to pay your internet service soon"
+                    message = context.getString(R.string.reminder_for)
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
                 NotificationCard(
-                    message = "Remember to add today's expenses"
+                    message = context.getString(R.string.daily_expenses)
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                NotificationCard(
-                    message = "The rent is almost due"
-                )
             }
         }
     }
@@ -113,6 +112,8 @@ fun NotificationCard(
     message: String,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -134,7 +135,7 @@ fun NotificationCard(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "Reminder",
+                    text = context.getString(R.string.reminder),
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp

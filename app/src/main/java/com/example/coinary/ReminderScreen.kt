@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -56,6 +57,8 @@ fun ReminderScreen(
     onBackClick: () -> Unit = {},
     onLogout: () -> Unit = {}
 ) {
+
+    val context = LocalContext.current
 
     val systemUiController = rememberSystemUiController()
     val statusBarColor = Color.Black
@@ -78,9 +81,19 @@ fun ReminderScreen(
     var selectedMovementType by remember { mutableStateOf("Income") }
     var bottomButtonSelected by remember { mutableStateOf<String?>(null) }
 
-    var selectedCategory by remember { mutableStateOf("Food") }
     var expanded by remember { mutableStateOf(false) }
-    val categories = listOf("Food", "Transport", "Entertainment", "Health", "Other")
+    val categories: List<String> = remember {
+        context.resources.getStringArray(R.array.categories).toList()
+    }
+    var selectedCategory by remember {
+        mutableStateOf(
+            if (categories.isNotEmpty()) {
+                categories[0]
+            } else {
+                ""
+            }
+        )
+    }
     var amount by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
 
@@ -142,7 +155,7 @@ fun ReminderScreen(
             Spacer(modifier = Modifier.height(40.dp))
 
             Text(
-                text = "Create a new Reminder",
+                text = context.getString(R.string.create_reminder),
                 fontFamily = InterFont,
                 fontSize = titleFontSize,
                 fontWeight = FontWeight.Bold,
@@ -156,7 +169,7 @@ fun ReminderScreen(
                 onValueChange = { amount = it },
                 label = {
                     Text(
-                        text = "Name you reminder",
+                        text = context.getString(R.string.name_reminder),
                         fontFamily = InterFont,
                         fontWeight = FontWeight.Normal,
                         fontSize = labelFontSize,
@@ -202,7 +215,7 @@ fun ReminderScreen(
                         .align(Alignment.TopCenter)
                 ) {
                     Text(
-                        text = "Select Category",
+                        text = context.getString(R.string.select_category),
                         fontFamily = InterFont,
                         fontWeight = FontWeight.SemiBold,
                         color = Color.White,
@@ -261,7 +274,7 @@ fun ReminderScreen(
                         onValueChange = { amount = it },
                         label = {
                             Text(
-                                text = "Assign an amount",
+                                text = context.getString(R.string.amount),
                                 fontFamily = InterFont,
                                 fontWeight = FontWeight.Normal,
                                 fontSize = labelFontSize,
@@ -295,7 +308,7 @@ fun ReminderScreen(
                     Spacer(modifier = Modifier.height(30.dp))
 
                     Text(
-                        text = "Add a short description if you want to",
+                        text = context.getString(R.string.short_description),
                         color = Color.White,
                         fontFamily = InterFont,
                         fontSize = (labelFontSize.value - 2).sp,
@@ -311,7 +324,7 @@ fun ReminderScreen(
                         onValueChange = { description = it },
                         label = {
                             Text(
-                                text = "Add a description",
+                                text = context.getString(R.string.add_description),
                                 fontFamily = InterFont,
                                 fontWeight = FontWeight.Normal,
                                 fontSize = labelFontSize,
@@ -345,7 +358,7 @@ fun ReminderScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         MovementTypeButton2(
-                            text = "Save",
+                            text = context.getString(R.string.save),
                             isSelected = bottomButtonSelected == "Save",
                             onClick = { bottomButtonSelected = "Save" },
                             modifier = Modifier.height(36.dp)
@@ -354,7 +367,7 @@ fun ReminderScreen(
                         Spacer(modifier = Modifier.width(12.dp)) // Espacio entre botones
 
                         MovementTypeButton2(
-                            text = "Cancel",
+                            context.getString(R.string.cancel),
                             isSelected = bottomButtonSelected == "Cancel",
                             onClick = { bottomButtonSelected = "Cancel" },
                             modifier = Modifier.height(36.dp)
