@@ -1,0 +1,84 @@
+<resources>
+
+    <string name="app_name">Coinary</string>
+
+    <!-- GoogleLoginScreen.kt -->
+    <string name="login_success">Connexion réussie</string>
+    <string name="lildescriptor">Gérez vos dépenses avec Coinary</string>
+    <string name="mail_label">Adresse e-mail</string>
+    <string name="password_label">Mot de passe</string>
+    <string name="continue_button">Continuer</string>
+    <string name="empty_fields">Veuillez remplir tous les champs</string>
+    <string name="continue_with_google">Continuer avec Google</string>
+    <string name="policies">En continuant, vous acceptez nos conditions d\'utilisation et notre politique de confidentialité.</string>
+    <string name="dont_account">Vous n\'avez pas de compte ?</string>
+    <string name="sign_up">Inscrivez-vous</string>
+
+    <!-- MainActivity.kt -->
+    <string name="greeting">Salut !!</string>
+    <string name="personal_expenses">Dépenses personnelles totales</string>
+    <string name="total_income">Revenus totaux</string>
+    <string name="month">Mois</string>
+    <string name="this_week">Cette semaine</string>
+    <string name="all">Tout</string>
+    <string name="top_expenses">Dépenses principales</string>
+    <string name="food">Nourriture</string>
+    <string name="gifts">Cadeaux</string>
+    <string name="transport">Transport</string>
+
+    <!-- MovementScreen.kt -->
+    <string name="add_movement">Ajouter un mouvement</string>
+    <string name="income">Revenu</string>
+    <string name="expense">Dépense</string>
+    <string name="select_category">Sélectionner une catégorie</string>
+    <string name="amount">Montant</string>
+    <string name="short_description">Ajoutez une brève description si vous le souhaitez</string>
+    <string name="add_description">Votre description</string>
+    <string name="save">Enregistrer</string>
+    <string name="cancel">Annuler</string>
+    <string-array name="categories">
+        <item>Nourriture</item>
+        <item>Transport</item>
+        <item>Divertissement</item>
+        <item>Santé</item>
+        <item>Autres</item>
+    </string-array>
+
+    <!-- NotificationsScreen.kt -->
+    <string name="notifications">Notifications</string>
+    <string name="reminder">Rappel</string>
+    <string name="reminder_for">N\'oubliez pas de payer...</string>
+    <string name="daily_expenses">N\'oubliez pas d\'enregistrer vos dépenses quotidiennes</string>
+
+    <!-- ProfileScreen.kt -->
+    <string name="profile_configuration">Paramètres du profil</string>
+    <string name="your_info">Vos informations</string>
+    <string name="email">E-mail</string>
+    <string name="hour">Heure pour le rappel quotidien</string>
+    <string name="change_password">Vous souhaitez changer votre mot de passe ?</string>
+    <string name="current_password">Saisissez votre mot de passe actuel</string>
+    <string name="new_password">Saisissez votre nouveau mot de passe</string>
+    <string name="confirm_password">Confirmez votre nouveau mot de passe</string>
+    <string name="save_changes">Enregistrer les modifications</string>
+    <string name="logout">Se déconnecter</string>
+
+    <!-- RegisterScreen.kt -->
+    <string name="mail_error">Format d\'e-mail invalide</string>
+    <string name="password_error">Le mot de passe doit contenir au moins 6 caractères</string>
+    <string name="passwords_not_match">Les mots de passe ne correspondent pas</string>
+    <string name="description">Gérez votre vie financière\navec Coinary</string>
+    <string name="confirm_password_label">Confirmez votre mot de passe</string>
+    <string name="register_success">Inscription réussie</string>
+    <string name="create_account">Créer un compte</string>
+    <string name="already_account">Vous avez déjà un compte ?</string>
+    <string name="login">Se connecter</string>
+    <string name="google_sign_in">Se connecter avec Google</string>
+
+    <!-- ReminderScreen.kt -->
+    <string name="create_reminder">Créer un nouveau rappel</string>
+    <string name="name_reminder">Nommez votre rappel</string>
+
+    <!-- StatsScreen.kt -->
+    <string name="stats">Voici à quoi ressemblent vos dépenses</string>
+
+</resources>

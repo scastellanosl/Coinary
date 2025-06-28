@@ -1,0 +1,84 @@
+<resources>
+
+    <string name="app_name">Coinary</string>
+
+    <!-- GoogleLoginScreen.kt -->
+    <string name="login_success">Login realizado com sucesso</string>
+    <string name="lildescriptor">Gerencie seus gastos com a Coinary</string>
+    <string name="mail_label">Endereço de e-mail</string>
+    <string name="password_label">Senha</string>
+    <string name="continue_button">Continuar</string>
+    <string name="empty_fields">Por favor, preencha todos os campos</string>
+    <string name="continue_with_google">Continuar com o Google</string>
+    <string name="policies">Ao continuar, você concorda com nossos termos de serviço e política de privacidade.</string>
+    <string name="dont_account">Ainda não tem uma conta?</string>
+    <string name="sign_up">Cadastre-se</string>
+
+    <!-- MainActivity.kt -->
+    <string name="greeting">Olá!!</string>
+    <string name="personal_expenses">Total de despesas pessoais</string>
+    <string name="total_income">Renda total</string>
+    <string name="month">Mês</string>
+    <string name="this_week">Esta semana</string>
+    <string name="all">Tudo</string>
+    <string name="top_expenses">Principais despesas</string>
+    <string name="food">Alimentação</string>
+    <string name="gifts">Presentes</string>
+    <string name="transport">Transporte</string>
+
+    <!-- MovementScreen.kt -->
+    <string name="add_movement">Adicionar movimento</string>
+    <string name="income">Receita</string>
+    <string name="expense">Despesa</string>
+    <string name="select_category">Selecionar uma categoria</string>
+    <string name="amount">Valor</string>
+    <string name="short_description">Adicione uma breve descrição, se desejar</string>
+    <string name="add_description">Sua descrição</string>
+    <string name="save">Salvar</string>
+    <string name="cancel">Cancelar</string>
+    <string-array name="categories">
+        <item>Alimentação</item>
+        <item>Transporte</item>
+        <item>Entretenimento</item>
+        <item>Saúde</item>
+        <item>Outros</item>
+    </string-array>
+
+    <!-- NotificationsScreen.kt -->
+    <string name="notifications">Notificações</string>
+    <string name="reminder">Lembrete</string>
+    <string name="reminder_for">Lembre-se de pagar...</string>
+    <string name="daily_expenses">Lembre-se de registrar suas despesas diárias</string>
+
+    <!-- ProfileScreen.kt -->
+    <string name="profile_configuration">Configurações do perfil</string>
+    <string name="your_info">Suas informações</string>
+    <string name="email">E-mail</string>
+    <string name="hour">Horário do lembrete diário</string>
+    <string name="change_password">Deseja alterar sua senha?</string>
+    <string name="current_password">Digite sua senha atual</string>
+    <string name="new_password">Digite sua nova senha</string>
+    <string name="confirm_password">Confirme sua nova senha</string>
+    <string name="save_changes">Salvar alterações</string>
+    <string name="logout">Sair</string>
+
+    <!-- RegisterScreen.kt -->
+    <string name="mail_error">Formato de e-mail inválido</string>
+    <string name="password_error">A senha deve ter pelo menos 6 caracteres</string>
+    <string name="passwords_not_match">As senhas não coincidem</string>
+    <string name="description">Gerencie sua vida financeira\ncom a Coinary</string>
+    <string name="confirm_password_label">Confirme sua senha</string>
+    <string name="register_success">Cadastro realizado com sucesso</string>
+    <string name="create_account">Criar conta</string>
+    <string name="already_account">Já tem uma conta?</string>
+    <string name="login">Entrar</string>
+    <string name="google_sign_in">Entrar com o Google</string>
+
+    <!-- ReminderScreen.kt -->
+    <string name="create_reminder">Criar novo lembrete</string>
+    <string name="name_reminder">Nomeie seu lembrete</string>
+
+    <!-- StatsScreen.kt -->
+    <string name="stats">Seus gastos estão assim</string>
+
+</resources>
