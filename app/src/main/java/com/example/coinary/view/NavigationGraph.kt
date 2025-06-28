@@ -1,5 +1,4 @@
-package com.example.coinary
-
+package com.example.coinary.view
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
@@ -39,7 +38,7 @@ fun NavigationGraph(navController: NavHostController) {
         }
 
         composable("stats") {
-                StatsScreen(navController = navController)
+            StatsScreen(navController = navController)
         }
         composable("movement") {
             AddMovementScreen(navController = navController)
@@ -54,7 +53,7 @@ fun NavigationGraph(navController: NavHostController) {
             ProfileScreen(
                 navController = navController,
                 onLogout = { // Cierre de sesión
-                    navController.navigate("login") { 
+                    navController.navigate("login") {
                         popUpTo(0) { inclusive = true }
                         launchSingleTop = true
                     }

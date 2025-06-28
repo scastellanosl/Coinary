@@ -1,4 +1,4 @@
-package com.example.coinary
+package com.example.coinary.repository
 
 import android.content.Context
 import android.content.Intent

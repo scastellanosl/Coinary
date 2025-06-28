@@ -1,4 +1,4 @@
-package com.example.coinary
+package com.example.coinary.view
 
 
 import androidx.compose.foundation.Image
@@ -16,9 +16,11 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.coinary.R
 
 @Composable
 fun BottomNavigationBar(navController: NavController) {
@@ -26,7 +28,7 @@ fun BottomNavigationBar(navController: NavController) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 10.dp)
-            .background(androidx.compose.ui.graphics.Color.Black),
+            .background(Color.Black),
         contentAlignment = Alignment.Center
     ) {
         Row(

@@ -1,6 +1,7 @@
-package com.example.coinary
+package com.example.coinary.view
 
 import android.content.Intent
+import android.util.Patterns
 import android.widget.Toast
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.result.ActivityResult
@@ -48,6 +49,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.coinary.R
+import com.example.coinary.repository.GoogleAuthClient
 import com.google.firebase.auth.FirebaseAuth
 
 @Composable
@@ -79,7 +82,7 @@ fun RegisterScreen(
         passwordError = null
         confirmPasswordError = null
 
-        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             emailError = context.getString(R.string.mail_error)
             valid = false
         }

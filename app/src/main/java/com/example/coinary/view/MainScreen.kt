@@ -1,4 +1,4 @@
-package com.example.coinary
+package com.example.coinary.view
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
