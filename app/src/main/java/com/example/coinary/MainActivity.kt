@@ -128,7 +128,7 @@ fun AppNavigation() {
             composable("register") {
                 RegisterScreen(
                     onRegisterSuccess = {
-                        navController.navigate("main") {
+                        navController.navigate("user_setup") {
                             popUpTo("register") { inclusive = true }
                         }
                     },
@@ -191,6 +191,18 @@ fun AppNavigation() {
                     }
                 )
             }
+
+            composable("user_setup") {
+                UserSetupScreen(
+                    onSetupComplete = {
+                        navController.navigate("main") {
+                            popUpTo("user_setup") { inclusive = true }
+                        }
+                    }
+                )
+            }
+
+
         }
     }
 }
