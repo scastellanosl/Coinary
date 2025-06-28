@@ -99,7 +99,7 @@ fun AppNavigation() {
         }
     }
 
-    // Verificar si el usuario está logeado (FirebaseAuth)
+    // Verify if user is logged
     val isUserLoggedIn = remember { mutableStateOf<Boolean?>(null) }
 
     LaunchedEffect(Unit) {
@@ -257,7 +257,7 @@ fun HomeScreen(navController: NavController, onLogout: () -> Unit) {
                     horizontalAlignment = Alignment.Start
                 ) {
                     Text(
-                        "Hello!!",
+                        context.getString(R.string.greeting),
                         style = MaterialTheme.typography.labelSmall,
                         color = Color(0xFFF2E423),
                         modifier = Modifier.padding(top = 2.dp)
@@ -312,7 +312,7 @@ fun HomeScreen(navController: NavController, onLogout: () -> Unit) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "Total Personal Expenses",
+                    text = context.getString(R.string.personal_expenses),
                     fontWeight = FontWeight.Bold,
                     fontSize = 26.sp,
                     color = Color.White,
@@ -331,7 +331,7 @@ fun HomeScreen(navController: NavController, onLogout: () -> Unit) {
                 )
 
                 Text(
-                    text = "Total income",
+                    text = context.getString(R.string.total_income),
                     fontWeight = FontWeight.Thin,
                     fontSize = 12.sp,
                     color = Color.White,
@@ -357,7 +357,7 @@ fun HomeScreen(navController: NavController, onLogout: () -> Unit) {
                     contentPadding = PaddingValues(horizontal = 25.dp, vertical = 3.dp)
                 ) {
                     Text(
-                        text = "Month",
+                        text = context.getString(R.string.month),
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -404,7 +404,7 @@ fun HomeScreen(navController: NavController, onLogout: () -> Unit) {
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "Your week",
+                            text = context.getString(R.string.this_week),
                             fontWeight = FontWeight.Bold,
                             color = Color.White,
                             fontSize = 20.sp,
@@ -433,7 +433,7 @@ fun HomeScreen(navController: NavController, onLogout: () -> Unit) {
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 Text(
-                                    text = "All",
+                                    text = context.getString(R.string.all),
                                     textAlign = TextAlign.Center,
                                     fontWeight = FontWeight.Thin,
                                     color = Color.White,
@@ -480,7 +480,7 @@ fun HomeScreen(navController: NavController, onLogout: () -> Unit) {
                     .padding(16.dp)
             ) {
                 Text(
-                    text = "Top Expenses",
+                    text = context.getString(R.string.top_expenses),
                     textAlign = TextAlign.Center,
                     color = Color.White,
                     fontWeight = FontWeight.Thin,
@@ -492,14 +492,14 @@ fun HomeScreen(navController: NavController, onLogout: () -> Unit) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 8.dp),  // menos padding para no reducir mucho espacio
+                        .padding(horizontal = 8.dp),
                     verticalAlignment = Alignment.Top,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)  // separa entre cajas
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     listOf(
-                        Triple("Food", R.drawable.rectangle1, R.drawable.food_icon) to "$ 102.500",
-                        Triple("Gifts", R.drawable.rectangle2, R.drawable.gift_icon) to "$ 78.000",
-                        Triple("Transport", R.drawable.rectangle3, R.drawable.car_icon) to "$ 65.123",
+                        Triple(context.getString(R.string.food), R.drawable.rectangle1, R.drawable.food_icon) to "$ 102.500",
+                        Triple(context.getString(R.string.gifts), R.drawable.rectangle2, R.drawable.gift_icon) to "$ 78.000",
+                        Triple(context.getString(R.string.transport), R.drawable.rectangle3, R.drawable.car_icon) to "$ 65.123",
                     ).forEach { (triple, price) ->
                         val (label, bgRes, iconRes) = triple
                         Box(

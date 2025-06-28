@@ -1,0 +1,54 @@
+<resources>
+
+    <string name="app_name">Coinary</string>
+
+    /////////////// GoogleLoginScreen.kt //////////////////
+
+    <string name ="login_success">Inicio de sesión exitoso</string>
+    <string name="lildescriptor">Gestiona tus gastos
+        con Coinary</string>
+    <string name="mail_label">Dirección de correo electrónico</string>">
+    <string name="password_label">Contraseña</string>
+    <string name="continue_button">Continuar</string>
+    <string name="empty_fields">Por favor completa todos los campos</string>
+    <string name="continue_with_google">Continuar con Google</string>
+    <string name="policies">Al continuar, acepta nuestros términos de servicio y política de privacidad.</string>
+    <string name="dont_account">¿No tienes una cuenta?</string>
+    <string name="sign_up">Registrate</string>
+
+    /////////////// MainActivity.kt //////////////////
+
+    <string name="greeting">Hola!!</string>
+    <string name="personal_expenses">Total de gastos personales</string>
+    <string name="total_income">Ingresos totales</string>
+    <string name="month">Mes</string>
+    <string name="this_week">Esta semana</string>
+    <string name="all">Todo</string>
+    <string name="top_expenses">Top gastos</string>
+    <string name="food">Comida</string>
+    <string name="gifts">Regalos</string>
+    <string name="transport">Transporte</string>
+
+    /////////////// MovementScreen.kt //////////////////
+
+    <string name="add_movement">Agrega un movimiento</string>
+    <string name="income">Ingreso</string>
+    <string name="expense">Gasto</string>
+    <string name="select_category">Selecionar una categoría</string>
+    <string name="amount">Monto</string>
+    <string name="short_description">Agrega una breve descripción si lo deseeas</string>
+    <string name="add_description">Tu descripción</string>
+    <string name="save">Guardar</string>
+    <string name="cancel">Cancelar</string>
+    <string-array name="categories">
+        <item>Comida</item>
+        <item>Transporte</item>
+        <item>Entretenimiento</item>
+        <item>Salud</item>
+        <item>Otros</item>
+    </string-array>
+
+
+
+
+</resources>
