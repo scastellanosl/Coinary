@@ -1,0 +1,94 @@
+<resources>
+
+    <string name="app_name">Coinary</string>
+
+    /////////////// GoogleLoginScreen.kt //////////////////
+
+    <string name ="login_success">Inicio de sesión exitoso</string>
+    <string name="lildescriptor">Gestiona tus gastos
+        con Coinary</string>
+    <string name="mail_label">Dirección de correo electrónico</string>">
+    <string name="password_label">Contraseña</string>
+    <string name="continue_button">Continuar</string>
+    <string name="empty_fields">Por favor completa todos los campos</string>
+    <string name="continue_with_google">Continuar con Google</string>
+    <string name="policies">Al continuar, acepta nuestros términos de servicio y política de privacidad.</string>
+    <string name="dont_account">¿No tienes una cuenta?</string>
+    <string name="sign_up">Registrate</string>
+
+    /////////////// MainActivity.kt //////////////////
+
+    <string name="greeting">Hola!!</string>
+    <string name="personal_expenses">Total de gastos personales</string>
+    <string name="total_income">Ingresos totales</string>
+    <string name="month">Mes</string>
+    <string name="this_week">Esta semana</string>
+    <string name="all">Todo</string>
+    <string name="top_expenses">Top gastos</string>
+    <string name="food">Comida</string>
+    <string name="gifts">Regalos</string>
+    <string name="transport">Transporte</string>
+
+    /////////////// MovementScreen.kt //////////////////
+
+    <string name="add_movement">Agrega un movimiento</string>
+    <string name="income">Ingreso</string>
+    <string name="expense">Gasto</string>
+    <string name="select_category">Selecionar una categoría</string>
+    <string name="amount">Monto</string>
+    <string name="short_description">Agrega una breve descripción si lo deseeas</string>
+    <string name="add_description">Tu descripción</string>
+    <string name="save">Guardar</string>
+    <string name="cancel">Cancelar</string>
+    <string-array name="categories">
+        <item>Comida</item>
+        <item>Transporte</item>
+        <item>Entretenimiento</item>
+        <item>Salud</item>
+        <item>Otros</item>
+    </string-array>
+
+    /////////////// NotificationsScreen.kt //////////////////
+
+    <string name="notifications">Notificaciones</string>
+    <string name="reminder">Recordatorio</string>
+    <string name="reminder_for">Recuerda pagar...</string>
+    <string name="daily_expenses">Recuerda registrar tus gastos diarios</string>
+
+    /////////////// ProfileScreen.kt //////////////////
+
+    <string name="profile_configuration">Configuración del perfil</string>
+    <string name="your_info">Tu información</string>
+    <string name="email">Email</string>
+    <string name="hour">Hora para el recordatorio diario</string>
+    <string name="change_password">¿Quieres cambiar tu contraseña?</string>
+    <string name="current_password">Digita tu contraseña actual</string>
+    <string name="new_password">Digita tu nueva contraseña</string>
+    <string name="confirm_password">Confirma tu nueva contraseña</string>
+    <string name="save_changes">Guardar cambios</string>
+    <string name="logout">Cerrar sesión</string>>
+
+    /////////////// RegisterScreen.kt //////////////////
+
+    <string name="mail_error">Formato de correo electrónico inválido</string>
+    <string name="password_error">La contraseña debe tener al menos 6 caracteres</string>
+    <string name="passwords_not_match">Las contraseñas no coinciden</string>
+    <string name="description">Gestiona tu vida financiera\ncon Coinary</string>
+    <string name="confirm_password_label">Confirma tu contraseña</string>
+    <string name="register_success">Registro satisfactorio</string>
+    <string name="create_account">Crear cuenta</string>
+    <string name="already_account">¿Ya tienes una cuenta?</string>
+    <string name="login">Iniciar sesión</string>
+    <string name="google_sign_in">Iniciar sesión con Google</string>
+
+    /////////////// ReminderScreen.kt //////////////////
+
+    <string name="create_reminder">Crea un nuevo recordatorio</string>
+    <string name="name_reminder">Nombra tu recordatorio</string>
+
+    /////////////// StatsScreen.kt //////////////////
+
+    <string name="stats">Tus gastos lucen así</string>
+
+
+</resources>

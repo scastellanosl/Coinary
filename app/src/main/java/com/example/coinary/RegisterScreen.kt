@@ -80,15 +80,15 @@ fun RegisterScreen(
         confirmPasswordError = null
 
         if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            emailError = "Invalid email format"
+            emailError = context.getString(R.string.mail_error)
             valid = false
         }
         if (password.length < 6) {
-            passwordError = "Password must be at least 6 characters"
+            passwordError = context.getString(R.string.password_error)
             valid = false
         }
         if (password != confirmPassword) {
-            confirmPasswordError = "Passwords do not match"
+            confirmPasswordError = context.getString(R.string.passwords_not_match)
             valid = false
         }
 
@@ -110,7 +110,7 @@ fun RegisterScreen(
                 contentScale = ContentScale.Crop
             )
             Text(
-                text = "Chart your financial\njourney with Coinary",
+                text = context.getString(R.string.description),
                 color = Color.White,
                 fontWeight = FontWeight.Bold,
                 fontSize = 26.sp,
@@ -127,7 +127,7 @@ fun RegisterScreen(
             onValueChange = { email = it },
             label = {
                 Text(
-                    text = "Email",
+                    text = context.getString(R.string.email),
                     fontFamily = InterFont,
                     fontWeight = FontWeight.Normal,
                     fontSize = 18.sp,
@@ -172,7 +172,7 @@ fun RegisterScreen(
             onValueChange = { password = it },
             label = {
                 Text(
-                    text = "Password",
+                    text = context.getString(R.string.password_label),
                     fontFamily = InterFont,
                     fontWeight = FontWeight.Normal,
                     fontSize = 18.sp,
@@ -218,7 +218,7 @@ fun RegisterScreen(
             onValueChange = { confirmPassword = it },
             label = {
                 Text(
-                    text = "Confirm Password",
+                    text = context.getString(R.string.confirm_password_label),
                     fontFamily = InterFont,
                     fontWeight = FontWeight.Normal,
                     fontSize = 18.sp,
@@ -275,7 +275,7 @@ fun RegisterScreen(
                             .addOnCompleteListener { task ->
                                 isLoading = false
                                 if (task.isSuccessful) {
-                                    Toast.makeText(context, "Registration successful", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, context.getString(R.string.register_success), Toast.LENGTH_SHORT).show()
                                     onRegisterSuccess()
                                 } else {
                                     Toast.makeText(context, "Error: ${task.exception?.message}", Toast.LENGTH_LONG).show()
@@ -291,7 +291,7 @@ fun RegisterScreen(
                     .padding(horizontal = 20.dp)
             ) {
                 Text(
-                    text = "Create Account",
+                    text = context.getString(R.string.create_account),
                     color = Color.White,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 15.sp,
@@ -303,10 +303,10 @@ fun RegisterScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         val annotatedText = buildAnnotatedString {
-            append("Already have an account? ")
+            append(context.getString(R.string.already_account))
             pushStringAnnotation(tag = "LOGIN", annotation = "login")
             withStyle(style = SpanStyle(color = Color(0xFF4D54BF), fontWeight = FontWeight.Bold)) {
-                append("Login")
+                append(context.getString(R.string.login))
             }
             pop()
         }
@@ -354,7 +354,7 @@ fun RegisterScreen(
                 )
                 Spacer(modifier = Modifier.size(10.dp))
                 Text(
-                    text = "Sign in with Google",
+                    text = context.getString(R.string.google_sign_in),
                     color = Color.Black,
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp,

@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -73,6 +74,8 @@ fun StatsScreen(
     val categories = listOf("Food", "Transport", "Entertainment", "Health", "Other")
     var amount by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
+
+    val context = LocalContext.current
 
     val commonFieldModifier = Modifier
         .fillMaxWidth()
@@ -132,7 +135,7 @@ fun StatsScreen(
             Spacer(modifier = Modifier.height(40.dp))
 
             Text(
-                text = "Your expenses look like this",
+                text = context.getString(R.string.stats),
                 fontFamily = InterFont,
                 fontSize = titleFontSize,
                 fontWeight = FontWeight.Bold,

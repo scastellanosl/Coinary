@@ -41,6 +41,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -57,7 +58,6 @@ fun AddMovementScreen(
     onBackClick: () -> Unit = {},
     onLogout: () -> Unit = {}
 ) {
-
     val systemUiController = rememberSystemUiController()
     val statusBarColor = Color.Black
     SideEffect {
@@ -79,9 +79,22 @@ fun AddMovementScreen(
     var selectedMovementType by remember { mutableStateOf("Income") }
     var bottomButtonSelected by remember { mutableStateOf<String?>(null) }
 
-    var selectedCategory by remember { mutableStateOf("Food") }
+
     var expanded by remember { mutableStateOf(false) }
-    val categories = listOf("Food", "Transport", "Entertainment", "Health", "Other")
+    val context = LocalContext.current
+    val categories: List<String> = remember {
+        context.resources.getStringArray(R.array.categories).toList()
+    }
+    var selectedCategory by remember {
+        mutableStateOf(
+            if (categories.isNotEmpty()) {
+                categories[0]
+            } else {
+                ""
+            }
+        )
+    }
+
     var amount by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
 
@@ -143,7 +156,7 @@ fun AddMovementScreen(
             Spacer(modifier = Modifier.height(40.dp))
 
             Text(
-                text = "Add a movement",
+                text = context.getString(R.string.add_movement),
                 fontFamily = InterFont,
                 fontSize = titleFontSize,
                 fontWeight = FontWeight.Bold,
@@ -154,13 +167,12 @@ fun AddMovementScreen(
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            // Botones de arriba (Income / Expense)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally)
             ) {
                 MovementTypeButton(
-                    text = "Income",
+                    text = context.getString(R.string.income),
                     isSelected = selectedMovementType == "Income",
                     onClick = { selectedMovementType = "Income" },
                     modifier = Modifier
@@ -169,7 +181,7 @@ fun AddMovementScreen(
                 )
 
                 MovementTypeButton(
-                    text = "Expense",
+                    text = context.getString(R.string.expense),
                     isSelected = selectedMovementType == "Expense",
                     onClick = { selectedMovementType = "Expense" },
                     modifier = Modifier
@@ -199,7 +211,7 @@ fun AddMovementScreen(
                         .align(Alignment.TopCenter)
                 ) {
                     Text(
-                        text = "Select Category",
+                        text = context.getString(R.string.select_category),
                         fontFamily = InterFont,
                         fontWeight = FontWeight.SemiBold,
                         color = Color.White,
@@ -258,7 +270,7 @@ fun AddMovementScreen(
                         onValueChange = { amount = it },
                         label = {
                             Text(
-                                text = "Assign an amount",
+                                text = context.getString(R.string.amount),
                                 fontFamily = InterFont,
                                 fontWeight = FontWeight.Normal,
                                 fontSize = labelFontSize,
@@ -292,7 +304,7 @@ fun AddMovementScreen(
                     Spacer(modifier = Modifier.height(30.dp))
 
                     Text(
-                        text = "Add a short description if you want to",
+                        text = context.getString(R.string.short_description),
                         color = Color.White,
                         fontFamily = InterFont,
                         fontSize = (labelFontSize.value - 2).sp,
@@ -308,7 +320,7 @@ fun AddMovementScreen(
                         onValueChange = { description = it },
                         label = {
                             Text(
-                                text = "Add a description",
+                                text = context.getString(R.string.add_description),
                                 fontFamily = InterFont,
                                 fontWeight = FontWeight.Normal,
                                 fontSize = labelFontSize,
@@ -342,7 +354,7 @@ fun AddMovementScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         MovementTypeButton(
-                            text = "Save",
+                            text = context.getString(R.string.save),
                             isSelected = bottomButtonSelected == "Save",
                             onClick = { bottomButtonSelected = "Save" },
                             modifier = Modifier.height(36.dp)
@@ -351,7 +363,7 @@ fun AddMovementScreen(
                         Spacer(modifier = Modifier.width(12.dp)) // Espacio entre botones
 
                         MovementTypeButton(
-                            text = "Cancel",
+                            text = context.getString(R.string.cancel),
                             isSelected = bottomButtonSelected == "Cancel",
                             onClick = { bottomButtonSelected = "Cancel" },
                             modifier = Modifier.height(36.dp)

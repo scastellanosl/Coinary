@@ -119,7 +119,7 @@ fun ProfileScreen(
                 )
             }
 
-            Text(text = "Profile configuration", color = Color.White)
+            Text(text = context.getString(R.string.profile_configuration), color = Color.White)
 
             Row(
                 modifier = Modifier
@@ -195,7 +195,7 @@ fun ProfileScreen(
                         Column {
 
                             Text(
-                                text = "Your info",
+                                text = context.getString(R.string.your_info),
                                 color = Color.White,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = (screenWidthDp * 0.06f).sp,
@@ -206,7 +206,7 @@ fun ProfileScreen(
                             )
 
                             Text(
-                                text = "Email",
+                                text = context.getString(R.string.email),
                                 color = Color.White,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = (screenWidthDp * 0.045f).sp,
@@ -228,7 +228,7 @@ fun ProfileScreen(
                             )
 
                             Text(
-                                text = "Hour for daily reminder",
+                                text = context.getString(R.string.hour),
                                 color = Color.White,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = (screenWidthDp * 0.048f).sp,
@@ -322,7 +322,7 @@ fun ProfileScreen(
                             }
 
                             Text(
-                                text = "Wanna change your password?",
+                                text = context.getString(R.string.change_password),
                                 color = Color.White,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = (screenWidthDp * 0.042f).sp,
@@ -359,7 +359,7 @@ fun ProfileScreen(
                                     singleLine = true,
                                     placeholder = {
                                         Text(
-                                            "Digit your actual password",
+                                            context.getString(R.string.current_password),
                                             color = Color.White,
                                             modifier = Modifier.fillMaxWidth(),
                                             fontSize = (screenWidthDp * 0.0275f).sp,
@@ -394,7 +394,7 @@ fun ProfileScreen(
                                     singleLine = true,
                                     placeholder = {
                                         Text(
-                                            text = "Digit your new password",
+                                            text = context.getString(R.string.new_password),
                                             color = Color.White,
                                             modifier = Modifier.fillMaxWidth(),
                                             fontSize = (screenWidthDp * 0.0275f).sp,
@@ -428,7 +428,7 @@ fun ProfileScreen(
                                     singleLine = true,
                                     placeholder = {
                                         Text(
-                                            "Confirm your password",
+                                            context.getString(R.string.confirm_password),
                                             color = Color.White,
                                             modifier = Modifier.fillMaxWidth(),
                                             fontSize = (screenWidthDp * 0.0275f).sp,
@@ -454,7 +454,6 @@ fun ProfileScreen(
                                 horizontalArrangement = Arrangement.Center,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                // Botón de guardar cambios
                                 Button(
                                     onClick = { bottomButtonSelected = "Save changes" },
                                     modifier = Modifier.height(36.dp),
@@ -465,7 +464,7 @@ fun ProfileScreen(
                                     shape = RoundedCornerShape(10.dp)
                                 ) {
                                     Text(
-                                        text = "Save changes",
+                                        text = context.getString(R.string.save_changes),
                                         fontWeight = FontWeight.Bold
                                     )
                                 }
@@ -489,7 +488,7 @@ fun ProfileScreen(
                                     shape = RoundedCornerShape(10.dp)
                                 ) {
                                     Text(
-                                        text = "Close session",
+                                        text = context.getString(R.string.logout),
                                         fontWeight = FontWeight.Bold
                                     )
                                 }

@@ -2,6 +2,7 @@
 
 package com.example.coinary
 
+import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -60,6 +61,7 @@ import kotlinx.coroutines.launch
 
 val InterFont = FontFamily(Font(R.font.inter))
 
+@SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun GoogleLoginScreen(
     onLoginSuccess: () -> Unit,
@@ -84,7 +86,7 @@ fun GoogleLoginScreen(
             try {
                 val user = googleAuthClient.signInWithIntent(result.data ?: return@launch)
                 if (user.isSuccess) {
-                    Toast.makeText(context, "Inicio de sesión exitoso", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.login_success), Toast.LENGTH_SHORT).show()
                     onLoginSuccess()
                 } else {
                     Toast.makeText(context, "Error: ${user.exceptionOrNull()?.message}", Toast.LENGTH_SHORT).show()
@@ -125,7 +127,7 @@ fun GoogleLoginScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = "Manage your plans\nwith Coinary",
+                text = context.getString(R.string.lildescriptor),
                 fontFamily = InterFont,
                 fontWeight = FontWeight.Bold,
                 fontSize = if (screenWidth < 600.dp) 24.sp else 32.sp,
@@ -139,7 +141,7 @@ fun GoogleLoginScreen(
             // Email
             CustomTextField(
                 value = email,
-                label = "Email Address",
+                label = context.getString(R.string.mail_label),
                 onValueChange = { email = it }
             )
 
@@ -148,7 +150,7 @@ fun GoogleLoginScreen(
             // Password
             CustomTextField(
                 value = password,
-                label = "Password",
+                label = context.getString(R.string.password_label),
                 onValueChange = { password = it },
                 isPassword = true
             )
@@ -156,7 +158,7 @@ fun GoogleLoginScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             AuthButton(
-                text = "Continue",
+                text = context.getString(R.string.continue_button),
                 loading = isLoading,
                 onClick = {
                     if (email.isNotBlank() && password.isNotBlank()) {
@@ -172,7 +174,7 @@ fun GoogleLoginScreen(
                                 }
                             }
                     } else {
-                        Toast.makeText(context, "Completa todos los campos", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.empty_fields), Toast.LENGTH_SHORT).show()
                     }
                 }
             )
@@ -180,7 +182,7 @@ fun GoogleLoginScreen(
             Spacer(modifier = Modifier.height(30.dp))
 
             AuthButton(
-                text = "Continue with Google",
+                text = context.getString(R.string.continue_with_google),
                 icon = R.drawable.ic_google,
                 backgroundColor = Color(0xFF757569),
                 loading = false,
@@ -196,7 +198,7 @@ fun GoogleLoginScreen(
             Spacer(modifier = Modifier.height(30.dp))
 
             Text(
-                text = "By continuing, you agree to Coinary's Terms of\nService and Privacy Policy. You confirm that you have\nread and understood these terms.",
+                text = context.getString(R.string.policies),
                 color = Color.White,
                 fontSize = 9.sp,
                 lineHeight = 12.sp,
@@ -283,8 +285,9 @@ fun AuthButton(text: String, icon: Int? = null, backgroundColor: Color = Color(0
 
 @Composable
 fun SignUpText(onClick: () -> Unit) {
+    val context = LocalContext.current
     val annotatedText = buildAnnotatedString {
-        append("Don't have an account? ")
+        append(context.getString(R.string.dont_account))
         pushStringAnnotation(tag = "SIGNUP", annotation = "signup")
         withStyle(
             style = SpanStyle(
@@ -292,7 +295,7 @@ fun SignUpText(onClick: () -> Unit) {
                 textDecoration = TextDecoration.Underline
             )
         ) {
-            append("Sign Up")
+            append(context.getString(R.string.sign_up))
         }
         pop()
     }

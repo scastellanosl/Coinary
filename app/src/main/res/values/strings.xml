@@ -1,3 +1,94 @@
 <resources>
+
     <string name="app_name">Coinary</string>
+
+    /////////////// GoogleLoginScreen.kt //////////////////
+
+    <string name ="login_success">Login success</string>
+    <string name="lildescriptor">"Manage your plans
+        with Coinary"</string>
+    <string name="mail_label">Email address</string>">
+    <string name="password_label">Password</string>
+    <string name="continue_button">Continue</string>
+    <string name="empty_fields">Please fill all the fields</string>
+    <string name="continue_with_google">Continue with Google</string>
+    <string name="policies">By continuing, you agree to our Terms of Service and Privacy Policy.</string>
+    <string name="dont_account">You don\'t have an account?</string>
+    <string name="sign_up">Sign up</string>
+
+    /////////////// MainActivity.kt //////////////////
+
+    <string name="greeting">Hello!!</string>
+    <string name="personal_expenses">Total Personal Expenses</string>
+    <string name="total_income">Total Income</string>
+    <string name="month">Month</string>
+    <string name="this_week">This Week</string>
+    <string name="all">All</string>
+    <string name="top_expenses">Top expenses</string>
+    <string name="food">Food</string>
+    <string name="gifts">Gifts</string>
+    <string name="transport">Transport</string>
+
+    /////////////// MovementScreen.kt //////////////////
+
+    <string name="add_movement">Add a movement</string>
+    <string name="income">Income</string>
+    <string name="expense">Expense</string>
+    <string name="select_category">Select Category</string>
+    <string name="amount">Amount</string>
+    <string name="short_description">Add a short description if you want to</string>
+    <string name="add_description">Your description</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string-array name="categories">
+        <item>Food</item>
+        <item>Transport</item>
+        <item>Entertainment</item>
+        <item>Health</item>
+        <item>Other</item>
+    </string-array>
+
+    /////////////// NotificationsScreen.kt //////////////////
+
+    <string name="notifications">Notifications</string>
+    <string name="reminder">Reminder</string>
+    <string name="reminder_for">Remind to pay...</string>
+    <string name="daily_expenses">Remember to add today\'s expenses</string>
+
+    /////////////// ProfileScreen.kt //////////////////
+
+    <string name="profile_configuration">Profile configuration</string>
+    <string name="your_info">Your info</string>
+    <string name="email">Email</string>
+    <string name="hour">Hour for daily reminder</string>
+    <string name="change_password">Wanna change your password?</string>
+    <string name="current_password">Digit your actual password</string>
+    <string name="new_password">Digit your new password</string>
+    <string name="confirm_password">Confirm your new password</string>
+    <string name="save_changes">Save changes</string>
+    <string name="logout">Close session</string>>
+
+    /////////////// RegisterScreen.kt //////////////////
+
+    <string name="mail_error">Invalid email format</string>
+    <string name="password_error">Password must be at least 6 characters</string>
+    <string name="passwords_not_match">Passwords do not match</string>
+    <string name="description">Chart your financial\njourney with Coinary</string>
+    <string name="confirm_password_label">Confirm Password</string>
+    <string name="register_success">Registration successful</string>
+    <string name="create_account">Create account</string>
+    <string name="already_account">Already have an account?</string>
+    <string name="login">Login</string>
+    <string name="google_sign_in">Sign in with Google</string>
+
+    /////////////// ReminderScreen.kt //////////////////
+
+    <string name="create_reminder">Create a new reminder</string>
+    <string name="name_reminder">Name your reminder</string>
+
+    /////////////// StatsScreen.kt //////////////////
+
+    <string name="stats">Your expenses look like this</string>
+
+
 </resources>
