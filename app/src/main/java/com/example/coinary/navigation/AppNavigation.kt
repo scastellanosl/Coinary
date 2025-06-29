@@ -1,4 +1,4 @@
-package com.example.coinary
+package com.example.coinary.navigation
 
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
