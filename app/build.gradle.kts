@@ -1,3 +1,5 @@
+// build.gradle.kts (Module: app)
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -41,22 +43,43 @@ android {
 }
 
 dependencies {
-    implementation(libs.accompanist.systemuicontroller)
+    // Firebase BOM
     implementation(platform(libs.firebase.bom.v33130))
-    implementation(libs.google.firebase.analytics)
+
+    // Firebase Authentication
     implementation(libs.google.firebase.auth.ktx)
     implementation(libs.play.services.auth.v2070)
+
+    // Firebase Firestore
+    implementation(libs.firebase.firestore.ktx)
+
+    // Firebase Analytics
+    implementation(libs.google.firebase.analytics)
+
+    // Jetpack Compose - ViewModel (para usar viewModel() en composables)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+
+    // Navigation Compose
     implementation(libs.androidx.navigation.compose.v277)
+    implementation(libs.androidx.navigation.compose.android)
+
+    // Core KTX
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+
+    // Compose UI
+    implementation(libs.accompanist.systemuicontroller)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.material.icons.extended)
+    implementation(libs.androidx.ui.text)
     implementation(libs.vision.internal.vkp)
-    implementation(libs.androidx.navigation.compose.android)
+
+    // Test dependencies
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -64,6 +87,5 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    implementation(libs.androidx.material.icons.extended)
 
 }

@@ -28,6 +28,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -42,13 +44,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.coinary.R
 import com.example.coinary.repository.GoogleAuthClient
+import com.example.coinary.viewmodel.HomeViewModel
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import java.text.NumberFormat
+import java.util.Locale
 
 @Composable
-fun HomeScreen(navController: NavController, onLogout: () -> Unit) {
+fun HomeScreen(
+    navController: NavController,
+    onLogout: () -> Unit,
+    homeViewModel: HomeViewModel = viewModel() // Inyecta el HomeViewModel
+) {
 
     val systemUiController = rememberSystemUiController()
     val statusBarColor = Color(0xFF150F33)
@@ -63,6 +73,13 @@ fun HomeScreen(navController: NavController, onLogout: () -> Unit) {
     val googleAuthClient = remember { GoogleAuthClient(context) }
     val coroutineScope = rememberCoroutineScope()
     val user = googleAuthClient.getSignedInUser()
+
+    // Observar los totales desde el HomeViewModel
+    val totalIncome by homeViewModel.totalIncome.collectAsState()
+    val totalExpenses by homeViewModel.totalExpenses.collectAsState()
+
+    // Formateador de moneda
+    val currencyFormatter = remember { NumberFormat.getCurrencyInstance(Locale("es", "CO")) } // Ejemplo para Colombia
 
 
     Column(
@@ -174,8 +191,9 @@ fun HomeScreen(navController: NavController, onLogout: () -> Unit) {
                     textAlign = TextAlign.Center
                 )
 
+                // Mostrar el total de gastos
                 Text(
-                    text = "$ 245.567,55",
+                    text = currencyFormatter.format(totalExpenses), // Usar el total de gastos real
                     fontWeight = FontWeight.Bold,
                     fontSize = 24.sp,
                     color = Color.White,
@@ -190,8 +208,9 @@ fun HomeScreen(navController: NavController, onLogout: () -> Unit) {
                     modifier = Modifier.padding(top = 3.dp)
                 )
 
+                // Mostrar el total de ingresos
                 Text(
-                    text = "$ 1’245.567,34",
+                    text = currencyFormatter.format(totalIncome), // Usar el total de ingresos real
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp,
                     color = Color.White,
@@ -291,8 +310,9 @@ fun HomeScreen(navController: NavController, onLogout: () -> Unit) {
                                     color = Color.White,
                                     fontSize = 14.sp
                                 )
+                                // Aquí podrías mostrar el "balance" o el total de la semana si lo calculas
                                 Text(
-                                    text = "$ 245.567,55",
+                                    text = currencyFormatter.format(totalIncome - totalExpenses), // Ejemplo: balance total
                                     textAlign = TextAlign.Center,
                                     fontWeight = FontWeight.Bold,
                                     color = Color.White,
@@ -348,6 +368,9 @@ fun HomeScreen(navController: NavController, onLogout: () -> Unit) {
                     verticalAlignment = Alignment.Top,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
+                    // Nota: Estos datos de gastos principales siguen siendo estáticos.
+                    // Para hacerlos dinámicos, necesitarías una lógica más compleja en el ViewModel
+                    // para agrupar y sumar gastos por categoría.
                     listOf(
                         Triple(context.getString(R.string.food), R.drawable.rectangle1, R.drawable.food_icon) to "$ 102.500",
                         Triple(context.getString(R.string.gifts), R.drawable.rectangle2, R.drawable.gift_icon) to "$ 78.000",
