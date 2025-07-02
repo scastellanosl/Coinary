@@ -54,7 +54,7 @@
         <item>Éducation</item>
         <item>Autres dépenses</item>
     </string-array>
-    <string name="fill_all_fields">Please fill all valid fields</string>
+    <string name="fill_all_fields">Veuillez remplir tous les champs</string>
 
     <!-- NotificationsScreen.kt -->
     <string name="notifications">Notifications</string>
@@ -90,16 +90,19 @@
     <string name="create_reminder">Créer un nouveau rappel</string>
     <string name="name_reminder">Nommez votre rappel</string>
     <string-array name="categories">
-        <item>Food</item>
+        <item>Nourriture</item>
         <item>Transport</item>
-        <item>Housing</item>
-        <item>Entertainment</item>
+        <item>Logement</item>
+        <item>Divertissement</item>
         <item>Services</item>
-        <item>Shopping</item>
-        <item>Health</item>
-        <item>Education</item>
-        <item>Other</item>
+        <item>Achat</item>
+        <item>Santé</item>
+        <item>Éducation</item>
+        <item>Autre</item>
     </string-array>
+
+    <string name="date">Date</string>
+
 
 
     <!-- StatsScreen.kt -->

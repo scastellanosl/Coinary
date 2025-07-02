@@ -110,6 +110,8 @@
         <item>Other</item>
     </string-array>
 
+    <string name="date">Date</string>
+
     /////////////// StatsScreen.kt //////////////////
 
     <string name="stats">Your expenses look like this</string>

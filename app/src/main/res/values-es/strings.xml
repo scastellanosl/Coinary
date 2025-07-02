@@ -98,16 +98,18 @@
     <string name="create_reminder">Crea un nuevo recordatorio</string>
     <string name="name_reminder">Nombra tu recordatorio</string>
     <string-array name="categories">
-        <item>Food</item>
-        <item>Transport</item>
-        <item>Housing</item>
-        <item>Entertainment</item>
-        <item>Services</item>
-        <item>Shopping</item>
-        <item>Health</item>
-        <item>Education</item>
-        <item>Other</item>
+        <item>Comida</item>
+        <item>Transporte</item>
+        <item>Hospedaje</item>
+        <item>Entretenimiento</item>
+        <item>Servicios</item>
+        <item>Compras</item>
+        <item>Salud</item>
+        <item>Educación</item>
+        <item>Otro</item>
     </string-array>
+
+    <string name="date">Fecha</string>
 
     /////////////// StatsScreen.kt //////////////////
 

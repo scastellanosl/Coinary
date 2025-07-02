@@ -1,5 +1,4 @@
 package com.example.coinary.view
-
 import android.app.DatePickerDialog
 import android.widget.DatePicker
 import android.widget.Toast
@@ -66,6 +65,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.coinary.R
+import com.example.coinary.view.MovementTypeButton
 import com.example.coinary.viewmodel.MovementViewModel
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import java.text.SimpleDateFormat
@@ -99,18 +99,20 @@ fun AddMovementScreen(
     val buttonHeight = if (screenHeight < 600.dp) 32.dp else 36.dp
     val buttonHorizontalPadding = if (screenWidth < 360.dp) 12.dp else 20.dp
 
-    var selectedMovementType by remember { mutableStateOf("Income") } // "Income" o "Expense"
+    val contexto = LocalContext.current
+
+    var selectedMovementType by remember { mutableStateOf(contexto.getString(R.string.income)) } // "Income" o "Expense"
     // var bottomButtonSelected by remember { mutableStateOf<String?>(null) } // No es necesario para el guardado
 
     var expanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
     // Categorías específicas para ingresos y gastos (mejor que R.array.categories genéricas)
-    val incomeCategories = remember { listOf("Salario", "Regalo", "Ventas", "Inversión", "Otros Ingresos") }
-    val expenseCategories = remember { listOf("Comida", "Transporte", "Vivienda", "Ocio", "Servicios", "Compras", "Salud", "Educación", "Otros Gastos") }
-    val currentCategories = if (selectedMovementType == "Income") incomeCategories else expenseCategories
+    val incomeCategories = remember { context.resources.getStringArray(R.array.income_categories).toList() }
+    val expenseCategories = remember { context.resources.getStringArray(R.array.expense_categories).toList() }
+    val currentCategories = if (selectedMovementType == context.getString(R.string.income)) incomeCategories else expenseCategories
 
-    var selectedCategory by remember { mutableStateOf("Selecciona Categoría") } // Valor inicial
+    var selectedCategory by remember { mutableStateOf(context.getString(R.string.select_category)) } // Valor inicial
 
     var amount by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
@@ -125,7 +127,6 @@ fun AddMovementScreen(
             shape = RoundedCornerShape(12.dp)
         )
 
-    // Formateador de fecha
     val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 
     // Observar el estado del ViewModel
@@ -136,7 +137,7 @@ fun AddMovementScreen(
             // Limpiar campos después de guardar exitosamente
             amount = ""
             description = ""
-            selectedCategory = "Selecciona Categoría"
+            selectedCategory = context.getString(R.string.select_category)
             selectedDate = Calendar.getInstance()
             movementViewModel.resetMessages()
             // Opcional: Navegar hacia atrás o a otra pantalla
@@ -218,10 +219,10 @@ fun AddMovementScreen(
             ) {
                 MovementTypeButton(
                     text = context.getString(R.string.income),
-                    isSelected = selectedMovementType == "Income",
+                    isSelected = selectedMovementType == context.getString(R.string.income),
                     onClick = {
-                        selectedMovementType = "Income"
-                        selectedCategory = "Selecciona Categoría" // Reset category when type changes
+                        selectedMovementType = context.getString(R.string.income)
+                        selectedCategory = context.getString(R.string.select_category)
                     },
                     modifier = Modifier
                         .width(130.dp)
@@ -230,10 +231,10 @@ fun AddMovementScreen(
 
                 MovementTypeButton(
                     text = context.getString(R.string.expense),
-                    isSelected = selectedMovementType == "Expense",
+                    isSelected = selectedMovementType == context.getString(R.string.expense),
                     onClick = {
-                        selectedMovementType = "Expense"
-                        selectedCategory = "Selecciona Categoría" // Reset category when type changes
+                        selectedMovementType = context.getString(R.string.expense)
+                        selectedCategory = context.getString(R.string.select_category)
                     },
                     modifier = Modifier
                         .width(130.dp)
@@ -282,7 +283,7 @@ fun AddMovementScreen(
                             value = selectedCategory,
                             onValueChange = {}, // No permite edición directa
                             readOnly = true,
-                            label = { Text("Categoría", color = Color(0xFF868686)) }, // Etiqueta para TextField
+                            label = { Text(context.getString(R.string.select_category), color = Color(0xFF868686)) }, // Etiqueta para TextField
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -393,7 +394,7 @@ fun AddMovementScreen(
                         readOnly = true,
                         label = {
                             Text(
-                                text = "Fecha",
+                                text = context.getString(R.string.date),
                                 fontFamily = InterFont,
                                 fontWeight = FontWeight.Normal,
                                 fontSize = labelFontSize,
@@ -493,12 +494,12 @@ fun AddMovementScreen(
                             isSelected = uiState.isLoading, // Opcional: indicar que está cargando
                             onClick = {
                                 val amountDouble = amount.toDoubleOrNull()
-                                if (amountDouble == null || description.isBlank() || selectedCategory == "Selecciona Categoría") {
-                                    Toast.makeText(context, "Por favor, completa todos los campos válidos.", Toast.LENGTH_SHORT).show()
+                                if (amountDouble == null || description.isBlank() || selectedCategory == context.getString(R.string.select_category)) {
+                                    Toast.makeText(context, context.getString(R.string.fill_all_fields), Toast.LENGTH_SHORT).show()
                                     return@MovementTypeButton
                                 }
 
-                                if (selectedMovementType == "Income") {
+                                if (selectedMovementType == context.getString(R.string.income)) {
                                     movementViewModel.saveIncome(
                                         amount = amountDouble,
                                         description = description,
@@ -545,6 +546,8 @@ fun MovementTypeButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true // Añadir parámetro de habilitación
 ) {
+    val context = LocalContext.current
+
     Button(
         onClick = onClick,
         modifier = modifier.height(36.dp),
@@ -559,7 +562,7 @@ fun MovementTypeButton(
         contentPadding = PaddingValues(horizontal = 20.dp),
         enabled = enabled // Usar el parámetro enabled
     ) {
-        if (text == "Guardar" && !enabled) { // Muestra CircularProgressIndicator solo para "Guardar" cuando está cargando
+        if (text == context.getString(R.string.save) && !enabled) { // Muestra CircularProgressIndicator solo para "Guardar" cuando está cargando
             CircularProgressIndicator(
                 modifier = Modifier.size(24.dp),
                 color = Color.White,
@@ -575,4 +578,3 @@ fun MovementTypeButton(
         }
     }
 }
-
