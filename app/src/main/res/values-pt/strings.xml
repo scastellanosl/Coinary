@@ -36,12 +36,23 @@
     <string name="add_description">Sua descrição</string>
     <string name="save">Salvar</string>
     <string name="cancel">Cancelar</string>
-    <string-array name="categories">
+    <string-array name="income_categories">
+        <item>Salário</item>
+        <item>Presente</item>
+        <item>Vendas</item>
+        <item>Investimento</item>
+        <item>Outras receitas</item>
+    </string-array>
+    <string-array name="expense_categories">
         <item>Alimentação</item>
         <item>Transporte</item>
+        <item>Moradia</item>
         <item>Entretenimento</item>
+        <item>Serviços</item>
+        <item>Compras</item>
         <item>Saúde</item>
-        <item>Outros</item>
+        <item>Educação</item>
+        <item>Outras despesas</item>
     </string-array>
 
     <!-- NotificationsScreen.kt -->

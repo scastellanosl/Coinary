@@ -125,7 +125,6 @@ fun AddMovementScreen(
             shape = RoundedCornerShape(12.dp)
         )
 
-    // Formateador de fecha
     val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 
     // Observar el estado del ViewModel

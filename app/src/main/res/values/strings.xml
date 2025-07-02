@@ -40,12 +40,23 @@
     <string name="add_description">Your description</string>
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
-    <string-array name="categories">
+    <string-array name="income_categories">
+        <item>Salary</item>
+        <item>Gift</item>
+        <item>Sales</item>
+        <item>Investment</item>
+        <item>Other Income</item>
+    </string-array>
+    <string-array name="expense_categories">
         <item>Food</item>
         <item>Transport</item>
+        <item>Housing</item>
         <item>Entertainment</item>
+        <item>Services</item>
+        <item>Shopping</item>
         <item>Health</item>
-        <item>Other</item>
+        <item>Education</item>
+        <item>Other Expenses</item>
     </string-array>
 
     /////////////// NotificationsScreen.kt //////////////////
