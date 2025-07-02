@@ -12,6 +12,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.coinary.UserSetupScreen
 import com.example.coinary.repository.GoogleAuthClient
 import com.example.coinary.view.AddMovementScreen
 import com.example.coinary.view.GoogleLoginScreen
@@ -53,7 +54,7 @@ fun AppNavigation() {
         }
     }
 
-    // Verify if user is logged
+    // Verificar si el usuario está logeado (FirebaseAuth)
     val isUserLoggedIn = remember { mutableStateOf<Boolean?>(null) }
 
     LaunchedEffect(Unit) {
@@ -82,7 +83,7 @@ fun AppNavigation() {
             composable("register") {
                 RegisterScreen(
                     onRegisterSuccess = {
-                        navController.navigate("main") {
+                        navController.navigate("user_setup") {
                             popUpTo("register") { inclusive = true }
                         }
                     },
@@ -145,6 +146,18 @@ fun AppNavigation() {
                     }
                 )
             }
+
+            composable("user_setup") {
+                UserSetupScreen(
+                    onSetupComplete = {
+                        navController.navigate("main") {
+                            popUpTo("user_setup") { inclusive = true }
+                        }
+                    }
+                )
+            }
+
+
         }
     }
 }
