@@ -7,7 +7,7 @@
     <string name ="login_success">Login success</string>
     <string name="lildescriptor">"Manage your plans
         with Coinary"</string>
-    <string name="mail_label">Email address</string>">
+    <string name="mail_label">Email address</string>
     <string name="password_label">Password</string>
     <string name="continue_button">Continue</string>
     <string name="empty_fields">Please fill all the fields</string>

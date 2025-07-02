@@ -67,6 +67,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 import kotlin.math.min
+import com.example.coinary.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -102,22 +103,26 @@ fun StatsScreen(
         )
     }
 
+    val expenseCategories = context.resources.getStringArray(R.array.expense_categories)
+    val incomeCategories = context.resources.getStringArray(R.array.income_categories)
+
     val categoryColorMap = remember {
         mapOf(
-            "Comida" to Color(0xFFF2E423),
-            "Transporte" to Color(0xFF4D54BF),
-            "Vivienda" to Color(0xFFFFFFFF),
-            "Ocio" to Color(0xFFE91E63),
-            "Salud" to Color(0xFF00BCD4),
-            "Educación" to Color(0xFF8BC34A),
-            "Servicios" to Color(0xFFFF9800),
-            "Compras" to Color(0xFF9C27B0),
-            "Salario" to Color(0xFF33CC33),
-            "Regalo" to Color(0xFF800080),
-            "Ventas" to Color(0xFFFFA500),
-            "Inversión" to Color(0xFF00CED1),
-            "Otros Ingresos" to Color(0xFFC0C0C0),
-            "Otros Gastos" to Color(0xFF03A9F4)
+            expenseCategories[0] to Color(0xFFF2E423), // Food
+            expenseCategories[1] to Color(0xFF4D54BF), // Transport
+            expenseCategories[2] to Color(0xFFFFFFFF), // Housing
+            expenseCategories[3] to Color(0xFFE91E63), // Entertainment
+            expenseCategories[4] to Color(0xFFFF9800), // Services
+            expenseCategories[5] to Color(0xFF9C27B0), // Shopping
+            expenseCategories[6] to Color(0xFF00BCD4), // Health
+            expenseCategories[7] to Color(0xFF8BC34A), // Education
+            expenseCategories[8] to Color(0xFF03A9F4), // Other Expenses
+
+            incomeCategories[0] to Color(0xFF33CC33), // Salary
+            incomeCategories[1] to Color(0xFF800080), // Gift
+            incomeCategories[2] to Color(0xFFFFA500), // Sales
+            incomeCategories[3] to Color(0xFF00CED1), // Investment
+            incomeCategories[4] to Color(0xFFC0C0C0)  // Other Income
         )
     }
 
