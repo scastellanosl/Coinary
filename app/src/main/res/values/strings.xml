@@ -130,6 +130,11 @@
         <item>November</item>
         <item>December</item>
     </string-array>
+    <string name="stats_title">Monthly stats</string>
 
+    <string name="no_data_selected_month">There are no no data for the month selected</string>
+    <string name="bars">Bars</string>
+    <string name="lines">Lines</string>
+    <string name="cake">Cake</string>
 
 </resources>

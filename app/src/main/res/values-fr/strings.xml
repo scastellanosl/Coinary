@@ -120,5 +120,12 @@
 
     <!-- StatsScreen.kt -->
     <string name="stats">Voici à quoi ressemblent vos dépenses</string>
+    <string name="stats_title">Statistiques mensuelles</string>
+    <string name="no_data_selected_month">Il n\'y a pas de données pour le mois sélectionné</string>
+
+    <string name="bars">Bars</string>
+    <string name="lines">Lines</string>
+    <string name="cake">Cake</string>
+
 
 </resources>
