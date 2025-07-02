@@ -90,25 +90,29 @@ fun HomeScreen(
     // Formateador de moneda
     val currencyFormatter = remember { NumberFormat.getCurrencyInstance(Locale("es", "CO")) } // Ejemplo para Colombia
 
+
     // --- NUEVO: Mapa de colores por categoría para consistencia ---
+    val expenseCategories = context.resources.getStringArray(R.array.expense_categories)
+    val incomeCategories = context.resources.getStringArray(R.array.income_categories)
+
+// Ejemplo: asigna colores a las categorías de gastos
     val categoryColorMap = remember {
         mapOf(
-            "Comida" to Color(0xFFF2E423), // Amarillo coinary
-            "Transporte" to Color(0xFF4D54BF), // Azul coinary
-            "Vivienda" to Color(0xFFFFFFFF), // Blanco
-            "Ocio" to Color(0xFFE91E63), // Rosa (antes Entretenimiento)
-            "Salud" to Color(0xFF00BCD4), // Cian
-            "Educación" to Color(0xFF8BC34A),  // Verde claro
-            "Servicios" to Color(0xFFFF9800), // Naranja
-            "Compras" to Color(0xFF9C27B0), // Púrpura
-            "Salario" to Color(0xFF33CC33), // Verde brillante para ingresos
-            "Regalo" to Color(0xFF800080), // Púrpura oscuro para ingresos
-            "Ventas" to Color(0xFFFFA500), // Naranja brillante para ingresos
-            "Inversión" to Color(0xFF00CED1), // Azul verdoso para ingresos
-            "Otros Ingresos" to Color(0xFFC0C0C0), // Plata para ingresos genéricos
-            "Otros Gastos" to Color(0xFF03A9F4) // Azul claro para gastos genéricos
-            // Añade más categorías y colores según las que uses en tu app
-            // Si tienes más de 9-10 categorías, considera agrupar las pequeñas en "Otros".
+            expenseCategories[0] to Color(0xFFF2E423), // Food
+            expenseCategories[1] to Color(0xFF4D54BF), // Transport
+            expenseCategories[2] to Color(0xFFFFFFFF), // Housing
+            expenseCategories[3] to Color(0xFFE91E63), // Entertainment
+            expenseCategories[4] to Color(0xFFFF9800), // Services
+            expenseCategories[5] to Color(0xFF9C27B0), // Shopping
+            expenseCategories[6] to Color(0xFF00BCD4), // Health
+            expenseCategories[7] to Color(0xFF8BC34A), // Education
+            expenseCategories[8] to Color(0xFF03A9F4)  // Other Expenses
+        ) + mapOf(
+            incomeCategories[0] to Color(0xFF33CC33), // Salary
+            incomeCategories[1] to Color(0xFF800080), // Gift
+            incomeCategories[2] to Color(0xFFFFA500), // Sales
+            incomeCategories[3] to Color(0xFF00CED1), // Investment
+            incomeCategories[4] to Color(0xFFC0C0C0)  // Other Income
         )
     }
 
