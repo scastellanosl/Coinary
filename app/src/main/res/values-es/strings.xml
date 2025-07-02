@@ -58,6 +58,7 @@
         <item>Educación</item>
         <item>Otros gastos</item>
     </string-array>
+    <string name="fill_all_fields">Por favor completa todos los campos</string>
 
     /////////////// NotificationsScreen.kt //////////////////
 
@@ -96,6 +97,17 @@
 
     <string name="create_reminder">Crea un nuevo recordatorio</string>
     <string name="name_reminder">Nombra tu recordatorio</string>
+    <string-array name="categories">
+        <item>Food</item>
+        <item>Transport</item>
+        <item>Housing</item>
+        <item>Entertainment</item>
+        <item>Services</item>
+        <item>Shopping</item>
+        <item>Health</item>
+        <item>Education</item>
+        <item>Other</item>
+    </string-array>
 
     /////////////// StatsScreen.kt //////////////////
 

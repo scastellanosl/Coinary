@@ -54,6 +54,7 @@
         <item>Éducation</item>
         <item>Autres dépenses</item>
     </string-array>
+    <string name="fill_all_fields">Please fill all valid fields</string>
 
     <!-- NotificationsScreen.kt -->
     <string name="notifications">Notifications</string>
@@ -88,6 +89,18 @@
     <!-- ReminderScreen.kt -->
     <string name="create_reminder">Créer un nouveau rappel</string>
     <string name="name_reminder">Nommez votre rappel</string>
+    <string-array name="categories">
+        <item>Food</item>
+        <item>Transport</item>
+        <item>Housing</item>
+        <item>Entertainment</item>
+        <item>Services</item>
+        <item>Shopping</item>
+        <item>Health</item>
+        <item>Education</item>
+        <item>Other</item>
+    </string-array>
+
 
     <!-- StatsScreen.kt -->
     <string name="stats">Voici à quoi ressemblent vos dépenses</string>

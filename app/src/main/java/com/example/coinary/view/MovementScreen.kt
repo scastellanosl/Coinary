@@ -1,5 +1,4 @@
 package com.example.coinary.view
-
 import android.app.DatePickerDialog
 import android.widget.DatePicker
 import android.widget.Toast
@@ -66,6 +65,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.coinary.R
+import com.example.coinary.view.MovementTypeButton
 import com.example.coinary.viewmodel.MovementViewModel
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import java.text.SimpleDateFormat
@@ -106,11 +106,11 @@ fun AddMovementScreen(
     val context = LocalContext.current
 
     // Categorías específicas para ingresos y gastos (mejor que R.array.categories genéricas)
-    val incomeCategories = remember { listOf("Salario", "Regalo", "Ventas", "Inversión", "Otros Ingresos") }
-    val expenseCategories = remember { listOf("Comida", "Transporte", "Vivienda", "Entretenimiento", "Servicios", "Compras", "Salud", "Educación", "Otros Gastos") }
+    val incomeCategories = remember { context.resources.getStringArray(R.array.income_categories).toList() }
+    val expenseCategories = remember { context.resources.getStringArray(R.array.expense_categories).toList() }
     val currentCategories = if (selectedMovementType == "Income") incomeCategories else expenseCategories
 
-    var selectedCategory by remember { mutableStateOf("Selecciona Categoría") } // Valor inicial
+    var selectedCategory by remember { mutableStateOf(context.getString(R.string.select_category)) } // Valor inicial
 
     var amount by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
@@ -135,7 +135,7 @@ fun AddMovementScreen(
             // Limpiar campos después de guardar exitosamente
             amount = ""
             description = ""
-            selectedCategory = "Selecciona Categoría"
+            selectedCategory = context.getString(R.string.select_category)
             selectedDate = Calendar.getInstance()
             movementViewModel.resetMessages()
             // Opcional: Navegar hacia atrás o a otra pantalla
@@ -220,7 +220,7 @@ fun AddMovementScreen(
                     isSelected = selectedMovementType == "Income",
                     onClick = {
                         selectedMovementType = "Income"
-                        selectedCategory = "Selecciona Categoría" // Reset category when type changes
+                        selectedCategory = context.getString(R.string.select_category)
                     },
                     modifier = Modifier
                         .width(130.dp)
@@ -232,7 +232,7 @@ fun AddMovementScreen(
                     isSelected = selectedMovementType == "Expense",
                     onClick = {
                         selectedMovementType = "Expense"
-                        selectedCategory = "Selecciona Categoría" // Reset category when type changes
+                        selectedCategory = context.getString(R.string.select_category)
                     },
                     modifier = Modifier
                         .width(130.dp)
@@ -281,7 +281,7 @@ fun AddMovementScreen(
                             value = selectedCategory,
                             onValueChange = {}, // No permite edición directa
                             readOnly = true,
-                            label = { Text("Categoría", color = Color(0xFF868686)) }, // Etiqueta para TextField
+                            label = { Text(context.getString(R.string.select_category), color = Color(0xFF868686)) }, // Etiqueta para TextField
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -492,8 +492,8 @@ fun AddMovementScreen(
                             isSelected = uiState.isLoading, // Opcional: indicar que está cargando
                             onClick = {
                                 val amountDouble = amount.toDoubleOrNull()
-                                if (amountDouble == null || description.isBlank() || selectedCategory == "Selecciona Categoría") {
-                                    Toast.makeText(context, "Por favor, completa todos los campos válidos.", Toast.LENGTH_SHORT).show()
+                                if (amountDouble == null || description.isBlank() || selectedCategory == context.getString(R.string.select_category)) {
+                                    Toast.makeText(context, context.getString(R.string.fill_all_fields), Toast.LENGTH_SHORT).show()
                                     return@MovementTypeButton
                                 }
 

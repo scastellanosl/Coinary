@@ -58,6 +58,7 @@
         <item>Education</item>
         <item>Other Expenses</item>
     </string-array>
+    <string name="fill_all_fields">Please fill all valid fields</string>
 
     /////////////// NotificationsScreen.kt //////////////////
 
@@ -96,6 +97,18 @@
 
     <string name="create_reminder">Create a new reminder</string>
     <string name="name_reminder">Name your reminder</string>
+
+    <string-array name="categories">
+        <item>Food</item>
+        <item>Transport</item>
+        <item>Housing</item>
+        <item>Entertainment</item>
+        <item>Services</item>
+        <item>Shopping</item>
+        <item>Health</item>
+        <item>Education</item>
+        <item>Other</item>
+    </string-array>
 
     /////////////// StatsScreen.kt //////////////////
 
