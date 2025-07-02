@@ -2,7 +2,7 @@ package com.example.coinary.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.coinary.data.FirestoreManager
+import com.example.coinary.data.FirestoreManager // Ajusta la ruta si es diferente
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -17,9 +17,14 @@ class HomeViewModel(
     private val _totalExpenses = MutableStateFlow(0.0)
     val totalExpenses: StateFlow<Double> = _totalExpenses
 
+    // Nuevo StateFlow para los gastos categorizados de la semana
+    private val _weeklyCategorizedExpenses = MutableStateFlow<Map<String, Double>>(emptyMap())
+    val weeklyCategorizedExpenses: StateFlow<Map<String, Double>> = _weeklyCategorizedExpenses
+
     init {
-        // Iniciar la escucha de totales cuando el ViewModel se crea
+        // Iniciar la escucha de totales y gastos categorizados cuando el ViewModel se crea
         fetchTotals()
+        fetchWeeklyCategorizedExpenses()
     }
 
     private fun fetchTotals() {
@@ -43,6 +48,20 @@ class HomeViewModel(
                 onFailure = { e ->
                     println("Error fetching total expenses: ${e.message}")
                     // Aquí podrías manejar el error
+                }
+            )
+        }
+    }
+
+    private fun fetchWeeklyCategorizedExpenses() {
+        viewModelScope.launch {
+            firestoreManager.getWeeklyExpensesByCategoryRealtime(
+                onCategorizedExpensesLoaded = { categorizedData ->
+                    _weeklyCategorizedExpenses.value = categorizedData
+                },
+                onFailure = { e ->
+                    println("Error fetching weekly categorized expenses: ${e.message}")
+                    // Manejar el error
                 }
             )
         }

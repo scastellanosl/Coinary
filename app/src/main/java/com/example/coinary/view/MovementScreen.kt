@@ -107,7 +107,7 @@ fun AddMovementScreen(
 
     // Categorías específicas para ingresos y gastos (mejor que R.array.categories genéricas)
     val incomeCategories = remember { listOf("Salario", "Regalo", "Ventas", "Inversión", "Otros Ingresos") }
-    val expenseCategories = remember { listOf("Comida", "Transporte", "Vivienda", "Entretenimiento", "Servicios", "Compras", "Salud", "Educación", "Otros Gastos") }
+    val expenseCategories = remember { listOf("Comida", "Transporte", "Vivienda", "Ocio", "Servicios", "Compras", "Salud", "Educación", "Otros Gastos") }
     val currentCategories = if (selectedMovementType == "Income") incomeCategories else expenseCategories
 
     var selectedCategory by remember { mutableStateOf("Selecciona Categoría") } // Valor inicial

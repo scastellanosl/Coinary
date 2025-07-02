@@ -1,12 +1,17 @@
 package com.example.coinary.data
 
-import com.example.coinary.model.Expense
-import com.example.coinary.model.Income
-import com.google.firebase.Timestamp
-import com.google.firebase.auth.FirebaseAuth
+// Importaciones necesarias para Firebase y Kotlin
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.Timestamp
+import com.google.firebase.auth.FirebaseAuth
+import com.example.coinary.model.Income // Ajusta la ruta si es diferente
+import com.example.coinary.model.Expense // Ajusta la ruta si es diferente
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 /**
  * Manages all interactions with Firebase Firestore for the Coinary application.
@@ -228,6 +233,279 @@ class FirestoreManager {
             onFailure(Exception("User not authenticated."))
             null
         }
+
+    /**
+     * Retrieves expense amounts grouped by category for the current week in real-time.
+     * The week is defined from Monday to Sunday.
+     * @param onCategorizedExpensesLoaded Callback invoked with a map of category to total amount.
+     * @param onFailure Callback invoked if an error occurs.
+     * @return A ListenerRegistration to stop listening for updates.
+     */
+    fun getWeeklyExpensesByCategoryRealtime(
+        onCategorizedExpensesLoaded: (Map<String, Double>) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) = getCurrentUserId()?.let { userId ->
+        val calendar = Calendar.getInstance(Locale.getDefault())
+        calendar.firstDayOfWeek = Calendar.MONDAY // Establece el lunes como el primer día de la semana
+
+        // Calcular el inicio de la semana (lunes a las 00:00:00)
+        calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+        val startOfWeek = Timestamp(calendar.time)
+
+        // Calcular el fin de la semana (domingo a las 23:59:59.999)
+        calendar.add(Calendar.DATE, 6) // Avanza 6 días para llegar al domingo
+        calendar.set(Calendar.HOUR_OF_DAY, 23)
+        calendar.set(Calendar.MINUTE, 59)
+        calendar.set(Calendar.SECOND, 59)
+        calendar.set(Calendar.MILLISECOND, 999)
+        val endOfWeek = Timestamp(calendar.time)
+
+        db.collection("users").document(userId)
+            .collection("expenses")
+            .whereGreaterThanOrEqualTo("date", startOfWeek) // Filtra gastos desde el inicio de la semana
+            .whereLessThanOrEqualTo("date", endOfWeek)     // Filtra gastos hasta el fin de la semana
+            .addSnapshotListener { snapshots, e ->
+                if (e != null) {
+                    println("Error listening for weekly categorized expenses: $e")
+                    onFailure(e)
+                    return@addSnapshotListener
+                }
+
+                val categorizedExpenses = mutableMapOf<String, Double>()
+                if (snapshots != null) {
+                    for (doc in snapshots) {
+                        val category = doc.getString("category") ?: "Uncategorized"
+                        val amount = doc.getDouble("amount") ?: 0.0
+                        categorizedExpenses[category] = (categorizedExpenses[category] ?: 0.0) + amount
+                    }
+                }
+                onCategorizedExpensesLoaded(categorizedExpenses)
+            }
+    } ?: run {
+        onFailure(Exception("User not authenticated."))
+        null
+    }
+
+    /**
+     * Retrieves all income records for a specific month and year in real-time.
+     * @param month The month (1-12).
+     * @param year The year.
+     * @param onIncomesLoaded Callback invoked with the list of incomes.
+     * @param onFailure Callback invoked if an error occurs.
+     * @return A ListenerRegistration to stop listening for updates.
+     */
+    fun getMonthlyIncomesRealtime(
+        month: Int,
+        year: Int,
+        onIncomesLoaded: (List<Income>) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) = getCurrentUserId()?.let { userId ->
+        val calendar = Calendar.getInstance().apply {
+            set(Calendar.YEAR, year)
+            set(Calendar.MONTH, month - 1) // Calendar.MONTH es 0-indexed
+            set(Calendar.DAY_OF_MONTH, 1)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val startOfMonth = Timestamp(calendar.time)
+
+        calendar.add(Calendar.MONTH, 1) // Avanza al siguiente mes
+        calendar.add(Calendar.MILLISECOND, -1) // Resta 1ms para obtener el último ms del mes actual
+        val endOfMonth = Timestamp(calendar.time)
+
+        db.collection("users").document(userId)
+            .collection("incomes")
+            .whereGreaterThanOrEqualTo("date", startOfMonth)
+            .whereLessThanOrEqualTo("date", endOfMonth)
+            .orderBy("date", Query.Direction.DESCENDING)
+            .addSnapshotListener { snapshots, e ->
+                if (e != null) {
+                    println("Error listening for monthly incomes: $e")
+                    onFailure(e)
+                    return@addSnapshotListener
+                }
+                val incomesList = mutableListOf<Income>()
+                if (snapshots != null) {
+                    for (doc in snapshots) {
+                        val income = doc.toObject(Income::class.java)
+                        income.id = doc.id
+                        incomesList.add(income)
+                    }
+                }
+                onIncomesLoaded(incomesList)
+            }
+    } ?: run {
+        onFailure(Exception("User not authenticated."))
+        null
+    }
+
+    /**
+     * Retrieves all expense records for a specific month and year in real-time.
+     * @param month The month (1-12).
+     * @param year The year.
+     * @param onExpensesLoaded Callback invoked with the list of expenses.
+     * @param onFailure Callback invoked if an error occurs.
+     * @return A ListenerRegistration to stop listening for updates.
+     */
+    fun getMonthlyExpensesRealtime(
+        month: Int,
+        year: Int,
+        onExpensesLoaded: (List<Expense>) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) = getCurrentUserId()?.let { userId ->
+        val calendar = Calendar.getInstance().apply {
+            set(Calendar.YEAR, year)
+            set(Calendar.MONTH, month - 1) // Calendar.MONTH es 0-indexed
+            set(Calendar.DAY_OF_MONTH, 1)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val startOfMonth = Timestamp(calendar.time)
+
+        calendar.add(Calendar.MONTH, 1) // Avanza al siguiente mes
+        calendar.add(Calendar.MILLISECOND, -1) // Resta 1ms para obtener el último ms del mes actual
+        val endOfMonth = Timestamp(calendar.time)
+
+        db.collection("users").document(userId)
+            .collection("expenses")
+            .whereGreaterThanOrEqualTo("date", startOfMonth)
+            .whereLessThanOrEqualTo("date", endOfMonth)
+            .orderBy("date", Query.Direction.DESCENDING)
+            .addSnapshotListener { snapshots, e ->
+                if (e != null) {
+                    println("Error listening for monthly expenses: $e")
+                    onFailure(e)
+                    return@addSnapshotListener
+                }
+                val expensesList = mutableListOf<Expense>()
+                if (snapshots != null) {
+                    for (doc in snapshots) {
+                        val expense = doc.toObject(Expense::class.java)
+                        expense.id = doc.id
+                        expensesList.add(expense)
+                    }
+                }
+                onExpensesLoaded(expensesList)
+            }
+    } ?: run {
+        onFailure(Exception("User not authenticated."))
+        null
+    }
+
+    /**
+     * Retrieves all income records for a specific month and year (one-time fetch).
+     * @param month The month (1-12).
+     * @param year The year.
+     * @param onSuccess Callback invoked with the list of incomes.
+     * @param onFailure Callback invoked if an error occurs.
+     */
+    fun getMonthlyIncomesOnce(
+        month: Int,
+        year: Int,
+        onSuccess: (List<Income>) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        val userId = getCurrentUserId()
+        if (userId == null) {
+            onFailure(Exception("User not authenticated."))
+            return
+        }
+
+        val calendar = Calendar.getInstance().apply {
+            set(Calendar.YEAR, year)
+            set(Calendar.MONTH, month - 1)
+            set(Calendar.DAY_OF_MONTH, 1)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val startOfMonth = Timestamp(calendar.time)
+
+        calendar.add(Calendar.MONTH, 1)
+        calendar.add(Calendar.MILLISECOND, -1)
+        val endOfMonth = Timestamp(calendar.time)
+
+        db.collection("users").document(userId)
+            .collection("incomes")
+            .whereGreaterThanOrEqualTo("date", startOfMonth)
+            .whereLessThanOrEqualTo("date", endOfMonth)
+            .get() // Use get() for one-time fetch
+            .addOnSuccessListener { snapshots ->
+                val incomesList = mutableListOf<Income>()
+                for (doc in snapshots) {
+                    val income = doc.toObject(Income::class.java)
+                    income.id = doc.id
+                    incomesList.add(income)
+                }
+                onSuccess(incomesList)
+            }
+            .addOnFailureListener { e ->
+                onFailure(e)
+            }
+    }
+
+    /**
+     * Retrieves all expense records for a specific month and year (one-time fetch).
+     * @param month The month (1-12).
+     * @param year The year.
+     * @param onSuccess Callback invoked with the list of expenses.
+     * @param onFailure Callback invoked if an error occurs.
+     */
+    fun getMonthlyExpensesOnce(
+        month: Int,
+        year: Int,
+        onSuccess: (List<Expense>) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        val userId = getCurrentUserId()
+        if (userId == null) {
+            onFailure(Exception("User not authenticated."))
+            return
+        }
+
+        val calendar = Calendar.getInstance().apply {
+            set(Calendar.YEAR, year)
+            set(Calendar.MONTH, month - 1)
+            set(Calendar.DAY_OF_MONTH, 1)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val startOfMonth = Timestamp(calendar.time)
+
+        calendar.add(Calendar.MONTH, 1)
+        calendar.add(Calendar.MILLISECOND, -1)
+        val endOfMonth = Timestamp(calendar.time)
+
+        db.collection("users").document(userId)
+            .collection("expenses")
+            .whereGreaterThanOrEqualTo("date", startOfMonth)
+            .whereLessThanOrEqualTo("date", endOfMonth)
+            .get() // Use get() for one-time fetch
+            .addOnSuccessListener { snapshots ->
+                val expensesList = mutableListOf<Expense>()
+                for (doc in snapshots) {
+                    val expense = doc.toObject(Expense::class.java)
+                    expense.id = doc.id
+                    expensesList.add(expense)
+                }
+                onSuccess(expensesList)
+            }
+            .addOnFailureListener { e ->
+                onFailure(e)
+            }
+    }
+
 
     /**
      * Updates an existing income record in Firestore.
