@@ -50,12 +50,15 @@ import androidx.navigation.NavController
 import com.example.coinary.R
 import com.example.coinary.repository.GoogleAuthClient
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
 @Composable
 fun ProfileScreen(
     navController: NavController, onLogout: () -> Unit
 ) {
+
+    FirebaseAuth.getInstance().currentUser?.email
 
     val systemUiController = rememberSystemUiController()
     val statusBarColor = Color.Black
@@ -213,7 +216,7 @@ fun ProfileScreen(
                             )
 
                             Text(
-                                user?.userId ?: "mailusuario",
+                                user?.email ?: "mailusuario",
                                 color = Color.White,
                                 fontWeight = FontWeight.Thin,
                                 fontSize = (screenWidthDp * 0.04f).sp,

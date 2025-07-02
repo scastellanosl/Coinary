@@ -15,7 +15,8 @@ import kotlinx.coroutines.tasks.await
 data class FirebaseUser(
     val userId: String,
     val username: String?,
-    val profilePictureUrl: String?
+    val profilePictureUrl: String?,
+    val email: String? // <-- agrega este campo
 )
 
 class GoogleAuthClient(private val context: Context) {
@@ -41,7 +42,8 @@ class GoogleAuthClient(private val context: Context) {
                 FirebaseUser(
                     userId = authResult.user?.uid!!,
                     username = authResult.user?.displayName,
-                    profilePictureUrl = authResult.user?.photoUrl?.toString()
+                    profilePictureUrl = authResult.user?.photoUrl?.toString(),
+                    email = authResult.user?.email // <-- agrega esto
                 )
             )
         } catch (e: Exception) {
@@ -53,7 +55,8 @@ class GoogleAuthClient(private val context: Context) {
         FirebaseUser(
             userId = user.uid,
             username = user.displayName,
-            profilePictureUrl = user.photoUrl?.toString()
+            profilePictureUrl = user.photoUrl?.toString(),
+            email = user.email // <-- agrega esto
         )
     }
 
