@@ -19,7 +19,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape // Importar CircleShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
@@ -36,7 +36,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip // Importar clip
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -59,15 +59,13 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import java.text.NumberFormat
 import java.util.Locale
 import kotlin.math.min
-import kotlin.random.Random
 
 @Composable
 fun HomeScreen(
     navController: NavController,
     onLogout: () -> Unit,
-    homeViewModel: HomeViewModel = viewModel() // Inyecta el HomeViewModel
+    homeViewModel: HomeViewModel = viewModel()
 ) {
-
     val systemUiController = rememberSystemUiController()
     val statusBarColor = Color(0xFF150F33)
     SideEffect {
@@ -79,23 +77,17 @@ fun HomeScreen(
 
     val context = LocalContext.current
     val googleAuthClient = remember { GoogleAuthClient(context) }
-    val coroutineScope = rememberCoroutineScope()
     val user = googleAuthClient.getSignedInUser()
 
-    // Observar los totales desde el HomeViewModel
     val totalIncome by homeViewModel.totalIncome.collectAsState()
     val totalExpenses by homeViewModel.totalExpenses.collectAsState()
     val weeklyCategorizedExpenses by homeViewModel.weeklyCategorizedExpenses.collectAsState()
 
-    // Formateador de moneda
-    val currencyFormatter = remember { NumberFormat.getCurrencyInstance(Locale("es", "CO")) } // Ejemplo para Colombia
+    val currencyFormatter = remember { NumberFormat.getCurrencyInstance(Locale("es", "CO")) }
 
-
-    // --- NUEVO: Mapa de colores por categoría para consistencia ---
     val expenseCategories = context.resources.getStringArray(R.array.expense_categories)
     val incomeCategories = context.resources.getStringArray(R.array.income_categories)
 
-// Ejemplo: asigna colores a las categorías de gastos
     val categoryColorMap = remember {
         mapOf(
             expenseCategories[0] to Color(0xFFF2E423), // Food
@@ -116,16 +108,19 @@ fun HomeScreen(
         )
     }
 
+    val configuration = LocalConfiguration.current
+    val screenHeight = configuration.screenHeightDp.dp
+    val screenWidth = configuration.screenWidthDp.dp
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
     ) {
-
+        // --- Header Section ---
         Box(
-            modifier = Modifier
-                .fillMaxWidth(), contentAlignment = Alignment.Center
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
         ) {
             Image(
                 painter = painterResource(id = R.drawable.marco_superior),
@@ -135,81 +130,65 @@ fun HomeScreen(
             )
 
             Row(
-                modifier = Modifier.fillMaxWidth(0.95f),
-                horizontalArrangement = Arrangement.Center
+                modifier = Modifier
+                    .fillMaxWidth(0.9f) // Adjust width relative to screen
+                    .padding(horizontal = screenWidth * 0.02f), // Responsive padding
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-
                 Row(
-                    horizontalArrangement = Arrangement.Start
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(screenWidth * 0.02f) // Responsive spacing
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.user_icon),
                         contentDescription = "Foto de usuario",
                         modifier = Modifier
-                            .fillMaxWidth(0.1f)
-                            .size(35.dp)
-                            .clickable {
-                                navController.navigate("profile")
-                            }
+                            .size(screenHeight * 0.045f) // Responsive size
+                            .clip(CircleShape) // Ensure it's circular
+                            .clickable { navController.navigate("profile") }
                     )
+
+                    Column {
+                        Text(
+                            context.getString(R.string.greeting),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color(0xFFF2E423),
+                            fontSize = 12.sp // Keep relatively small
+                        )
+                        Text(
+                            user?.username ?: "User",
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFF2E423),
+                            fontSize = 16.sp // Readable size
+                        )
+                    }
                 }
 
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                Column(
-                    horizontalAlignment = Alignment.Start
-                ) {
-                    Text(
-                        context.getString(R.string.greeting),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color(0xFFF2E423),
-                        modifier = Modifier.padding(top = 2.dp)
-                    )
-                    Text(
-                        user?.username ?: "User",
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFFF2E423)
-                    )
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-
-                    Icon(
-                        imageVector = Icons.Default.Notifications,
-                        contentDescription = "Notification icon",
-                        tint = Color(0xFFF2E423),
-                        modifier = Modifier
-                            .size(32.dp)
-                            .clickable {
-                                navController.navigate("notifications")
-                            }
-                            .padding(top = 3.dp)
-                    )
-
-                }
-
+                Icon(
+                    imageVector = Icons.Default.Notifications,
+                    contentDescription = "Notification icon",
+                    tint = Color(0xFFF2E423),
+                    modifier = Modifier
+                        .size(screenHeight * 0.04f) // Responsive size
+                        .clickable { navController.navigate("notifications") }
+                )
             }
-
         }
 
+        // --- Balance Section ---
         Box(
             modifier = Modifier
                 .fillMaxWidth()
+                .offset(y = (-screenHeight * 0.015f)), // Slightly overlap with header
+            contentAlignment = Alignment.TopCenter
         ) {
-
-            Box(modifier = Modifier.fillMaxWidth(0.95f)) {
-                Image(
-                    painter = painterResource(id = R.drawable.backgroundcoinary),
-                    contentDescription = "Background Coinary",
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    contentScale = ContentScale.FillWidth
-                )
-            }
+            Image(
+                painter = painterResource(id = R.drawable.backgroundcoinary),
+                contentDescription = "Background Coinary",
+                modifier = Modifier.fillMaxWidth(0.95f), // Responsive width
+                contentScale = ContentScale.FillWidth
+            )
 
             Column(
                 modifier = Modifier.align(Alignment.TopCenter),
@@ -218,21 +197,20 @@ fun HomeScreen(
                 Text(
                     text = context.getString(R.string.personal_expenses),
                     fontWeight = FontWeight.Bold,
-                    fontSize = 26.sp,
+                    fontSize = 26.sp, // Fixed size, but could be responsive too
                     color = Color.White,
                     modifier = Modifier
-                        .padding(top = 28.dp)
+                        .padding(top = screenHeight * 0.035f) // Responsive top padding
                         .fillMaxWidth(),
                     textAlign = TextAlign.Center
                 )
 
-                // Mostrar el total de gastos
                 Text(
-                    text = currencyFormatter.format(totalExpenses), // Usar el total de gastos real
+                    text = currencyFormatter.format(totalExpenses),
                     fontWeight = FontWeight.Bold,
                     fontSize = 24.sp,
                     color = Color.White,
-                    modifier = Modifier.padding(top = 15.dp)
+                    modifier = Modifier.padding(top = screenHeight * 0.015f) // Responsive padding
                 )
 
                 Text(
@@ -240,16 +218,15 @@ fun HomeScreen(
                     fontWeight = FontWeight.Thin,
                     fontSize = 12.sp,
                     color = Color.White,
-                    modifier = Modifier.padding(top = 3.dp)
+                    modifier = Modifier.padding(top = screenHeight * 0.005f)
                 )
 
-                // Mostrar el total de ingresos
                 Text(
-                    text = currencyFormatter.format(totalIncome), // Usar el total de ingresos real
+                    text = currencyFormatter.format(totalIncome),
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp,
                     color = Color.White,
-                    modifier = Modifier.offset(y = (-5).dp)
+                    modifier = Modifier.offset(y = (-screenHeight * 0.005f))
                 )
 
                 Button(
@@ -259,43 +236,41 @@ fun HomeScreen(
                         containerColor = Color(0xFF4D54BF),
                         contentColor = Color.White
                     ),
-                    modifier = Modifier.offset(y = (-3).dp),
-                    contentPadding = PaddingValues(horizontal = 25.dp, vertical = 3.dp)
+                    modifier = Modifier.offset(y = (-screenHeight * 0.003f)),
+                    contentPadding = PaddingValues(
+                        horizontal = screenWidth * 0.06f,
+                        vertical = screenHeight * 0.005f
+                    ) // Responsive padding
                 ) {
                     Text(
                         text = context.getString(R.string.month),
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp // Keep readable
                     )
                 }
             }
-
         }
 
-        val screenHeight =
-            LocalConfiguration.current.screenHeightDp.dp //Para aplicar responsividad, conociendo las dimensiones del dispositivo
-        val screenWidth = LocalConfiguration.current.screenWidthDp.dp
-
+        // --- Weekly Expenses Pie Chart Section ---
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .offset(y = (-16).dp)
+                .offset(y = (-screenHeight * 0.02f)) // Adjusted overlap
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(screenHeight * 0.3f)
+                    .height(screenHeight * 0.3f) // Responsive height
             ) {
-                // Espacio izquierdo
-                Box(modifier = Modifier.weight(0.18f))
+                // Left spacer
+                Spacer(modifier = Modifier.weight(0.18f))
 
-                // Contenedor principal
+                // Main content container for chart
                 Box(
                     modifier = Modifier
                         .weight(0.62f)
                         .fillMaxHeight()
                 ) {
-                    // Reemplazamos la imagen estática del gráfico por nuestro Composable de Canvas
-                    // El fondo del contenedor de la gráfica se mantiene para el estilo
                     Image(
                         painter = painterResource(id = R.drawable.fondo_contenedor_this_week),
                         contentDescription = "Fondo contenedor this week",
@@ -320,18 +295,16 @@ fun HomeScreen(
 
                         Spacer(modifier = Modifier.height(screenHeight * 0.022f))
 
-                        // Contenedor para la gráfica de pastel + texto centrado encima
                         Box(
                             modifier = Modifier
-                                .width(screenWidth * 0.42f)
-                                .height(screenHeight * 0.20f),
-                            contentAlignment = Alignment.Center // Centra el contenido dentro de este Box
+                                .width(screenWidth * 0.42f) // Responsive width
+                                .height(screenHeight * 0.20f), // Responsive height
+                            contentAlignment = Alignment.Center
                         ) {
-                            // Aquí se dibuja la gráfica de pastel dinámica
                             PieChartCanvas(
                                 data = weeklyCategorizedExpenses,
                                 totalAmount = weeklyCategorizedExpenses.values.sum(),
-                                categoryColors = categoryColorMap // --- PASANDO EL MAPA DE COLORES ---
+                                categoryColors = categoryColorMap
                             )
 
                             Column(
@@ -346,9 +319,8 @@ fun HomeScreen(
                                     color = Color.White,
                                     fontSize = 14.sp
                                 )
-                                // Aquí podrías mostrar el "balance" o el total de la semana si lo calculas
                                 Text(
-                                    text = currencyFormatter.format(weeklyCategorizedExpenses.values.sum()), // Ahora muestra el total de gastos de la semana
+                                    text = currencyFormatter.format(weeklyCategorizedExpenses.values.sum()),
                                     textAlign = TextAlign.Center,
                                     fontWeight = FontWeight.Bold,
                                     color = Color.White,
@@ -359,24 +331,25 @@ fun HomeScreen(
                     }
                 }
 
-                // Porcentaje restante para rellenar la screen
-                Box(modifier = Modifier.weight(0.2f))
+                // Right spacer
+                Spacer(modifier = Modifier.weight(0.2f))
             }
         }
 
-        Spacer(modifier = Modifier.height(5.dp))
+        Spacer(modifier = Modifier.height(screenHeight * 0.01f)) // Responsive spacer
 
+        // --- Top Expenses Section ---
         Box(
             modifier = Modifier
                 .fillMaxWidth(0.95f)
                 .align(Alignment.CenterHorizontally)
-                .fillMaxHeight(0.68f)
+                .fillMaxHeight(0.68f) // Responsive height
         ) {
             Image(
                 painter = painterResource(id = R.drawable.marco_inferior),
                 contentDescription = "Marco inferior",
-                modifier = Modifier.fillMaxWidth(),
-                contentScale = ContentScale.FillWidth,
+                modifier = Modifier.fillMaxSize(), // Fill the box
+                contentScale = ContentScale.FillBounds, // Scale to fill
                 alignment = Alignment.Center
             )
 
@@ -385,7 +358,7 @@ fun HomeScreen(
                 verticalArrangement = Arrangement.Top,
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp)
+                    .padding(screenHeight * 0.02f) // Responsive padding
             ) {
                 Text(
                     text = context.getString(R.string.top_expenses),
@@ -395,63 +368,60 @@ fun HomeScreen(
                     fontSize = 24.sp
                 )
 
-                Spacer(modifier = Modifier.height(50.dp))
+                Spacer(modifier = Modifier.height(screenHeight * 0.05f)) // Responsive spacer
 
-                // Mover la declaración de topExpenses aquí, fuera del Row, para que sea accesible
                 val topExpenses = weeklyCategorizedExpenses
                     .entries
-                    .sortedByDescending { it.value } // Ordenar de mayor a menor
-                    .take(3) // Tomar las 3 primeras
+                    .sortedByDescending { it.value }
+                    .take(3)
+
+                val categoryIconMap = remember {
+                    mapOf(
+                        "Comida" to R.drawable.food_icon,
+                        "Transporte" to R.drawable.car_icon,
+                        "Vivienda" to R.drawable.home_icon,
+                        "Ocio" to R.drawable.gift_icon,
+                        "Salario" to R.drawable.gift_icon,
+                        "Regalo" to R.drawable.gift_icon,
+                        "Ventas" to R.drawable.gift_icon,
+                        "Inversión" to R.drawable.gift_icon,
+                        "Servicios" to R.drawable.home_icon,
+                        "Compras" to R.drawable.food_icon,
+                        "Salud" to R.drawable.gift_icon,
+                        "Educación" to R.drawable.car_icon,
+                        "Otros Ingresos" to R.drawable.gift_icon,
+                        "Otros Gastos" to R.drawable.gift_icon
+                    )
+                }
+
+                val cardBackgrounds = remember {
+                    listOf(R.drawable.rectangle1, R.drawable.rectangle2, R.drawable.rectangle3)
+                }
 
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 8.dp),
+                        .padding(horizontal = screenWidth * 0.02f), // Responsive horizontal padding
                     verticalAlignment = Alignment.Top,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.SpaceAround // Use SpaceAround for even distribution
                 ) {
-                    // Mapeo de categorías a recursos de imagen (usando fallbacks existentes)
-                    val categoryIconMap = remember {
-                        mapOf(
-                            "Comida" to R.drawable.food_icon,
-                            "Transporte" to R.drawable.car_icon,
-                            "Vivienda" to R.drawable.home_icon,
-                            "Ocio" to R.drawable.gift_icon, // Cambiado de "Entretenimiento" a "Ocio"
-                            "Salario" to R.drawable.gift_icon, // Asegúrate de tener money_icon si lo usas
-                            "Regalo" to R.drawable.gift_icon,
-                            "Ventas" to R.drawable.gift_icon,
-                            "Inversión" to R.drawable.gift_icon,
-                            // Fallbacks para las categorías que no tienes iconos específicos
-                            "Servicios" to R.drawable.home_icon, // Usando home_icon como fallback
-                            "Compras" to R.drawable.food_icon, // Usando food_icon como fallback
-                            "Salud" to R.drawable.gift_icon, // Usando gift_icon como fallback
-                            "Educación" to R.drawable.car_icon, // Usando car_icon como fallback
-                            "Otros Ingresos" to R.drawable.gift_icon, // Usando money_icon como fallback
-                            "Otros Gastos" to R.drawable.gift_icon // Usando gift_icon como fallback genérico
-                        )
-                    }
-
-                    // Colores de fondo para las tarjetas (puedes definir más en un array)
-                    val cardBackgrounds = remember {
-                        listOf(R.drawable.rectangle1, R.drawable.rectangle2, R.drawable.rectangle3)
-                    }
-
                     topExpenses.forEachIndexed { index, (category, amount) ->
-                        val bgRes = cardBackgrounds.getOrElse(index) { R.drawable.rectangle1 } // Cicla o usa un default
-                        val iconRes = categoryIconMap[category] ?: R.drawable.gift_icon // Fallback si no hay icono específico
-                        val categoryDisplayColor = categoryColorMap[category] ?: Color.Gray // Obtener el color para la tarjeta
+                        val bgRes = cardBackgrounds.getOrElse(index) { R.drawable.rectangle1 }
+                        val iconRes = categoryIconMap[category] ?: R.drawable.gift_icon
+                        val categoryDisplayColor = categoryColorMap[category] ?: Color.Gray
 
                         Box(
                             modifier = Modifier
                                 .weight(1f)
-                                .aspectRatio(0.85f)
-                                .padding(vertical = 4.dp),
+                                .aspectRatio(0.85f) // Maintain aspect ratio
+                                .padding(horizontal = screenWidth * 0.01f), // Small horizontal padding between cards
                             contentAlignment = Alignment.TopCenter
                         ) {
                             Image(
                                 painter = painterResource(id = bgRes),
                                 contentDescription = null,
                                 modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.FillBounds,
                                 alpha = 0.9f
                             )
 
@@ -459,39 +429,37 @@ fun HomeScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(top = 12.dp)
+                                    .padding(top = screenHeight * 0.015f) // Responsive top padding
                             ) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.Center
                                 ) {
-                                    // --- NUEVO: Indicador de color para la categoría ---
                                     Box(
                                         modifier = Modifier
-                                            .size(8.dp) // Tamaño pequeño para el círculo de color
-                                            .clip(CircleShape) // Forma de círculo
-                                            .background(categoryDisplayColor) // Color de la categoría
+                                            .size(screenWidth * 0.02f) // Responsive size
+                                            .clip(CircleShape)
+                                            .background(categoryDisplayColor)
                                     )
-                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Spacer(modifier = Modifier.width(screenWidth * 0.01f)) // Responsive width
                                     Text(
-                                        text = category, // Categoría dinámica
+                                        text = category,
                                         color = Color.White,
-                                        fontSize = 12.sp, // <-- REDUCIDO EL TAMAÑO DE LA FUENTE AQUÍ
+                                        fontSize = 12.sp,
                                         fontWeight = FontWeight.Bold
                                     )
                                 }
-
 
                                 Image(
                                     painter = painterResource(id = iconRes),
                                     contentDescription = null,
                                     modifier = Modifier
-                                        .size(40.dp)
-                                        .padding(vertical = 6.dp)
+                                        .size(screenHeight * 0.06f) // Responsive icon size
+                                        .padding(vertical = screenHeight * 0.008f) // Responsive vertical padding
                                 )
 
                                 Text(
-                                    text = currencyFormatter.format(amount), // Cantidad dinámica
+                                    text = currencyFormatter.format(amount),
                                     color = Color.White,
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.Bold
@@ -499,11 +467,11 @@ fun HomeScreen(
                             }
                         }
                     }
-                }
-                // Este bloque ahora tiene acceso a topExpenses
-                if (topExpenses.size < 3) {
-                    repeat(3 - topExpenses.size) {
-                        Spacer(modifier = Modifier.weight(1f))
+                    // If fewer than 3 expenses, add empty spaces to maintain layout
+                    if (topExpenses.size < 3) {
+                        repeat(3 - topExpenses.size) {
+                            Box(modifier = Modifier.weight(1f).aspectRatio(0.85f)) // Keep same size as other cards
+                        }
                     }
                 }
             }
@@ -511,25 +479,18 @@ fun HomeScreen(
     }
 }
 
-/**
- * Composable para dibujar una gráfica de pastel dinámica.
- * @param data Un mapa de categoría a monto.
- * @param totalAmount El monto total para calcular porcentajes.
- * @param categoryColors Un mapa de categorías a colores específicos para el gráfico.
- */
 @Composable
 fun PieChartCanvas(data: Map<String, Double>, totalAmount: Double, categoryColors: Map<String, Color>) {
-    // Si no hay datos o el total es 0, muestra un círculo gris para indicar que no hay gastos.
     if (data.isEmpty() || totalAmount == 0.0) {
         Canvas(modifier = Modifier.fillMaxSize()) {
             val diameter = min(size.width, size.height)
-            val strokeWidth = diameter * 0.2f // Ancho del anillo
+            val strokeWidth = diameter * 0.2f
             val topLeft = Offset(
                 (size.width - diameter) / 2f,
                 (size.height - diameter) / 2f
             )
             drawArc(
-                color = Color.Gray.copy(alpha = 0.5f), // Color gris para indicar sin datos
+                color = Color.Gray.copy(alpha = 0.5f),
                 startAngle = 0f,
                 sweepAngle = 360f,
                 useCenter = false,
@@ -543,7 +504,7 @@ fun PieChartCanvas(data: Map<String, Double>, totalAmount: Double, categoryColor
 
     Canvas(modifier = Modifier.fillMaxSize()) {
         val diameter = min(size.width, size.height)
-        val strokeWidth = diameter * 0.2f // Ancho del anillo
+        val strokeWidth = diameter * 0.2f
         val topLeft = Offset(
             (size.width - diameter) / 2f,
             (size.height - diameter) / 2f
@@ -551,11 +512,9 @@ fun PieChartCanvas(data: Map<String, Double>, totalAmount: Double, categoryColor
         val rect = Size(diameter, diameter)
 
         var startAngle = 0f
-        // Ordena las secciones para que las más grandes vayan primero si lo deseas
-        data.entries.sortedByDescending { it.value }.forEach { entry -> // Ya no necesitamos index aquí
+        data.entries.sortedByDescending { it.value }.forEach { entry ->
             val sweepAngle = (entry.value.toFloat() / totalAmount.toFloat()) * 360f
-            // --- USANDO EL COLOR DEL MAPA categoryColors ---
-            val sectionColor = categoryColors.getOrElse(entry.key) { Color.Gray } // Usa el color del mapa, o gris por defecto
+            val sectionColor = categoryColors.getOrElse(entry.key) { Color.Gray }
 
             drawArc(
                 color = sectionColor,
