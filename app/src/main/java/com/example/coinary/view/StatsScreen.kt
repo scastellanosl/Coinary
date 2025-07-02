@@ -96,12 +96,7 @@ fun StatsScreen(
     val monthlySummaries by statsViewModel.monthlySummaries.collectAsState()
 
     val currencyFormatter = remember { NumberFormat.getCurrencyInstance(Locale("es", "CO")) }
-    val monthNames = remember {
-        listOf(
-            "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-            "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
-        )
-    }
+    val monthNames = context.resources.getStringArray(R.array.months).toList()
 
     val expenseCategories = context.resources.getStringArray(R.array.expense_categories)
     val incomeCategories = context.resources.getStringArray(R.array.income_categories)

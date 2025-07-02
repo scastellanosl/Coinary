@@ -78,7 +78,7 @@
     <string name="new_password">Digit your new password</string>
     <string name="confirm_password">Confirm your new password</string>
     <string name="save_changes">Save changes</string>
-    <string name="logout">Close session</string>>
+    <string name="logout">Close session</string>
 
     /////////////// RegisterScreen.kt //////////////////
 
@@ -115,6 +115,21 @@
     /////////////// StatsScreen.kt //////////////////
 
     <string name="stats">Your expenses look like this</string>
+
+    <string-array name="months">
+        <item>January</item>
+        <item>February</item>
+        <item>March</item>
+        <item>April</item>
+        <item>May</item>
+        <item>June</item>
+        <item>July</item>
+        <item>August</item>
+        <item>September</item>
+        <item>October</item>
+        <item>November</item>
+        <item>December</item>
+    </string-array>
 
 
 </resources>
