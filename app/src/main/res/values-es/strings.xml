@@ -40,13 +40,25 @@
     <string name="add_description">Tu descripción</string>
     <string name="save">Guardar</string>
     <string name="cancel">Cancelar</string>
-    <string-array name="categories">
+    <string-array name="income_categories">
+        <item>Salario</item>
+        <item>Regalo</item>
+        <item>Ventas</item>
+        <item>Inversión</item>
+        <item>Otros ingresos</item>
+    </string-array>
+    <string-array name="expense_categories">
         <item>Comida</item>
         <item>Transporte</item>
+        <item>Vivienda</item>
         <item>Entretenimiento</item>
+        <item>Servicios</item>
+        <item>Compras</item>
         <item>Salud</item>
-        <item>Otros</item>
+        <item>Educación</item>
+        <item>Otros gastos</item>
     </string-array>
+    <string name="fill_all_fields">Por favor completa todos los campos</string>
 
     /////////////// NotificationsScreen.kt //////////////////
 
@@ -85,6 +97,17 @@
 
     <string name="create_reminder">Crea un nuevo recordatorio</string>
     <string name="name_reminder">Nombra tu recordatorio</string>
+    <string-array name="categories">
+        <item>Food</item>
+        <item>Transport</item>
+        <item>Housing</item>
+        <item>Entertainment</item>
+        <item>Services</item>
+        <item>Shopping</item>
+        <item>Health</item>
+        <item>Education</item>
+        <item>Other</item>
+    </string-array>
 
     /////////////// StatsScreen.kt //////////////////
 

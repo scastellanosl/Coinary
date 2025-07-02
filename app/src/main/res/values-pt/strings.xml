@@ -36,13 +36,25 @@
     <string name="add_description">Sua descrição</string>
     <string name="save">Salvar</string>
     <string name="cancel">Cancelar</string>
-    <string-array name="categories">
+    <string-array name="income_categories">
+        <item>Salário</item>
+        <item>Presente</item>
+        <item>Vendas</item>
+        <item>Investimento</item>
+        <item>Outras receitas</item>
+    </string-array>
+    <string-array name="expense_categories">
         <item>Alimentação</item>
         <item>Transporte</item>
+        <item>Moradia</item>
         <item>Entretenimento</item>
+        <item>Serviços</item>
+        <item>Compras</item>
         <item>Saúde</item>
-        <item>Outros</item>
+        <item>Educação</item>
+        <item>Outras despesas</item>
     </string-array>
+    <string name="fill_all_fields">Please fill all valid fields</string>
 
     <!-- NotificationsScreen.kt -->
     <string name="notifications">Notificações</string>
@@ -77,6 +89,17 @@
     <!-- ReminderScreen.kt -->
     <string name="create_reminder">Criar novo lembrete</string>
     <string name="name_reminder">Nomeie seu lembrete</string>
+    <string-array name="categories">
+        <item>Food</item>
+        <item>Transport</item>
+        <item>Housing</item>
+        <item>Entertainment</item>
+        <item>Services</item>
+        <item>Shopping</item>
+        <item>Health</item>
+        <item>Education</item>
+        <item>Other</item>
+    </string-array>
 
     <!-- StatsScreen.kt -->
     <string name="stats">Seus gastos estão assim</string>
