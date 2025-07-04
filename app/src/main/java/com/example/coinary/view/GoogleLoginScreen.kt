@@ -58,6 +58,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.coinary.R
 import com.example.coinary.repository.GoogleAuthClient
+import com.example.coinary.view.InterFont
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
@@ -290,7 +291,7 @@ fun AuthButton(text: String, icon: Int? = null, backgroundColor: Color = Color(0
 fun SignUpText(onClick: () -> Unit) {
     val context = LocalContext.current
     val annotatedText = buildAnnotatedString {
-        append(context.getString(R.string.dont_account))
+        append(context.getString(R.string.dont_account) + " ")
         pushStringAnnotation(tag = "SIGNUP", annotation = "signup")
         withStyle(
             style = SpanStyle(
@@ -303,18 +304,23 @@ fun SignUpText(onClick: () -> Unit) {
         pop()
     }
 
-    Text(
-        text = context.getString(R.string.dont_account) + " " + context.getString(R.string.sign_up),
+    ClickableText(
+        text = annotatedText,
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }
             .padding(4.dp),
         style = TextStyle(
             color = Color.White,
             fontSize = 14.sp,
             fontFamily = InterFont,
             textAlign = TextAlign.Center
-        )
+        ),
+        onClick = { offset ->
+            annotatedText.getStringAnnotations(tag = "SIGNUP", start = offset, end = offset)
+                .firstOrNull()?.let {
+                    onClick()
+                }
+        }
     )
 }
 
