@@ -5,6 +5,7 @@ import android.app.TimePickerDialog
 import android.icu.util.Calendar
 import android.widget.DatePicker
 import android.widget.TimePicker
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -265,7 +266,7 @@ fun ReminderScreen(
                 ) {
                     Icon(imageVector = Icons.Default.CalendarToday, contentDescription = "Select Date", tint = Color.White)
                     Spacer(Modifier.width(8.dp))
-                    Text(text = if (selectedDate.isEmpty()) "Seleccionar Fecha" else selectedDate, color = Color.White)
+                    Text(text = if (selectedDate.isEmpty()) context.getString(R.string.select_date) else selectedDate, color = Color.White)
                 }
 
                 Spacer(modifier = Modifier.width(16.dp))
@@ -278,7 +279,7 @@ fun ReminderScreen(
                 ) {
                     Icon(imageVector = Icons.Default.Schedule, contentDescription = "Select Time", tint = Color.White)
                     Spacer(Modifier.width(8.dp))
-                    Text(text = if (selectedTime.isEmpty()) "Seleccionar Hora" else selectedTime, color = Color.White)
+                    Text(text = if (selectedTime.isEmpty()) context.getString(R.string.select_hour) else selectedTime, color = Color.White)
                 }
             }
 
@@ -446,10 +447,17 @@ fun ReminderScreen(
                     ) {
                         MovementTypeButton2(
                             text = context.getString(R.string.save),
-                            isSelected = bottomButtonSelected == "Save",
+                            isSelected = bottomButtonSelected == context.getString(R.string.save),
                             onClick = {
-                                bottomButtonSelected = "Save"
-                                if (selectedDate.isNotEmpty() && selectedTime.isNotEmpty() && reminderName.isNotEmpty()) {
+                                bottomButtonSelected = context.getString(R.string.save)
+                                if (
+                                    selectedDate.isNotEmpty() &&
+                                    selectedTime.isNotEmpty() &&
+                                    reminderName.isNotEmpty() &&
+                                    amount.isNotEmpty() &&
+                                    description.isNotEmpty() &&
+                                    selectedCategory.isNotEmpty()
+                                ) {
                                     val dateTimeString = "$selectedDate $selectedTime"
                                     NotificationScheduler.scheduleNotification(
                                         context,
@@ -457,8 +465,19 @@ fun ReminderScreen(
                                         reminderName,
                                         description
                                     )
+                                    // Limpiar el formulario después de guardar
+                                    reminderName = ""
+                                    amount = ""
+                                    description = ""
+                                    selectedDate = ""
+                                    selectedTime = ""
+                                    selectedCategory = if (categories.isNotEmpty()) categories[0] else ""
                                 } else {
-                                    // Toast.makeText(context, "Por favor, completa la fecha, hora y nombre del recordatorio.", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(
+                                        context,
+                                        context.getString(R.string.fill_all_fields),
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 }
                             },
                             modifier = Modifier.height(36.dp)
@@ -468,8 +487,17 @@ fun ReminderScreen(
 
                         MovementTypeButton2(
                             context.getString(R.string.cancel),
-                            isSelected = bottomButtonSelected == "Cancel",
-                            onClick = { bottomButtonSelected = "Cancel" },
+                            isSelected = bottomButtonSelected == context.getString(R.string.cancel),
+                            onClick = {
+                                bottomButtonSelected = context.getString(R.string.cancel)
+                                // Clear the form
+                                reminderName = ""
+                                amount = ""
+                                description = ""
+                                selectedDate = ""
+                                selectedTime = ""
+                                selectedCategory = if (categories.isNotEmpty()) categories[0] else ""
+                            },
                             modifier = Modifier.height(36.dp)
                         )
                     }

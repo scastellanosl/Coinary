@@ -127,4 +127,10 @@
     <string name="lines">Lines</string>
     <string name="cake">Cake</string>
 
+    <string name="select_date">Selecione a data</string>
+    <string name="select_hour">Selecione o horário</string>
+
+    <string name="no_reminders_yet">Voces não tem lembretes programados</string>
+
+
 </resources>

@@ -60,13 +60,19 @@
     </string-array>
     <string name="fill_all_fields">Please fill all valid fields</string>
 
+    <string name="no_data_pie">There are no data to show in the pie chart</string>
+    <string name="no_data_bar">There are no data to show in the bar chart</string>
+    <string name="no_data_line">There are no data to show in the line chart</string>
+
     /////////////// NotificationsScreen.kt //////////////////
 
     <string name="notifications">Notifications</string>
     <string name="reminder">Reminder</string>
     <string name="reminder_for">Remind to pay...</string>
     <string name="daily_expenses">Remember to add today\'s expenses</string>
-    <string name="no_reminders_yet">Aún no tienes recordatorios programados.</string> /////////////// ProfileScreen.kt //////////////////
+    <string name="no_reminders_yet">You don\'t have reminders yet</string>
+
+    /////////////// ProfileScreen.kt //////////////////
 
     <string name="profile_configuration">Profile configuration</string>
     <string name="your_info">Your info</string>
@@ -135,5 +141,8 @@
     <string name="bars">Bars</string>
     <string name="lines">Lines</string>
     <string name="cake">Cake</string>
+
+    <string name="select_date">Select date</string>
+    <string name="select_hour">Select hour</string>
 
 </resources>

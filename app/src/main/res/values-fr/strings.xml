@@ -127,5 +127,15 @@
     <string name="lines">Lines</string>
     <string name="cake">Cake</string>
 
+    <string name="select_date">Choisir date</string>
+    <string name="select_hour">Choisir heure</string>
+
+    <string name="no_reminders_yet">Tu n\'as pas des rappels programmés</string>
+
+    <string name="no_data_pie">No hay datos para mostrar en el gráfico de pastel</string>
+    <string name="no_data_bar">No hay datos para mostrar en el gráfico de barras</string>
+    <string name="no_data_line">No hay datos para mostrar en el gráfico de líneas</string>
+
+
 
 </resources>

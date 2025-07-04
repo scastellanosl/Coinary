@@ -93,6 +93,9 @@
     <string name="login">Iniciar sesión</string>
     <string name="google_sign_in">Iniciar sesión con Google</string>
 
+    <string name="no_reminders_yet">Aún no tienes recordatorios programados</string>
+
+
     /////////////// ReminderScreen.kt //////////////////
 
     <string name="create_reminder">Crea un nuevo recordatorio</string>
@@ -134,5 +137,13 @@
     <string name="bars">Barras</string>
     <string name="lines">Lineas</string>
     <string name="cake">Torta</string>
+
+    <string name="select_date">Seleccionar Fecha</string>
+
+    <string name="select_hour">Seleccionar Hora</string>
+
+    <string name="no_data_pie">No hay datos para mostrar en el gráfico de pastel</string>
+    <string name="no_data_bar">No hay datos para mostrar en el gráfico de barras</string>
+    <string name="no_data_line">No hay datos para mostrar en el gráfico de líneas</string>
 
 </resources>
