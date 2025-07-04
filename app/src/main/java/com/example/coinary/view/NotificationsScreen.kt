@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -37,9 +38,11 @@ import androidx.navigation.NavController
 import com.example.coinary.R
 import com.example.coinary.data.ReminderItem
 import com.example.coinary.utils.ReminderStorage
+import com.example.coinary.utils.NotificationScheduler
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
-
+import androidx.compose.material.icons.filled.Delete
+import android.widget.Toast
 
 @Composable
 fun NotificationsScreen(
@@ -59,10 +62,31 @@ fun NotificationsScreen(
 
     val reminders = remember { mutableStateListOf<ReminderItem>() }
 
-    LaunchedEffect(Unit) {
+    // Función para recargar los recordatorios
+    val loadReminders: () -> Unit = {
         reminders.clear()
         reminders.addAll(ReminderStorage.loadReminders(context))
     }
+
+    // Cargar los recordatorios cuando el composable entra en la composición
+    LaunchedEffect(Unit) {
+        loadReminders()
+    }
+
+    // ************ NUEVO: Función para manejar el borrado de recordatorios ************
+    val onDeleteReminder: (ReminderItem) -> Unit = { reminderToDelete ->
+        // 1. Cancelar la alarma del sistema
+        NotificationScheduler.cancelNotification(context, reminderToDelete.id)
+
+        // 2. Eliminar el recordatorio de SharedPreferences
+        ReminderStorage.removeReminder(context, reminderToDelete.id)
+
+        // 3. Actualizar la lista en la UI
+        reminders.remove(reminderToDelete)
+
+        Toast.makeText(context, "Recordatorio eliminado: ${reminderToDelete.title}", Toast.LENGTH_SHORT).show()
+    }
+    // *********************************************************************************
 
     Column(modifier = Modifier.fillMaxSize()) {
         Row(
@@ -94,15 +118,13 @@ fun NotificationsScreen(
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.FillBounds
             )
-            Column( // Cambiamos esta Column a LazyColumn
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 12.dp)
                     .padding(top = 15.dp)
             ) {
-                // Verificamos si hay recordatorios
                 if (reminders.isEmpty()) {
-                    // Si no hay, mostramos un mensaje
                     Column(
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.Center,
@@ -120,10 +142,11 @@ fun NotificationsScreen(
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        items(reminders) { reminder ->
+                        items(reminders, key = { it.id }) { reminder ->
                             NotificationCard(
                                 title = reminder.title,
-                                message = "${reminder.message} - ${reminder.dateTime}"
+                                message = "${reminder.message} - ${reminder.dateTime}",
+                                onDeleteClick = { onDeleteReminder(reminder) }
                             )
                         }
                     }
@@ -140,7 +163,8 @@ fun NotificationsScreen(
 fun NotificationCard(
     title: String,
     message: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onDeleteClick: () -> Unit
 ) {
     val context = LocalContext.current
 
@@ -165,7 +189,7 @@ fun NotificationCard(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = title, // USANDO EL TÍTULO REAL
+                    text = title,
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp
@@ -177,15 +201,17 @@ fun NotificationCard(
                     fontSize = 12.sp
                 )
             }
-            Image(
-                painter = painterResource(id = R.drawable.message_icon),
-                contentDescription = "Message icon",
-                modifier = Modifier
-                    .padding(end = 8.dp)
-                    .padding(bottom = 3.dp)
-                    .size(36.dp),
-                colorFilter = ColorFilter.tint(Color(0xFF150F33))
-            )
+            IconButton(
+                onClick = onDeleteClick,
+                modifier = Modifier.size(48.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Eliminar recordatorio",
+                    tint = Color.Red
+                )
+            }
+
         }
     }
 }

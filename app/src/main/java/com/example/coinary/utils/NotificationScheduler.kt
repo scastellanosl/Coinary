@@ -49,17 +49,25 @@ object NotificationScheduler {
 
             val pendingIntent = PendingIntent.getBroadcast(
                 context,
-                notificationId, // Usa el ID único aquí
+                notificationId,
                 intent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
 
             try {
-                alarmManager.setExactAndAllowWhileIdle(
-                    AlarmManager.RTC_WAKEUP,
-                    date.time,
-                    pendingIntent
-                )
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    alarmManager.setExactAndAllowWhileIdle(
+                        AlarmManager.RTC_WAKEUP,
+                        date.time,
+                        pendingIntent
+                    )
+                } else {
+                    alarmManager.setExact(
+                        AlarmManager.RTC_WAKEUP,
+                        date.time,
+                        pendingIntent
+                    )
+                }
 
                 val reminder = ReminderItem(
                     id = notificationId.toLong(),
@@ -78,6 +86,24 @@ object NotificationScheduler {
         } ?: run {
             Toast.makeText(context, "Formato de fecha/hora inválido.", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    /**
+     * Cancela una notificación programada.
+     * @param context El contexto de la aplicación.
+     * @param notificationId El ID único de la notificación a cancelar.
+     */
+    fun cancelNotification(context: Context, notificationId: Long) {
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val intent = Intent(context, NotificationReceiver::class.java)
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            notificationId.toInt(),
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        alarmManager.cancel(pendingIntent)
+        // Toast.makeText(context, "Recordatorio cancelado", Toast.LENGTH_SHORT).show()
     }
 
     fun createNotificationChannel(context: Context) {
