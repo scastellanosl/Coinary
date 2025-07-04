@@ -9,6 +9,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -302,20 +303,18 @@ fun SignUpText(onClick: () -> Unit) {
         pop()
     }
 
-    ClickableText(
-        text = annotatedText,
+    Text(
+        text = context.getString(R.string.dont_account) + " " + context.getString(R.string.sign_up),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(4.dp),
         style = TextStyle(
             color = Color.White,
             fontSize = 14.sp,
             fontFamily = InterFont,
             textAlign = TextAlign.Center
-        ),
-        modifier = Modifier.fillMaxWidth(),
-        onClick = { offset ->
-            annotatedText.getStringAnnotations("SIGNUP", offset, offset).firstOrNull()?.let {
-                onClick()
-            }
-        }
+        )
     )
 }
 

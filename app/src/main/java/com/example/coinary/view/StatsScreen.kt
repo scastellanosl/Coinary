@@ -137,7 +137,7 @@ fun StatsScreen(
                     Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
                 }
                 Text(
-                    text = "Estadísticas Mensuales",
+                    text = context.getString(R.string.stats_title),
                     style = MaterialTheme.typography.headlineMedium,
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
@@ -173,7 +173,7 @@ fun StatsScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(350.dp), // Aumentado la altura de la Card
+                    .height(350.dp),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF2C2C2C)),
                 shape = RoundedCornerShape(12.dp)
             ) {
@@ -199,7 +199,7 @@ fun StatsScreen(
                     }
                     if (monthlyExpenses.isEmpty() && monthlyIncomes.isEmpty() && monthlySummaries.isEmpty()) {
                         Text(
-                            text = "No hay datos para el mes seleccionado.",
+                            text = context.getString(R.string.no_data_selected_month), //"No hay datos para el mes seleccionado."
                             color = Color.Gray,
                             fontSize = 16.sp,
                             textAlign = TextAlign.Center
@@ -228,7 +228,7 @@ fun StatsScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "No hay transacciones para este filtro y mes.",
+                        text = context.getString(R.string.no_data_selected_month),
                         color = Color.Gray,
                         fontSize = 16.sp,
                         textAlign = TextAlign.Center
@@ -306,15 +306,19 @@ fun MonthYearPicker(
 }
 
 @Composable
+
 fun ChartTypeSelector(selectedChartType: ChartType, onTypeSelected: (ChartType) -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceAround
     ) {
+
+        val context = LocalContext.current
+
         FilterChip(
             selected = selectedChartType == ChartType.BAR,
             onClick = { onTypeSelected(ChartType.BAR) },
-            label = { Text("Barras", color = if (selectedChartType == ChartType.BAR) Color.Black else Color.White) },
+            label = { Text(context.getString(R.string.bars), color = if (selectedChartType == ChartType.BAR) Color.Black else Color.White) },
             colors = FilterChipDefaults.filterChipColors(
                 selectedContainerColor = Color(0xFFF2E423),
                 containerColor = Color(0xFF4D54BF)
@@ -323,7 +327,7 @@ fun ChartTypeSelector(selectedChartType: ChartType, onTypeSelected: (ChartType) 
         FilterChip(
             selected = selectedChartType == ChartType.LINE,
             onClick = { onTypeSelected(ChartType.LINE) },
-            label = { Text("Líneas", color = if (selectedChartType == ChartType.LINE) Color.Black else Color.White) },
+            label = { Text(context.getString(R.string.lines), color = if (selectedChartType == ChartType.LINE) Color.Black else Color.White) },
             colors = FilterChipDefaults.filterChipColors(
                 selectedContainerColor = Color(0xFFF2E423),
                 containerColor = Color(0xFF4D54BF)
@@ -332,7 +336,7 @@ fun ChartTypeSelector(selectedChartType: ChartType, onTypeSelected: (ChartType) 
         FilterChip(
             selected = selectedChartType == ChartType.PIE,
             onClick = { onTypeSelected(ChartType.PIE) },
-            label = { Text("Torta", color = if (selectedChartType == ChartType.PIE) Color.Black else Color.White) },
+            label = { Text(context.getString(R.string.cake), color = if (selectedChartType == ChartType.PIE) Color.Black else Color.White) },
             colors = FilterChipDefaults.filterChipColors(
                 selectedContainerColor = Color(0xFFF2E423),
                 containerColor = Color(0xFF4D54BF)
@@ -343,6 +347,9 @@ fun ChartTypeSelector(selectedChartType: ChartType, onTypeSelected: (ChartType) 
 
 @Composable
 fun TransactionFilterSelector(selectedFilter: TransactionFilter, onFilterSelected: (TransactionFilter) -> Unit) {
+
+    val context = LocalContext.current
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceAround
@@ -350,7 +357,7 @@ fun TransactionFilterSelector(selectedFilter: TransactionFilter, onFilterSelecte
         FilterChip(
             selected = selectedFilter == TransactionFilter.ALL,
             onClick = { onFilterSelected(TransactionFilter.ALL) },
-            label = { Text("Todos", color = if (selectedFilter == TransactionFilter.ALL) Color.Black else Color.White) },
+            label = { Text(context.getString(R.string.all), color = if (selectedFilter == TransactionFilter.ALL) Color.Black else Color.White) },
             colors = FilterChipDefaults.filterChipColors(
                 selectedContainerColor = Color(0xFFF2E423),
                 containerColor = Color(0xFF4D54BF)
@@ -359,7 +366,7 @@ fun TransactionFilterSelector(selectedFilter: TransactionFilter, onFilterSelecte
         FilterChip(
             selected = selectedFilter == TransactionFilter.INCOME,
             onClick = { onFilterSelected(TransactionFilter.INCOME) },
-            label = { Text("Ingresos", color = if (selectedFilter == TransactionFilter.INCOME) Color.Black else Color.White) },
+            label = { Text(context.getString(R.string.income), color = if (selectedFilter == TransactionFilter.INCOME) Color.Black else Color.White) },
             colors = FilterChipDefaults.filterChipColors(
                 selectedContainerColor = Color(0xFFF2E423),
                 containerColor = Color(0xFF4D54BF)
@@ -368,7 +375,7 @@ fun TransactionFilterSelector(selectedFilter: TransactionFilter, onFilterSelecte
         FilterChip(
             selected = selectedFilter == TransactionFilter.EXPENSE,
             onClick = { onFilterSelected(TransactionFilter.EXPENSE) },
-            label = { Text("Gastos", color = if (selectedFilter == TransactionFilter.EXPENSE) Color.Black else Color.White) },
+            label = { Text(context.getString(R.string.expense), color = if (selectedFilter == TransactionFilter.EXPENSE) Color.Black else Color.White) },
             colors = FilterChipDefaults.filterChipColors(
                 selectedContainerColor = Color(0xFFF2E423),
                 containerColor = Color(0xFF4D54BF)

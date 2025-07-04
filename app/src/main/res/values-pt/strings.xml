@@ -120,4 +120,11 @@
         <item>Décembre</item>
     </string-array>
 
+    <string name="stats_title">Estatísticas mensais</string>
+    <string name="no_data_selected_month">Não há dados para o mês selecionado</string>
+
+    <string name="bars">Bars</string>
+    <string name="lines">Lines</string>
+    <string name="cake">Cake</string>
+
 </resources>
