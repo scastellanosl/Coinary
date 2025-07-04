@@ -66,8 +66,7 @@
     <string name="reminder">Reminder</string>
     <string name="reminder_for">Remind to pay...</string>
     <string name="daily_expenses">Remember to add today\'s expenses</string>
-
-    /////////////// ProfileScreen.kt //////////////////
+    <string name="no_reminders_yet">Aún no tienes recordatorios programados.</string> /////////////// ProfileScreen.kt //////////////////
 
     <string name="profile_configuration">Profile configuration</string>
     <string name="your_info">Your info</string>

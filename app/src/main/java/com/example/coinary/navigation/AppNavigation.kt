@@ -12,7 +12,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.coinary.UserSetupScreen
 import com.example.coinary.repository.GoogleAuthClient
 import com.example.coinary.view.AddMovementScreen
 import com.example.coinary.view.GoogleLoginScreen
@@ -21,6 +20,7 @@ import com.example.coinary.view.MainScreen
 import com.example.coinary.view.NotificationsScreen
 import com.example.coinary.view.ProfileScreen
 import com.example.coinary.view.RegisterScreen
+import com.example.coinary.view.UserSetupScreen
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 

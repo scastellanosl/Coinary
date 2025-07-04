@@ -1,4 +1,4 @@
-package com.example.coinary
+package com.example.coinary.view
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi

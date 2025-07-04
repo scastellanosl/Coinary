@@ -1,5 +1,10 @@
 package com.example.coinary.view
 
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
+import android.icu.util.Calendar
+import android.widget.DatePicker
+import android.widget.TimePicker
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -14,11 +19,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.AttachMoney
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
@@ -50,7 +59,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.coinary.R
+import com.example.coinary.utils.NotificationScheduler
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import java.text.SimpleDateFormat
+import java.util.Locale
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -96,8 +109,44 @@ fun ReminderScreen(
             }
         )
     }
+    var reminderName by remember { mutableStateOf("") }
+    // Este 'amount' es para el valor monetario
     var amount by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
+
+    // --- NUEVAS VARIABLES DE ESTADO PARA FECHA Y HORA ---
+    val calendar = remember { Calendar.getInstance() }
+    var selectedDate by remember { mutableStateOf("") }
+    var selectedTime by remember { mutableStateOf("") }
+
+    // Date Picker Dialog
+    val year = calendar.get(Calendar.YEAR)
+    val month = calendar.get(Calendar.MONTH)
+    val day = calendar.get(Calendar.DAY_OF_MONTH)
+
+    val datePickerDialog = DatePickerDialog(
+        context,
+        { _: DatePicker, selectedYear: Int, selectedMonth: Int, selectedDayOfMonth: Int ->
+            calendar.set(selectedYear, selectedMonth, selectedDayOfMonth)
+            val format = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+            selectedDate = format.format(calendar.time)
+        }, year, month, day
+    )
+
+    // Time Picker Dialog
+    val hour = calendar.get(Calendar.HOUR_OF_DAY)
+    val minute = calendar.get(Calendar.MINUTE)
+
+    val timePickerDialog = TimePickerDialog(
+        context,
+        { _: TimePicker, selectedHour: Int, selectedMinute: Int ->
+            calendar.set(Calendar.HOUR_OF_DAY, selectedHour)
+            calendar.set(Calendar.MINUTE, selectedMinute)
+            val format = SimpleDateFormat("HH:mm", Locale.getDefault())
+            selectedTime = format.format(calendar.time)
+        }, hour, minute, false
+    )
+
 
     val commonFieldModifier = Modifier
         .fillMaxWidth()
@@ -107,6 +156,9 @@ fun ReminderScreen(
             color = Color.White,
             shape = RoundedCornerShape(12.dp)
         )
+
+    // NUEVO: Estado de scroll
+    val scrollState = rememberScrollState()
 
     Box(
         modifier = Modifier
@@ -127,6 +179,7 @@ fun ReminderScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
+                .verticalScroll(scrollState)
         ) {
             Row(
                 modifier = Modifier
@@ -167,8 +220,8 @@ fun ReminderScreen(
             )
             Spacer(modifier = Modifier.height(20.dp))
             TextField(
-                value = amount,
-                onValueChange = { amount = it },
+                value = reminderName,
+                onValueChange = { reminderName = it },
                 label = {
                     Text(
                         text = context.getString(R.string.name_reminder),
@@ -179,7 +232,7 @@ fun ReminderScreen(
                     )
                 },
                 singleLine = true,
-                modifier = commonFieldModifier.fillMaxWidth(0.6f),
+                modifier = commonFieldModifier.fillMaxWidth(0.95f),
                 textStyle = TextStyle(
                     fontFamily = InterFont,
                     color = Color.White,
@@ -196,7 +249,41 @@ fun ReminderScreen(
                 )
             )
 
-            Spacer(modifier = Modifier.height(50.dp))
+            Spacer(modifier = Modifier.height(20.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = buttonHorizontalPadding),
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Button(
+                    onClick = { datePickerDialog.show() },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Gray.copy(alpha = 0.5f)),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(imageVector = Icons.Default.CalendarToday, contentDescription = "Select Date", tint = Color.White)
+                    Spacer(Modifier.width(8.dp))
+                    Text(text = if (selectedDate.isEmpty()) "Seleccionar Fecha" else selectedDate, color = Color.White)
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Button(
+                    onClick = { timePickerDialog.show() },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Gray.copy(alpha = 0.5f)),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(imageVector = Icons.Default.Schedule, contentDescription = "Select Time", tint = Color.White)
+                    Spacer(Modifier.width(8.dp))
+                    Text(text = if (selectedTime.isEmpty()) "Seleccionar Hora" else selectedTime, color = Color.White)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
 
             Box(
                 modifier = Modifier
@@ -276,7 +363,7 @@ fun ReminderScreen(
                         onValueChange = { amount = it },
                         label = {
                             Text(
-                                text = context.getString(R.string.amount),
+                                text = context.getString(R.string.amount), // Asegúrate de tener este String
                                 fontFamily = InterFont,
                                 fontWeight = FontWeight.Normal,
                                 fontSize = labelFontSize,
@@ -310,7 +397,7 @@ fun ReminderScreen(
                     Spacer(modifier = Modifier.height(30.dp))
 
                     Text(
-                        text = context.getString(R.string.short_description),
+                        text = context.getString(R.string.short_description), // Asegúrate de tener este String
                         color = Color.White,
                         fontFamily = InterFont,
                         fontSize = (labelFontSize.value - 2).sp,
@@ -326,7 +413,7 @@ fun ReminderScreen(
                         onValueChange = { description = it },
                         label = {
                             Text(
-                                text = context.getString(R.string.add_description),
+                                text = context.getString(R.string.add_description), // Asegúrate de tener este String
                                 fontFamily = InterFont,
                                 fontWeight = FontWeight.Normal,
                                 fontSize = labelFontSize,
@@ -350,8 +437,6 @@ fun ReminderScreen(
                         )
                     )
                     Spacer(modifier = Modifier.height(15.dp))
-
-                    // Botones inferiores independientes (Save / Cancel)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -362,11 +447,24 @@ fun ReminderScreen(
                         MovementTypeButton2(
                             text = context.getString(R.string.save),
                             isSelected = bottomButtonSelected == "Save",
-                            onClick = { bottomButtonSelected = "Save" },
+                            onClick = {
+                                bottomButtonSelected = "Save"
+                                if (selectedDate.isNotEmpty() && selectedTime.isNotEmpty() && reminderName.isNotEmpty()) {
+                                    val dateTimeString = "$selectedDate $selectedTime"
+                                    NotificationScheduler.scheduleNotification(
+                                        context,
+                                        dateTimeString,
+                                        reminderName,
+                                        description
+                                    )
+                                } else {
+                                    // Toast.makeText(context, "Por favor, completa la fecha, hora y nombre del recordatorio.", Toast.LENGTH_SHORT).show()
+                                }
+                            },
                             modifier = Modifier.height(36.dp)
                         )
 
-                        Spacer(modifier = Modifier.width(12.dp)) // Espacio entre botones
+                        Spacer(modifier = Modifier.width(12.dp))
 
                         MovementTypeButton2(
                             context.getString(R.string.cancel),
@@ -378,8 +476,6 @@ fun ReminderScreen(
                 }
             }
         }
-
-
     }
 }
 
