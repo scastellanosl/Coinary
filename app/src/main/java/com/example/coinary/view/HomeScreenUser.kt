@@ -22,9 +22,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Help
+import androidx.compose.material.icons.filled.Help
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -32,8 +36,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -52,6 +58,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.example.coinary.R
 import com.example.coinary.repository.GoogleAuthClient
 import com.example.coinary.viewmodel.HomeViewModel
@@ -59,6 +66,7 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import java.text.NumberFormat
 import java.util.Locale
 import kotlin.math.min
+
 
 @Composable
 fun HomeScreen(
@@ -131,21 +139,21 @@ fun HomeScreen(
 
             Row(
                 modifier = Modifier
-                    .fillMaxWidth(0.9f) // Adjust width relative to screen
-                    .padding(horizontal = screenWidth * 0.02f), // Responsive padding
+                    .fillMaxWidth(0.9f)
+                    .padding(horizontal = screenWidth * 0.02f),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(screenWidth * 0.02f) // Responsive spacing
+                    horizontalArrangement = Arrangement.spacedBy(screenWidth * 0.02f)
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.user_icon),
                         contentDescription = "Foto de usuario",
                         modifier = Modifier
-                            .size(screenHeight * 0.045f) // Responsive size
-                            .clip(CircleShape) // Ensure it's circular
+                            .size(screenHeight * 0.045f)
+                            .clip(CircleShape)
                             .clickable { navController.navigate("profile") }
                     )
 
@@ -154,25 +162,76 @@ fun HomeScreen(
                             context.getString(R.string.greeting),
                             style = MaterialTheme.typography.labelSmall,
                             color = Color(0xFFF2E423),
-                            fontSize = 12.sp // Keep relatively small
+                            fontSize = 12.sp
                         )
                         Text(
                             user?.username ?: "User",
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFFF2E423),
-                            fontSize = 16.sp // Readable size
+                            fontSize = 16.sp
                         )
                     }
                 }
 
-                Icon(
-                    imageVector = Icons.Default.Notifications,
-                    contentDescription = "Notification icon",
-                    tint = Color(0xFFF2E423),
-                    modifier = Modifier
-                        .size(screenHeight * 0.04f) // Responsive size
-                        .clickable { navController.navigate("notifications") }
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Notifications,
+                        contentDescription = "Notification icon",
+                        tint = Color(0xFFF2E423),
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clickable { navController.navigate("notifications") }
+                    )
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    var expanded by remember { mutableStateOf(false) }
+                    Box {
+                        Icon(
+                            imageVector = Icons.Default.Help,
+                            contentDescription = "Ayuda",
+                            tint = Color(0xFFF2E423),
+                            modifier = Modifier
+                                .size(28.dp)
+                                .clickable { expanded = true }
+                        )
+
+                        DropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Recomendaciones") },
+                                onClick = {
+                                    expanded = false
+                                    navController.navigate("recomendations") {
+                                    }
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("predictions") },
+                                onClick = {
+                                    expanded = false
+                                    navController.navigate("predicition") {
+                                    }
+                                }
+                            )
+
+                            DropdownMenuItem(
+                                text = { Text("movimiento") },
+                                onClick = {
+                                    expanded = false
+                                    navController.navigate("movement") {
+                                    }
+                                }
+                            )
+                        }
+
+
+                    }
+                }
             }
         }
 

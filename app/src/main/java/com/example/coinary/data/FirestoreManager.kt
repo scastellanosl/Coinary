@@ -7,8 +7,10 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
-import com.example.coinary.model.Income // Ajusta la ruta si es diferente
-import com.example.coinary.model.Expense // Ajusta la ruta si es diferente
+import com.example.coinary.model.Income
+import com.example.coinary.model.Expense
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
@@ -112,7 +114,10 @@ class FirestoreManager {
      * @param onFailure Callback to execute if the operation fails, providing the Exception.
      * @return A ListenerRegistration that can be used to stop listening for updates.
      */
-    fun getIncomesRealtime(onIncomesLoaded: (List<Income>) -> Unit, onFailure: (Exception) -> Unit) =
+    fun getIncomesRealtime(
+        onIncomesLoaded: (List<Income>) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) =
         getCurrentUserId()?.let { userId ->
             db.collection("users").document(userId)
                 .collection("incomes")
@@ -145,7 +150,10 @@ class FirestoreManager {
      * @param onFailure Callback to execute if the operation fails, providing the Exception.
      * @return A ListenerRegistration that can be used to stop listening for updates.
      */
-    fun getExpensesRealtime(onExpensesLoaded: (List<Expense>) -> Unit, onFailure: (Exception) -> Unit) =
+    fun getExpensesRealtime(
+        onExpensesLoaded: (List<Expense>) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) =
         getCurrentUserId()?.let { userId ->
             db.collection("users").document(userId)
                 .collection("expenses")
@@ -178,7 +186,10 @@ class FirestoreManager {
      * @param onFailure Callback to execute if the operation fails, providing the Exception.
      * @return A ListenerRegistration that can be used to stop listening for updates.
      */
-    fun getTotalIncomesRealtime(onTotalIncomeLoaded: (Double) -> Unit, onFailure: (Exception) -> Unit) =
+    fun getTotalIncomesRealtime(
+        onTotalIncomeLoaded: (Double) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) =
         getCurrentUserId()?.let { userId ->
             db.collection("users").document(userId)
                 .collection("incomes")
@@ -209,7 +220,10 @@ class FirestoreManager {
      * @param onFailure Callback to execute if the operation fails, providing the Exception.
      * @return A ListenerRegistration that can be used to stop listening for updates.
      */
-    fun getTotalExpensesRealtime(onTotalExpenseLoaded: (Double) -> Unit, onFailure: (Exception) -> Unit) =
+    fun getTotalExpensesRealtime(
+        onTotalExpenseLoaded: (Double) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) =
         getCurrentUserId()?.let { userId ->
             db.collection("users").document(userId)
                 .collection("expenses")
@@ -246,7 +260,8 @@ class FirestoreManager {
         onFailure: (Exception) -> Unit
     ) = getCurrentUserId()?.let { userId ->
         val calendar = Calendar.getInstance(Locale.getDefault())
-        calendar.firstDayOfWeek = Calendar.MONDAY // Establece el lunes como el primer día de la semana
+        calendar.firstDayOfWeek =
+            Calendar.MONDAY // Establece el lunes como el primer día de la semana
 
         // Calcular el inicio de la semana (lunes a las 00:00:00)
         calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
@@ -266,8 +281,14 @@ class FirestoreManager {
 
         db.collection("users").document(userId)
             .collection("expenses")
-            .whereGreaterThanOrEqualTo("date", startOfWeek) // Filtra gastos desde el inicio de la semana
-            .whereLessThanOrEqualTo("date", endOfWeek)     // Filtra gastos hasta el fin de la semana
+            .whereGreaterThanOrEqualTo(
+                "date",
+                startOfWeek
+            ) // Filtra gastos desde el inicio de la semana
+            .whereLessThanOrEqualTo(
+                "date",
+                endOfWeek
+            )     // Filtra gastos hasta el fin de la semana
             .addSnapshotListener { snapshots, e ->
                 if (e != null) {
                     println("Error listening for weekly categorized expenses: $e")
@@ -280,7 +301,8 @@ class FirestoreManager {
                     for (doc in snapshots) {
                         val category = doc.getString("category") ?: "Uncategorized"
                         val amount = doc.getDouble("amount") ?: 0.0
-                        categorizedExpenses[category] = (categorizedExpenses[category] ?: 0.0) + amount
+                        categorizedExpenses[category] =
+                            (categorizedExpenses[category] ?: 0.0) + amount
                     }
                 }
                 onCategorizedExpensesLoaded(categorizedExpenses)

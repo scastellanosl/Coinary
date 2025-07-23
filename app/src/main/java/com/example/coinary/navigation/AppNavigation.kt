@@ -18,7 +18,9 @@ import com.example.coinary.view.GoogleLoginScreen
 import com.example.coinary.view.HomeScreen
 import com.example.coinary.view.MainScreen
 import com.example.coinary.view.NotificationsScreen
+import com.example.coinary.view.PredictionScreen
 import com.example.coinary.view.ProfileScreen
+import com.example.coinary.view.RecommendationsScreen
 import com.example.coinary.view.RegisterScreen
 import com.example.coinary.view.UserSetupScreen
 import com.google.firebase.auth.FirebaseAuth
@@ -80,7 +82,7 @@ fun AppNavigation() {
                 )
             }
 
-            composable("register") {
+                composable("register") {
                 RegisterScreen(
                     onRegisterSuccess = {
                         navController.navigate("user_setup") {
@@ -98,7 +100,6 @@ fun AppNavigation() {
             composable("main") {
                 MainScreen(rootNavController = navController)
             }
-
             composable("home") {
                 HomeScreen(
                     navController = navController,
@@ -156,6 +157,31 @@ fun AppNavigation() {
                     }
                 )
             }
+
+            composable("recomendations") {
+                RecommendationsScreen(
+                    navController = navController,
+                    onLogout = {
+                        FirebaseAuth.getInstance().signOut()
+                        navController.navigate("login") {
+                            popUpTo("main") { inclusive = true }
+                        }
+                    }
+                )
+            }
+
+            composable("predictions") {
+                PredictionScreen(
+                    navController = navController,
+                    onLogout = {
+                        FirebaseAuth.getInstance().signOut()
+                        navController.navigate("login") {
+                            popUpTo("main") { inclusive = true }
+                        }
+                    }
+                )
+            }
+
         }
     }
 }

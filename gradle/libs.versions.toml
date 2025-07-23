@@ -18,6 +18,7 @@ playServicesAuth = "21.3.0"
 playServicesAuthVersion = "20.7.0"
 visionInternalVkp = "18.2.3"
 navigationComposeAndroid = "2.9.0"
+generativeai = "0.3.0"
 
 [libraries]
 accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanistSystemuicontroller" }
@@ -51,6 +52,9 @@ play-services-auth = { module = "com.google.android.gms:play-services-auth", ver
 play-services-auth-v2070 = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuthVersion" }
 vision-internal-vkp = { group = "com.google.mlkit", name = "vision-internal-vkp", version.ref = "visionInternalVkp" }
 androidx-navigation-compose-android = { group = "androidx.navigation", name = "navigation-compose-android", version.ref = "navigationComposeAndroid" }
+material-icons-extended = "androidx.compose.material:material-icons-extended:1.6.0"
+google-generativeai = { module = "com.google.ai.client.generativeai:generativeai", version.ref = "generativeai" }
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

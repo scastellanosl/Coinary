@@ -56,6 +56,9 @@ dependencies {
     // Firebase Analytics
     implementation(libs.google.firebase.analytics)
 
+    // Gemini como ia
+    implementation(libs.google.generativeai)
+    
     // Jetpack Compose - ViewModel (para usar viewModel() en composables)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
 
@@ -78,6 +81,7 @@ dependencies {
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.ui.text)
     implementation(libs.vision.internal.vkp)
+    implementation(libs.material.icons.extended)
 
     // Test dependencies
     testImplementation(libs.junit)
