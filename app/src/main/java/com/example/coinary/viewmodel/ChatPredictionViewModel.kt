@@ -22,12 +22,15 @@ import kotlinx.coroutines.launch
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 import kotlin.math.roundToInt
 
 data class PredictionUiState(
     val isLoading: Boolean = false,
     val messages: List<ChatMessage> = listOf(
-        ChatMessage("Hola, soy tu predictor financiero. Analizaré tus patrones de gastos para proyectar tu futuro financiero. ¿Qué deseas predecir?", false)
+        ChatMessage("Hola, soy tu predictor financiero. Estoy analizando tus datos históricos para hacer proyecciones precisas. ¿Qué aspecto deseas que analice?", false)
     ),
     val errorMessage: String? = null
 )
@@ -41,12 +44,12 @@ class PredictionViewModel(
 
     private lateinit var generativeModel: GenerativeModel
     private lateinit var chat: Chat
-    private var userFinancialData: String = "Cargando datos financieros..."
+    private var userFinancialData: String = ""
     private val scope = MainScope()
 
     init {
-        loadUserFinancialData()
         initializeGemini()
+        loadUserFinancialData()
     }
 
     private fun initializeGemini() {
@@ -57,111 +60,128 @@ class PredictionViewModel(
 
         val initialPrompt = """
             Eres un predictor financiero especializado en proyecciones basadas en patrones históricos. 
-            Solo responderás preguntas relacionadas con predicciones financieras.
+            Respuestas claras y sin formato (sin negritas, asteriscos o markdown).
             
-            Reglas estrictas:
-            1. Solo haz proyecciones financieras
-            2. Basa tus predicciones en los datos proporcionados
-            3. Proporciona rangos probables (optimista, pesimista y realista)
-            4. Considera tendencias históricas
-            5. Usa un tono profesional pero claro
-            6. Si no hay suficientes datos, indícalo claramente
+            Reglas:
+            1. Solo responde sobre proyecciones financieras
+            2. Usa exclusivamente los datos proporcionados y razona para entender la jerga o habla de las personas
+            3. Si faltan datos, indícalo claramente
+            4. No uses ningún formato especial (nada de **texto** o similares)
+            5. Sé específico con cifras cuando sea posible
+            6. Proyección basada en tendencias históricas
+            7. Factores clave que afectarán el resultado
+            8. Recomendaciones para mejorar la proyección
             
-            Cuando el usuario haga una consulta, recibirás sus datos financieros históricos.
+            Cuando recibas la consulta, analizaré los datos históricos del usuario.
         """.trimIndent()
 
         chat = generativeModel.startChat(
             history = listOf(
                 content(role = "user") { text(initialPrompt) },
                 content(role = "model") {
-                    text("Listo como tu predictor financiero. Estoy analizando tus datos históricos. ¿Qué aspecto deseas proyectar? (ahorros futuros, deudas potenciales, crecimiento patrimonial, etc.)")
+                    text("Entendido. Operaré como predictor financiero con respuestas claras y sin formato especial. Por favor, proporcióname tu consulta después de que cargue tus datos históricos.")
                 }
             )
         )
     }
 
     private fun loadUserFinancialData() {
+        _uiState.value = _uiState.value.copy(isLoading = true)
+
         scope.launch {
             try {
-                val calendar = Calendar.getInstance()
-                val currentMonth = calendar.get(Calendar.MONTH) + 1
-                val currentYear = calendar.get(Calendar.YEAR)
-
+                // Obtener datos de los últimos meses para mejor análisis
                 val financialData = mutableListOf<Pair<List<Income>, List<Expense>>>()
+                val calendar = Calendar.getInstance()
 
-                for (i in 0..2) {
-                    calendar.add(Calendar.MONTH, -1)
+                repeat(6) { i ->
+                    calendar.add(Calendar.MONTH, if (i == 0) 0 else -1)
                     val month = calendar.get(Calendar.MONTH) + 1
                     val year = calendar.get(Calendar.YEAR)
-                    financialData.add(getMonthlyFinancialData(month, year))
+
+                    val incomes = async { getIncomes(month, year) }
+                    val expenses = async { getExpenses(month, year) }
+
+                    financialData.add(Pair(incomes.await(), expenses.await()))
                 }
 
-                userFinancialData = buildFinancialContext(financialData)
+                userFinancialData = buildFinancialContext(financialData.reversed()) // Ordenar de más antiguo a más reciente
 
                 _uiState.value = _uiState.value.copy(
                     messages = listOf(
-                        ChatMessage("He analizado tus últimos 3 meses. ¿Qué proyección financiera deseas?", false)
-                    )
+                        ChatMessage("He analizado tus últimos meses. ¿Qué proyección financiera deseas? Por ejemplo: '¿Cuánto podré ahorrar en los próximos 3 meses?'", false)
+                    ),
+                    isLoading = false
                 )
             } catch (e: Exception) {
-                userFinancialData = "Error al cargar datos: ${e.localizedMessage}"
                 _uiState.value = _uiState.value.copy(
-                    errorMessage = "No se pudieron cargar los datos históricos"
+                    errorMessage = "Error cargando datos. Por favor, verifica tu conexión e intenta nuevamente.",
+                    isLoading = false
                 )
+                userFinancialData = "Error: ${e.localizedMessage}"
             }
         }
     }
 
-    private suspend fun getMonthlyFinancialData(month: Int, year: Int): Pair<List<Income>, List<Expense>> {
-        val incomes = mutableListOf<Income>()
-        val expenses = mutableListOf<Expense>()
+    private suspend fun getIncomes(month: Int, year: Int): List<Income> {
+        return suspendCoroutine { continuation ->
+            firestoreManager.getMonthlyIncomesOnce(
+                month, year,
+                { incomes -> continuation.resume(incomes) },
+                { error -> continuation.resumeWithException(error) }
+            )
+        }
+    }
 
-        val incomesResult = firestoreManager.getMonthlyIncomesOnce(month, year,
-            { incomesList -> incomes.addAll(incomesList) },
-            { throw it }
-        )
-
-        val expensesResult = firestoreManager.getMonthlyExpensesOnce(month, year,
-            { expensesList -> expenses.addAll(expensesList) },
-            { throw it }
-        )
-
-        return Pair(incomes, expenses)
+    private suspend fun getExpenses(month: Int, year: Int): List<Expense> {
+        return suspendCoroutine { continuation ->
+            firestoreManager.getMonthlyExpensesOnce(
+                month, year,
+                { expenses -> continuation.resume(expenses) },
+                { error -> continuation.resumeWithException(error) }
+            )
+        }
     }
 
     private fun buildFinancialContext(historicalData: List<Pair<List<Income>, List<Expense>>>): String {
         val sb = StringBuilder()
-        sb.appendln("|Datos Históricos para Predicciones:")
+        sb.appendln("Datos Financieros Históricos del Usuario:")
 
         historicalData.forEachIndexed { index, (incomes, expenses) ->
-            val monthOffset = historicalData.size - index - 1
-            val calendar = Calendar.getInstance().apply { add(Calendar.MONTH, -monthOffset) }
-            val monthName = calendar.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault())
+            val calendar = Calendar.getInstance().apply { add(Calendar.MONTH, - (historicalData.size - 1 - index)) }
+            val monthName = calendar.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault())!!
+            val year = calendar.get(Calendar.YEAR)
 
-            sb.appendln("|Mes: $monthName")
-            sb.appendln("|Ingresos totales: ${incomes.sumOf { it.amount }}")
-            sb.appendln("|Gastos totales: ${expenses.sumOf { it.amount }}")
-            sb.appendln("|Ahorro: ${incomes.sumOf { it.amount } - expenses.sumOf { it.amount }}")
+            val totalIncome = incomes.sumOf { it.amount }
+            val totalExpense = expenses.sumOf { it.amount }
+            val savings = totalIncome - totalExpense
 
-            val topExpenses = expenses.groupBy { it.category }
-                .mapValues { (_, expenses) -> expenses.sumOf { it.amount } }
-                .entries.sortedByDescending { it.value }
-                .take(3)
+            sb.appendln("\nMes: $monthName $year")
+            sb.appendln("- Ingresos totales: ${"%.2f".format(totalIncome)}")
+            sb.appendln("- Gastos totales: ${"%.2f".format(totalExpense)}")
+            sb.appendln("- Ahorro: ${"%.2f".format(savings)}")
 
-            sb.appendln("|Top 3 gastos: ${topExpenses.joinToString { "${it.key} (${it.value})" }}")
-            sb.appendln("|-------------------------")
+            if (expenses.isNotEmpty()) {
+                val topCategories = expenses.groupBy { it.category }
+                    .mapValues { (_, list) -> list.sumOf { it.amount } }
+                    .entries.sortedByDescending { it.value }
+                    .take(3)
+
+                sb.appendln("- Top 3 categorías de gasto:")
+                topCategories.forEach { (category, amount) ->
+                    sb.appendln("  • $category: ${"%.2f".format(amount)}")
+                }
+            }
         }
 
-        val avgSavings = historicalData.map { it.first.sumOf { it.amount } - it.second.sumOf { it.amount } }.average()
-        val avgIncome = historicalData.map { it.first.sumOf { it.amount } }.average()
-        val avgExpense = historicalData.map { it.second.sumOf { it.amount } }.average()
+        // Análisis de tendencias
+        sb.appendln("\nTendencias:")
+        val monthlySavings = historicalData.map { it.first.sumOf { it.amount } - it.second.sumOf { it.amount } }
+        sb.appendln("- Ahorro mensual promedio: ${"%.2f".format(monthlySavings.average())}")
+        sb.appendln("- Mejor mes de ahorro: ${"%.2f".format(monthlySavings.maxOrNull() ?: 0.0)}")
+        sb.appendln("- Peor mes de ahorro: ${"%.2f".format(monthlySavings.minOrNull() ?: 0.0)}")
 
-        sb.appendln("|Tendencias:")
-        sb.appendln("|Ahorro promedio mensual: $avgSavings")
-        sb.appendln("|Ingreso promedio mensual: $avgIncome")
-        sb.appendln("|Gasto promedio mensual: $avgExpense")
-
-        return sb.toString().trimMargin()
+        return sb.toString()
     }
 
     fun sendMessage(message: String) {
@@ -201,11 +221,8 @@ class PredictionViewModel(
                 
                 Como predictor financiero, proporciona:
                 1. Proyección basada en tendencias históricas
-                2. 3 escenarios (optimista, pesimista y realista)
-                3. Factores clave que afectarán el resultado
-                4. Recomendaciones para mejorar la proyección
-                5. Máximo 300 palabras
-                6. Si faltan datos, indícalo claramente
+                2. Factores clave que afectarán el resultado
+                3. Recomendaciones para mejorar la proyección
             """.trimIndent()
 
             val response = chat.sendMessage(prompt)

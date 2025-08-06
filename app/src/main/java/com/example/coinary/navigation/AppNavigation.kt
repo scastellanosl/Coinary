@@ -18,9 +18,9 @@ import com.example.coinary.view.GoogleLoginScreen
 import com.example.coinary.view.HomeScreen
 import com.example.coinary.view.MainScreen
 import com.example.coinary.view.NotificationsScreen
-import com.example.coinary.view.PredictionScreen
+import com.example.coinary.view.PrediccionesPantalla
 import com.example.coinary.view.ProfileScreen
-import com.example.coinary.view.RecommendationsScreen
+import com.example.coinary.view.RecomendacionesPantalla
 import com.example.coinary.view.RegisterScreen
 import com.example.coinary.view.UserSetupScreen
 import com.google.firebase.auth.FirebaseAuth
@@ -158,8 +158,8 @@ fun AppNavigation() {
                 )
             }
 
-            composable("recomendations") {
-                RecommendationsScreen(
+            composable("recommendations") {
+                RecomendacionesPantalla(
                     navController = navController,
                     onLogout = {
                         FirebaseAuth.getInstance().signOut()
@@ -171,7 +171,7 @@ fun AppNavigation() {
             }
 
             composable("predictions") {
-                PredictionScreen(
+                PrediccionesPantalla(
                     navController = navController,
                     onLogout = {
                         FirebaseAuth.getInstance().signOut()

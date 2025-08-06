@@ -1,5 +1,6 @@
 package com.example.coinary.view
 
+import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -22,13 +23,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Help
-import androidx.compose.material.icons.filled.Help
+import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -36,10 +35,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -58,7 +54,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.example.coinary.R
 import com.example.coinary.repository.GoogleAuthClient
 import com.example.coinary.viewmodel.HomeViewModel
@@ -174,63 +169,42 @@ fun HomeScreen(
                 }
 
                 Row(
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
+                    // Botón de notificaciones
                     Icon(
                         imageVector = Icons.Default.Notifications,
                         contentDescription = "Notification icon",
                         tint = Color(0xFFF2E423),
                         modifier = Modifier
                             .size(32.dp)
-                            .clickable { navController.navigate("notifications") }
+                            .clickable {
+                                    navController.navigate("notifications")
+                            }
                     )
-
-                    Spacer(modifier = Modifier.width(12.dp))
-
-                    var expanded by remember { mutableStateOf(false) }
-                    Box {
-                        Icon(
-                            imageVector = Icons.Default.Help,
-                            contentDescription = "Ayuda",
-                            tint = Color(0xFFF2E423),
-                            modifier = Modifier
-                                .size(28.dp)
-                                .clickable { expanded = true }
-                        )
-
-                        DropdownMenu(
-                            expanded = expanded,
-                            onDismissRequest = { expanded = false }
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text("Recomendaciones") },
-                                onClick = {
-                                    expanded = false
-                                    navController.navigate("recomendations") {
-                                    }
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("predictions") },
-                                onClick = {
-                                    expanded = false
-                                    navController.navigate("predicition") {
-                                    }
-                                }
-                            )
-
-                            DropdownMenuItem(
-                                text = { Text("movimiento") },
-                                onClick = {
-                                    expanded = false
-                                    navController.navigate("movement") {
-                                    }
-                                }
-                            )
-                        }
-
-
-                    }
+                    // Botón de recomendaciones
+                    Icon(
+                        imageVector = Icons.Default.Lightbulb,
+                        contentDescription = "Recomendaciones",
+                        tint = Color(0xFFF2E423),
+                        modifier = Modifier
+                            .size(28.dp)
+                            .clickable {
+                                    navController.navigate("recomendaciones")
+                            }
+                    )
+                    // Botón de predicciones
+                    Icon(
+                        imageVector = Icons.Default.TrendingUp,
+                        contentDescription = "Predicciones",
+                        tint = Color(0xFFF2E423),
+                        modifier = Modifier
+                            .size(28.dp)
+                            .clickable {
+                                    navController.navigate("predicciones")
+                            }
+                    )
                 }
             }
         }

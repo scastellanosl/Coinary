@@ -22,7 +22,7 @@ fun MainScreen(rootNavController: NavHostController) {
 
     //qué pantallas mostrar la barra inferior
     val showBottomBar = currentRoute in listOf(
-        "home", "stats", "movement", "reminder", "notifications", "profile"
+        "home", "stats", "movement", "reminder", "notifications", "profile","recomendaciones", "predicciones"
     )
 
     Scaffold(

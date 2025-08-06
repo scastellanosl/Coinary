@@ -30,9 +30,8 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.coinary.viewmodel.RecommendationViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RecommendationsScreen(
+fun RecomendacionesPantalla(
     navController: NavController,
     recommendationViewModel: RecommendationViewModel = viewModel(),
     onLogout: () -> Unit = {}

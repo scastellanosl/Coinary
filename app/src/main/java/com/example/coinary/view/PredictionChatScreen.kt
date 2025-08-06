@@ -32,9 +32,8 @@ import com.example.coinary.R
 import com.example.coinary.viewmodel.PredictionViewModel
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PredictionScreen(
+fun PrediccionesPantalla(
     navController: NavController,
     predictionViewModel: PredictionViewModel = viewModel(),
     onLogout: () -> Unit = {}
