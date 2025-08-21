@@ -38,7 +38,7 @@ data class PredictionUiState(
 class PredictionViewModel(
     private val firestoreManager: FirestoreManager = FirestoreManager()
 ) : ViewModel() {
-    private val GEMINI_API_KEY = "AIzaSyBmPWQsscLDqGl-vsV38VKrWZvhkexu7z0"
+    private val GEMINI_API_KEY = 
     private val _uiState = MutableStateFlow(PredictionUiState())
     val uiState: StateFlow<PredictionUiState> = _uiState
 
