@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.coinary.data.FirestoreManager
 import com.example.coinary.model.Expense
 import com.example.coinary.model.Income
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,13 +13,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.CompletableDeferred // Importar CompletableDeferred
 import java.util.Calendar
 import java.util.Date
 
-// Enum para los tipos de gráfica
+// Enum para los tipos de gráfica (LINE eliminado)
 enum class ChartType {
-    BAR, LINE, PIE
+    BAR, PIE
 }
 
 // Enum para los tipos de filtro de transacción
@@ -120,7 +120,7 @@ class StatsViewModel(
 
     /**
      * Carga los datos de ingresos y gastos para el mes y año seleccionados (real-time).
-     * Estos datos se usan para las gráficas de líneas/torta y la lista de transacciones.
+     * Estos datos se usan para la gráfica de torta y la lista de transacciones.
      */
     private fun fetchMonthlyData() {
         viewModelScope.launch {
@@ -203,32 +203,6 @@ class StatsViewModel(
             // Esperar a que todas las cargas se completen y ordenar por año y mes
             _monthlySummaries.value = deferredSummaries.awaitAll().sortedWith(compareBy({ it.year }, { it.month }))
         }
-    }
-
-    /**
-     * Prepara los datos para la gráfica de barras o líneas (total por día del mes).
-     * @return Un mapa donde la clave es el día del mes y el valor es el monto total.
-     */
-    fun getDailyTotalsForChart(transactions: List<Any>): Map<Int, Double> {
-        val dailyTotals = mutableMapOf<Int, Double>()
-        transactions.forEach { transaction ->
-            val date = when (transaction) {
-                is Income -> transaction.date.toDate()
-                is Expense -> transaction.date.toDate()
-                else -> null
-            }
-            date?.let {
-                val calendar = Calendar.getInstance().apply { time = it }
-                val dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH)
-                dailyTotals[dayOfMonth] = (dailyTotals[dayOfMonth] ?: 0.0) +
-                        when (transaction) {
-                            is Income -> transaction.amount
-                            is Expense -> transaction.amount
-                            else -> 0.0
-                        }
-            }
-        }
-        return dailyTotals.toSortedMap() // Devuelve un mapa ordenado por día
     }
 
     /**
