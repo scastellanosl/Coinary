@@ -31,7 +31,18 @@ fun NavigationGraph(navController: NavHostController) {
                     }
                 },
                 onNavigateToRegister = {
-                    // Puedes manejar el registro si lo necesitas
+                },
+                onForgotPasswordClick = {
+                    navController.navigate("reset_password")
+                }
+            )
+        }
+
+
+        composable("reset_password") {
+            ResetPasswordScreen(
+                onBackToLogin = {
+                    navController.popBackStack()
                 }
             )
         }

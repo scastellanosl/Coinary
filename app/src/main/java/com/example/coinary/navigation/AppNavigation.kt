@@ -17,11 +17,13 @@ import com.example.coinary.view.AddMovementScreen
 import com.example.coinary.view.GoogleLoginScreen
 import com.example.coinary.view.HomeScreen
 import com.example.coinary.view.MainScreen
+import com.example.coinary.view.NewPasswordScreen
 import com.example.coinary.view.NotificationsScreen
 import com.example.coinary.view.PrediccionesPantalla
 import com.example.coinary.view.ProfileScreen
 import com.example.coinary.view.RecomendacionesPantalla
 import com.example.coinary.view.RegisterScreen
+import com.example.coinary.view.ResetPasswordScreen
 import com.example.coinary.view.UserSetupScreen
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
@@ -78,6 +80,9 @@ fun AppNavigation() {
                     },
                     onNavigateToRegister = {
                         navController.navigate("register")
+                    },
+                    onForgotPasswordClick = {
+                        navController.navigate("reset_password")
                     }
                 )
             }
@@ -94,6 +99,12 @@ fun AppNavigation() {
                     },
                     googleAuthClient = googleAuthClient,
                     launcher = launcher
+                )
+            }
+
+            composable("reset_password") {
+                ResetPasswordScreen(
+                    onBackToLogin = { navController.popBackStack() }
                 )
             }
 
@@ -181,7 +192,6 @@ fun AppNavigation() {
                     }
                 )
             }
-
         }
     }
 }

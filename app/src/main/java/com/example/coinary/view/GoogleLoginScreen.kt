@@ -69,7 +69,8 @@ val InterFont = FontFamily(Font(R.font.inter))
 @Composable
 fun GoogleLoginScreen(
     onLoginSuccess: () -> Unit,
-    onNavigateToRegister: () -> Unit
+    onNavigateToRegister: () -> Unit,
+    onForgotPasswordClick: () -> Unit
 ) {
     val context = LocalContext.current
     val googleAuthClient = remember { GoogleAuthClient(context) }
@@ -195,16 +196,19 @@ fun GoogleLoginScreen(
                 }
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            // enlace para restablecer contraseña
+            ForgotPasswordText(onClick = onForgotPasswordClick)
 
             SignUpText(onClick = onNavigateToRegister)
+
+            Spacer(modifier = Modifier.height(20.dp))
 
             Spacer(modifier = Modifier.height(30.dp))
 
             Text(
                 text = context.getString(R.string.policies),
                 color = Color.White,
-                fontSize = 9.sp,
+                fontSize = 11.sp,
                 lineHeight = 12.sp,
                 fontFamily = InterFont,
                 fontWeight = FontWeight.Medium,
@@ -308,7 +312,7 @@ fun SignUpText(onClick: () -> Unit) {
         text = annotatedText,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(4.dp),
+            .padding(top = 12.dp, bottom = 8.dp),
         style = TextStyle(
             color = Color.White,
             fontSize = 14.sp,
@@ -323,4 +327,42 @@ fun SignUpText(onClick: () -> Unit) {
         }
     )
 }
+
+@Composable
+fun ForgotPasswordText(onClick: () -> Unit) {
+    val context = LocalContext.current
+    val annotatedText = buildAnnotatedString {
+        append("¿Olvidaste tu contraseña? ")
+        pushStringAnnotation(tag = "RESET", annotation = "reset")
+        withStyle(
+            style = SpanStyle(
+                color = Color(0xFFF2E423),
+                textDecoration = TextDecoration.Underline
+            )
+        ) {
+            append("\nRestablecer contraseña")
+        }
+        pop()
+    }
+
+    ClickableText(
+        text = annotatedText,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 16.dp, bottom = 4.dp),
+        style = TextStyle(
+            color = Color.White,
+            fontSize = 14.sp,
+            fontFamily = InterFont,
+            textAlign = TextAlign.Center
+        ),
+        onClick = { offset ->
+            annotatedText.getStringAnnotations(tag = "RESET", start = offset, end = offset)
+                .firstOrNull()?.let {
+                    onClick()
+                }
+        }
+    )
+}
+
 
