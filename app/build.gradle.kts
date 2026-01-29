@@ -82,6 +82,7 @@ dependencies {
     implementation(libs.androidx.ui.text)
     implementation(libs.vision.internal.vkp)
     implementation(libs.material.icons.extended)
+    implementation(libs.androidx.compose.foundation)
 
     // Test dependencies
     testImplementation(libs.junit)
@@ -92,6 +93,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation("androidx.compose.material3:material3:1.2.1")
-    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("com.google.code.gson:gson:2.13.2")
+    implementation("io.coil-kt:coil-compose:2.7.0")
 
 }

@@ -61,6 +61,13 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import java.text.NumberFormat
 import java.util.Locale
 import kotlin.math.min
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.net.toUri
+import coil.compose.AsyncImage
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 
 
 @Composable
@@ -115,12 +122,18 @@ fun HomeScreen(
     val screenHeight = configuration.screenHeightDp.dp
     val screenWidth = configuration.screenWidthDp.dp
 
+    val prefs = remember {
+        context.getSharedPreferences("profile_prefs", android.content.Context.MODE_PRIVATE)
+    }
+    val photoUri = remember {
+        mutableStateOf(prefs.getString("photo_uri", null)?.toUri())
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
     ) {
-        // --- Header Section ---
         Box(
             modifier = Modifier.fillMaxWidth(),
             contentAlignment = Alignment.Center
@@ -143,18 +156,32 @@ fun HomeScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(screenWidth * 0.02f)
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.user_icon),
-                        contentDescription = "Foto de usuario",
-                        modifier = Modifier
-                            .size(screenHeight * 0.045f)
-                            .clip(CircleShape)
-                            .clickable { navController.navigate("profile") }
-                    )
+                    // FOTO DE PERFIL DINÁMICA
+                    if (photoUri.value != null) {
+                        AsyncImage(
+                            model = photoUri.value,
+                            contentDescription = "Foto de usuario",
+                            modifier = Modifier
+                                .size(screenHeight * 0.045f)
+                                .clip(CircleShape)
+                                .clickable { navController.navigate("profile") },
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Image(
+                            painter = painterResource(id = R.drawable.user_icon),
+                            contentDescription = "Foto de usuario",
+                            modifier = Modifier
+                                .size(screenHeight * 0.045f)
+                                .clip(CircleShape)
+                                .clickable { navController.navigate("profile") },
+                            contentScale = ContentScale.Crop
+                        )
+                    }
 
                     Column {
                         Text(
-                            context.getString(R.string.greeting),
+                            stringResource(R.string.greeting),
                             style = MaterialTheme.typography.labelSmall,
                             color = Color(0xFFF2E423),
                             fontSize = 12.sp
@@ -180,7 +207,7 @@ fun HomeScreen(
                         modifier = Modifier
                             .size(32.dp)
                             .clickable {
-                                    navController.navigate("notifications")
+                                navController.navigate("notifications")
                             }
                     )
                     // Botón de recomendaciones
@@ -191,7 +218,7 @@ fun HomeScreen(
                         modifier = Modifier
                             .size(28.dp)
                             .clickable {
-                                    navController.navigate("recomendaciones")
+                                navController.navigate("recomendaciones")
                             }
                     )
                     // Botón de predicciones
@@ -202,7 +229,7 @@ fun HomeScreen(
                         modifier = Modifier
                             .size(28.dp)
                             .clickable {
-                                    navController.navigate("predicciones")
+                                navController.navigate("predicciones")
                             }
                     )
                 }
