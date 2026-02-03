@@ -2,37 +2,66 @@
 
     <string name="app_name">Coinary</string>
 
-    <!-- GoogleLoginScreen.kt -->
-    <string name="login_success">Login realizado com sucesso</string>
-    <string name="lildescriptor">Gerencie seus gastos com a Coinary</string>
+    /////////////// GoogleLoginScreen.kt //////////////////
+
+    <string name ="login_success">Login realizado com sucesso</string>
+    <string name="lildescriptor">"Gerencie seus planos
+        com Coinary"</string>
     <string name="mail_label">Endereço de e-mail</string>
     <string name="password_label">Senha</string>
     <string name="continue_button">Continuar</string>
     <string name="empty_fields">Por favor, preencha todos os campos</string>
-    <string name="continue_with_google">Continuar com o Google</string>
-    <string name="policies">Ao continuar, você concorda com nossos termos de serviço e política de privacidade.</string>
-    <string name="dont_account">Ainda não tem uma conta?</string>
+    <string name="continue_with_google">Continuar com Google</string>
+    <string name="policies">Ao continuar, você concorda com nossos Termos de Serviço e Política de Privacidade.</string>
+    <string name="dont_account">Não tem uma conta?</string>
     <string name="sign_up">Cadastre-se</string>
 
-    <!-- MainActivity.kt -->
+    <string name="forgot_password_question">Esqueceu sua senha?</string>
+    <string name="reset_password">Redefinir senha</string>
+    <string name="collage_desc">Imagem de Colagem Coinary</string>
+    <string name="error_msg_prefix">Erro: %1$s</string>
+
+    /////////////// MainActivity.kt //////////////////
+
     <string name="greeting">Olá!!</string>
-    <string name="personal_expenses">Total de despesas pessoais</string>
-    <string name="total_income">Renda total</string>
+    <string name="personal_expenses">Total de Despesas Pessoais</string>
+    <string name="total_income">Renda Total</string>
     <string name="month">Mês</string>
-    <string name="this_week">Esta semana</string>
-    <string name="all">Tudo</string>
+    <string name="this_week">Esta Semana</string>
+    <string name="all">Todos</string>
     <string name="top_expenses">Principais despesas</string>
-    <string name="food">Alimentação</string>
+    <string name="food">Comida</string>
     <string name="gifts">Presentes</string>
     <string name="transport">Transporte</string>
 
-    <!-- MovementScreen.kt -->
+    /////////////// HomeScreen.kt //////////////////
+
+    <string name="top_frame_desc">Moldura superior</string>
+    <string name="user_photo_desc">Foto do usuário</string>
+    <string name="notification_icon_desc">Notificações</string>
+    <string name="recommendations_desc">Recomendações</string>
+    <string name="predictions_desc">Previsões</string>
+    <string name="coinary_bg_desc">Fundo Coinary</string>
+    <string name="week_container_desc">Recipiente de estatísticas semanais</string>
+    <string name="bottom_frame_desc">Moldura inferior</string>
+    <string name="filter_day">Dia</string>
+    <string name="filter_week">Semana</string>
+    <string name="filter_month">Mês</string>
+    <string name="filter_year">Ano</string>
+
+    <string name="title_this_day">Hoje</string>
+    <string name="title_this_week">Esta Semana</string>
+    <string name="title_this_month">Este Mês</string>
+    <string name="title_this_year">Este Ano</string>
+
+    /////////////// MovementScreen.kt //////////////////
+
     <string name="add_movement">Adicionar movimento</string>
     <string name="income">Receita</string>
     <string name="expense">Despesa</string>
-    <string name="select_category">Selecionar uma categoria</string>
+    <string name="select_category">Selecione a Categoria</string>
     <string name="amount">Valor</string>
-    <string name="short_description">Adicione uma breve descrição, se desejar</string>
+    <string name="short_description">Adicione uma descrição curta, se quiser</string>
     <string name="add_description">Sua descrição</string>
     <string name="save">Salvar</string>
     <string name="cancel">Cancelar</string>
@@ -41,96 +70,163 @@
         <item>Presente</item>
         <item>Vendas</item>
         <item>Investimento</item>
-        <item>Outras receitas</item>
+        <item>Outras Receitas</item>
     </string-array>
     <string-array name="expense_categories">
-        <item>Alimentação</item>
+        <item>Comida</item>
         <item>Transporte</item>
-        <item>Moradia</item>
-        <item>Entretenimento</item>
+        <item>Habitação</item>
+        <item>Lazer</item>
         <item>Serviços</item>
         <item>Compras</item>
         <item>Saúde</item>
         <item>Educação</item>
-        <item>Outras despesas</item>
+        <item>Outras Despesas</item>
     </string-array>
-    <string name="fill_all_fields">Por favor, preencha todos os campos</string>
+    <string name="fill_all_fields">Por favor, preencha todos os campos válidos</string>
 
-    <!-- NotificationsScreen.kt -->
+    <string name="no_data_pie">Não há dados para mostrar no gráfico de pizza</string>
+    <string name="no_data_bar">Não há dados para mostrar no gráfico de barras</string>
+    <string name="no_data_line">Não há dados para mostrar no gráfico de linhas</string>
+
+    /////////////// NotificationsScreen.kt //////////////////
+
     <string name="notifications">Notificações</string>
     <string name="reminder">Lembrete</string>
-    <string name="reminder_for">Lembre-se de pagar...</string>
-    <string name="daily_expenses">Lembre-se de registrar suas despesas diárias</string>
+    <string name="reminder_for">Lembrar de pagar...</string>
+    <string name="daily_expenses">Lembre-se de adicionar as despesas de hoje</string>
+    <string name="no_reminders_yet">Você ainda não tem lembretes</string>
 
-    <!-- ProfileScreen.kt -->
-    <string name="profile_configuration">Configurações do perfil</string>
-    <string name="your_info">Suas informações</string>
+    /////////////// ProfileScreen.kt //////////////////
+
+    <string name="profile_configuration">Configuração de perfil</string>
+    <string name="your_info">Sua informação</string>
     <string name="email">E-mail</string>
-    <string name="hour">Horário do lembrete diário</string>
-    <string name="change_password">Deseja alterar sua senha?</string>
+    <string name="hour">Hora do lembrete diário</string>
+    <string name="change_password">Quer mudar sua senha?</string>
     <string name="current_password">Digite sua senha atual</string>
     <string name="new_password">Digite sua nova senha</string>
     <string name="confirm_password">Confirme sua nova senha</string>
     <string name="save_changes">Salvar alterações</string>
     <string name="logout">Sair</string>
 
-    <!-- RegisterScreen.kt -->
+    <string name="background_desc">Fundo</string>
+    <string name="profile_pic_desc">Foto de perfil</string>
+    <string name="edit_photo_desc">Editar foto</string>
+    <string name="edit_name_desc">Editar nome</string>
+    <string name="card_background_desc">Fundo do cartão</string>
+    <string name="name_label">Nome</string>
+    <string name="default_user_name">Usuário</string>
+    <string name="new_name_label">Novo nome</string>
+    <string name="cancel_button">Cancelar</string>
+    <string name="save_button">Salvar</string>
+    <string name="default_email">usuario@email.com</string>
+    <string name="hour_bg_desc">Fundo hora</string>
+    <string name="minute_bg_desc">Fundo minuto</string>
+    <string name="ampm_bg_desc">Fundo AM/PM</string>
+    <string name="data_protection_msg">Seus dados estão protegidos e sincronizados com o Firebase.</string>
+
+    <string name="error_invalid_name">Nome inválido: apenas letras/espaços, 3-20 caracteres.</string>
+    <string name="error_edit_limit">Você só pode alterar seu nome uma vez a cada 15 dias.</string>
+
+    /////////////// RegisterScreen.kt //////////////////
+
     <string name="mail_error">Formato de e-mail inválido</string>
     <string name="password_error">A senha deve ter pelo menos 6 caracteres</string>
     <string name="passwords_not_match">As senhas não coincidem</string>
-    <string name="description">Gerencie sua vida financeira\ncom a Coinary</string>
-    <string name="confirm_password_label">Confirme sua senha</string>
-    <string name="register_success">Cadastro realizado com sucesso</string>
+    <string name="description">Planeje sua jornada financeira\ncom Coinary</string>
+    <string name="confirm_password_label">Confirmar Senha</string>
+    <string name="register_success">Registro bem-sucedido</string>
     <string name="create_account">Criar conta</string>
     <string name="already_account">Já tem uma conta?</string>
     <string name="login">Entrar</string>
-    <string name="google_sign_in">Entrar com o Google</string>
+    <string name="google_sign_in">Entrar com Google</string>
 
-    <!-- ReminderScreen.kt -->
+    /////////////// ReminderScreen.kt //////////////////
+
     <string name="create_reminder">Criar novo lembrete</string>
     <string name="name_reminder">Nomeie seu lembrete</string>
+
     <string-array name="categories">
-        <item>Alimentação</item>
+        <item>Comida</item>
         <item>Transporte</item>
-        <item>Moradia</item>
-        <item>Entretenimento</item>
+        <item>Habitação</item>
+        <item>Lazer</item>
         <item>Serviços</item>
         <item>Compras</item>
         <item>Saúde</item>
         <item>Educação</item>
-        <item>Outro</item>
+        <item>Outros</item>
     </string-array>
 
     <string name="date">Data</string>
 
-    <!-- StatsScreen.kt -->
-    <string name="stats">Seus gastos estão assim</string>
+    /////////////// StatsScreen.kt //////////////////
+
+    <string name="stats">Suas despesas são assim</string>
+
     <string-array name="months">
-        <item>Janvier</item>
-        <item>Février</item>
-        <item>Mars</item>
-        <item>Avril</item>
-        <item>Mai</item>
-        <item>Juin</item>
-        <item>Juillet</item>
-        <item>Août</item>
-        <item>Septembre</item>
-        <item>Octobre</item>
-        <item>Novembre</item>
-        <item>Décembre</item>
+        <item>Janeiro</item>
+        <item>Fevereiro</item>
+        <item>Março</item>
+        <item>Abril</item>
+        <item>Maio</item>
+        <item>Junho</item>
+        <item>Julho</item>
+        <item>Agosto</item>
+        <item>Setembro</item>
+        <item>Outubro</item>
+        <item>Novembro</item>
+        <item>Dezembro</item>
     </string-array>
-
     <string name="stats_title">Estatísticas mensais</string>
+
     <string name="no_data_selected_month">Não há dados para o mês selecionado</string>
+    <string name="bars">Barras</string>
+    <string name="lines">Linhas</string>
+    <string name="cake">Pizza</string>
 
-    <string name="bars">Bars</string>
-    <string name="lines">Lines</string>
-    <string name="cake">Cake</string>
+    <string name="select_date">Selecionar data</string>
+    <string name="select_hour">Selecionar hora</string>
 
-    <string name="select_date">Selecione a data</string>
-    <string name="select_hour">Selecione o horário</string>
+    <string name="pdf_dialog_title">Gerar Relatório PDF</string>
+    <string name="pdf_select_option">Selecione transações para incluir:</string>
+    <string name="pdf_option_all">Tudo (Receitas e Despesas)</string>
+    <string name="pdf_option_income">Apenas Receitas</string>
+    <string name="pdf_option_expense">Apenas Despesas</string>
+    <string name="pdf_generate_btn">Gerar PDF</string>
+    <string name="pdf_cancel_btn">Cancelar</string>
+    <string name="pdf_no_data">Sem dados para gerar relatório</string>
+    <string name="pdf_error">Erro ao gerar PDF: %1$s</string>
+    <string name="pdf_share_title">Compartilhar Relatório PDF</string>
 
-    <string name="no_reminders_yet">Voces não tem lembretes programados</string>
+    <string name="no_transactions_found">(Nenhuma receita ou despesa encontrada)</string>
+    <string name="legend_income">Receitas</string>
+    <string name="legend_expense">Despesas</string>
 
+    <string name="report_filter_all">Completo (Receitas e Despesas)</string>
+    <string name="report_filter_income">Apenas Receitas</string>
+    <string name="report_filter_expense">Apenas Despesas</string>
+
+    <string name="pdf_file_prefix">Relatorio_Coinary</string>
+
+    <string name="pdf_no_data_toast">Não há dados disponíveis para gerar o relatório.</string>
+    <string name="pdf_generated_msg">PDF gerado com sucesso.</string>
+    <string name="pdf_error_msg">Erro ao gerar PDF: %1$s</string>
+
+    <string name="pdf_header_description">Descrição</string>
+    <string name="pdf_header_category">Categoria</string>
+    <string name="pdf_header_date">Data</string>
+    <string name="pdf_header_amount">Valor</string>
+    <string name="pdf_total_label">Total</string>
+
+    /////////////// PdfGenerator.kt //////////////////
+
+    <string name="pdf_report_title">Relatório Financeiro</string>
+    <string name="pdf_period_label">Período:</string>
+    <string name="pdf_type_label">Tipo de Relatório:</string>
+    <string name="pdf_total_income">Renda Total:</string>
+    <string name="pdf_total_expense">Despesa Total:</string>
+    <string name="pdf_net_balance">Saldo Líquido:</string>
 
 </resources>

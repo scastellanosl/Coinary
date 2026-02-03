@@ -5,16 +5,21 @@
     /////////////// GoogleLoginScreen.kt //////////////////
 
     <string name ="login_success">Inicio de sesión exitoso</string>
-    <string name="lildescriptor">Gestiona tus gastos
-        con Coinary</string>
+    <string name="lildescriptor">"Gestiona tus gastos
+        con Coinary"</string>
     <string name="mail_label">Dirección de correo electrónico</string>
     <string name="password_label">Contraseña</string>
     <string name="continue_button">Continuar</string>
     <string name="empty_fields">Por favor completa todos los campos</string>
     <string name="continue_with_google">Continuar con Google</string>
-    <string name="policies">Al continuar, acepta nuestros términos de servicio y política de privacidad.</string>
+    <string name="policies">Al continuar, aceptas nuestros términos de servicio y política de privacidad.</string>
     <string name="dont_account">¿No tienes una cuenta?</string>
     <string name="sign_up">Registrate</string>
+
+    <string name="forgot_password_question">¿Olvidaste tu contraseña?</string>
+    <string name="reset_password">Restablecer contraseña</string>
+    <string name="collage_desc">Imagen Collage Coinary</string>
+    <string name="error_msg_prefix">Error: %1$s</string>
 
     /////////////// MainActivity.kt //////////////////
 
@@ -28,6 +33,26 @@
     <string name="food">Comida</string>
     <string name="gifts">Regalos</string>
     <string name="transport">Transporte</string>
+
+    /////////////// HomeScreen.kt //////////////////
+
+    <string name="top_frame_desc">Marco superior</string>
+    <string name="user_photo_desc">Foto de usuario</string>
+    <string name="notification_icon_desc">Notificaciones</string>
+    <string name="recommendations_desc">Recomendaciones</string>
+    <string name="predictions_desc">Predicciones</string>
+    <string name="coinary_bg_desc">Fondo Coinary</string>
+    <string name="week_container_desc">Contenedor de estadísticas</string>
+    <string name="bottom_frame_desc">Marco inferior</string>
+    <string name="filter_day">Día</string>
+    <string name="filter_week">Semana</string>
+    <string name="filter_month">Mes</string>
+    <string name="filter_year">Año</string>
+
+    <string name="title_this_day">Hoy</string>
+    <string name="title_this_week">Esta Semana</string>
+    <string name="title_this_month">Este Mes</string>
+    <string name="title_this_year">Este Año</string>
 
     /////////////// MovementScreen.kt //////////////////
 
@@ -60,12 +85,17 @@
     </string-array>
     <string name="fill_all_fields">Por favor completa todos los campos</string>
 
+    <string name="no_data_pie">No hay datos para mostrar en el gráfico de pastel</string>
+    <string name="no_data_bar">No hay datos para mostrar en el gráfico de barras</string>
+    <string name="no_data_line">No hay datos para mostrar en el gráfico de líneas</string>
+
     /////////////// NotificationsScreen.kt //////////////////
 
     <string name="notifications">Notificaciones</string>
     <string name="reminder">Recordatorio</string>
     <string name="reminder_for">Recuerda pagar...</string>
     <string name="daily_expenses">Recuerda registrar tus gastos diarios</string>
+    <string name="no_reminders_yet">Aún no tienes recordatorios programados</string>
 
     /////////////// ProfileScreen.kt //////////////////
 
@@ -80,6 +110,25 @@
     <string name="save_changes">Guardar cambios</string>
     <string name="logout">Cerrar sesión</string>
 
+    <string name="background_desc">Fondo</string>
+    <string name="profile_pic_desc">Foto de perfil</string>
+    <string name="edit_photo_desc">Editar foto</string>
+    <string name="edit_name_desc">Editar nombre</string>
+    <string name="card_background_desc">Fondo de tarjeta</string>
+    <string name="name_label">Nombre</string>
+    <string name="default_user_name">Usuario</string>
+    <string name="new_name_label">Nuevo nombre</string>
+    <string name="cancel_button">Cancelar</string>
+    <string name="save_button">Guardar</string>
+    <string name="default_email">usuario@correo.com</string>
+    <string name="hour_bg_desc">Fondo hora</string>
+    <string name="minute_bg_desc">Fondo minuto</string>
+    <string name="ampm_bg_desc">Fondo AM/PM</string>
+    <string name="data_protection_msg">Tus datos están protegidos y sincronizados con Firebase.</string>
+
+    <string name="error_invalid_name">Nombre inválido: solo letras/espacios, 3-20 caracteres.</string>
+    <string name="error_edit_limit">Solo puedes cambiar tu nombre una vez cada 15 días.</string>
+
     /////////////// RegisterScreen.kt //////////////////
 
     <string name="mail_error">Formato de correo electrónico inválido</string>
@@ -93,9 +142,6 @@
     <string name="login">Iniciar sesión</string>
     <string name="google_sign_in">Iniciar sesión con Google</string>
 
-    <string name="no_reminders_yet">Aún no tienes recordatorios programados</string>
-
-
     /////////////// ReminderScreen.kt //////////////////
 
     <string name="create_reminder">Crea un nuevo recordatorio</string>
@@ -103,7 +149,7 @@
     <string-array name="categories">
         <item>Comida</item>
         <item>Transporte</item>
-        <item>Hospedaje</item>
+        <item>Vivienda</item>
         <item>Entretenimiento</item>
         <item>Servicios</item>
         <item>Compras</item>
@@ -117,6 +163,7 @@
     /////////////// StatsScreen.kt //////////////////
 
     <string name="stats">Tus gastos lucen así</string>
+
     <string-array name="months">
         <item>Enero</item>
         <item>Febrero</item>
@@ -133,17 +180,51 @@
     </string-array>
     <string name="stats_title">Estadísticas mensuales</string>
     <string name="no_data_selected_month">No hay datos para el mes seleccionado</string>
-
     <string name="bars">Barras</string>
     <string name="lines">Lineas</string>
     <string name="cake">Torta</string>
 
     <string name="select_date">Seleccionar Fecha</string>
-
     <string name="select_hour">Seleccionar Hora</string>
 
-    <string name="no_data_pie">No hay datos para mostrar en el gráfico de pastel</string>
-    <string name="no_data_bar">No hay datos para mostrar en el gráfico de barras</string>
-    <string name="no_data_line">No hay datos para mostrar en el gráfico de líneas</string>
+    <string name="pdf_dialog_title">Generar Reporte PDF</string>
+    <string name="pdf_select_option">Selecciona transacciones a incluir:</string>
+    <string name="pdf_option_all">Todo (Ingresos y Gastos)</string>
+    <string name="pdf_option_income">Solo Ingresos</string>
+    <string name="pdf_option_expense">Solo Gastos</string>
+    <string name="pdf_generate_btn">Generar PDF</string>
+    <string name="pdf_cancel_btn">Cancelar</string>
+    <string name="pdf_no_data">No hay datos para generar el reporte</string>
+    <string name="pdf_error">Error generando PDF: %1$s</string>
+    <string name="pdf_share_title">Compartir Reporte PDF</string>
+
+    <string name="no_transactions_found">(No se encontraron ingresos ni gastos)</string>
+    <string name="legend_income">Ingresos</string>
+    <string name="legend_expense">Gastos</string>
+
+    <string name="report_filter_all">Completo (Ingresos y Gastos)</string>
+    <string name="report_filter_income">Solo Ingresos</string>
+    <string name="report_filter_expense">Solo Gastos</string>
+
+    <string name="pdf_file_prefix">Reporte_Coinary</string>
+
+    <string name="pdf_no_data_toast">No hay datos disponibles para generar el reporte.</string>
+    <string name="pdf_generated_msg">PDF generado exitosamente.</string>
+    <string name="pdf_error_msg">Error al generar PDF: %1$s</string>
+
+    <string name="pdf_header_description">Descripción</string>
+    <string name="pdf_header_category">Categoría</string>
+    <string name="pdf_header_date">Fecha</string>
+    <string name="pdf_header_amount">Monto</string>
+    <string name="pdf_total_label">Total</string>
+
+    /////////////// PdfGenerator.kt //////////////////
+
+    <string name="pdf_report_title">Reporte Financiero</string>
+    <string name="pdf_period_label">Periodo:</string>
+    <string name="pdf_type_label">Tipo de Reporte:</string>
+    <string name="pdf_total_income">Total Ingresos:</string>
+    <string name="pdf_total_expense">Total Gastos:</string>
+    <string name="pdf_net_balance">Balance Neto:</string>
 
 </resources>

@@ -2,7 +2,6 @@
 
 package com.example.coinary.view
 
-import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -10,42 +9,20 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -53,19 +30,24 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.coinary.R
 import com.example.coinary.repository.GoogleAuthClient
-import com.example.coinary.view.InterFont
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
-
+// Define global font family
 val InterFont = FontFamily(Font(R.font.inter))
 
-@SuppressLint("UnusedBoxWithConstraintsScope")
+/**
+ * The main login screen composable.
+ * Handles Email/Password authentication and Google Sign-In via [GoogleAuthClient].
+ *
+ * @param onLoginSuccess Callback triggered when authentication is successful.
+ * @param onNavigateToRegister Callback to navigate to the registration screen.
+ * @param onForgotPasswordClick Callback to navigate to the password reset screen.
+ */
 @Composable
 fun GoogleLoginScreen(
     onLoginSuccess: () -> Unit,
@@ -77,42 +59,51 @@ fun GoogleLoginScreen(
     var isLoading by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
 
+    // Check if user is already signed in when the screen launches
     LaunchedEffect(Unit) {
         if (googleAuthClient.getSignedInUser() != null) {
             onLoginSuccess()
         }
     }
 
+    // --- Google Sign-In Launcher ---
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
         isLoading = true
         coroutineScope.launch {
             try {
+                // Attempt to sign in with the intent result
                 val user = googleAuthClient.signInWithIntent(result.data ?: return@launch)
                 if (user.isSuccess) {
                     Toast.makeText(context, context.getString(R.string.login_success), Toast.LENGTH_SHORT).show()
                     onLoginSuccess()
                 } else {
-                    Toast.makeText(context, "Error: ${user.exceptionOrNull()?.message}", Toast.LENGTH_SHORT).show()
+                    // Format error message using string resource with placeholder (%1$s)
+                    val errorMsg = user.exceptionOrNull()?.message ?: ""
+                    Toast.makeText(context, context.getString(R.string.error_msg_prefix, errorMsg), Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                val errorMsg = e.message ?: ""
+                Toast.makeText(context, context.getString(R.string.error_msg_prefix, errorMsg), Toast.LENGTH_SHORT).show()
             } finally {
                 isLoading = false
             }
         }
     }
 
+    // Local state for form inputs
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
+    // Use BoxWithConstraints to make layout responsive to screen width
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
             .verticalScroll(rememberScrollState())
     ) {
+        // Calculate padding based on available width (Responsive Design)
         val screenWidth = maxWidth
         val contentPadding = if (screenWidth < 600.dp) 20.dp else 40.dp
 
@@ -122,17 +113,19 @@ fun GoogleLoginScreen(
                 .padding(horizontal = contentPadding),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // --- Header Image ---
             Image(
                 painter = painterResource(id = R.drawable.ic_images),
-                contentDescription = "Collage Coinary",
+                contentDescription = stringResource(id = R.string.collage_desc),
                 modifier = Modifier.fillMaxWidth(),
                 contentScale = ContentScale.Crop
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            // --- App Description ---
             Text(
-                text = context.getString(R.string.lildescriptor),
+                text = stringResource(id = R.string.lildescriptor),
                 fontFamily = InterFont,
                 fontWeight = FontWeight.Bold,
                 fontSize = if (screenWidth < 600.dp) 24.sp else 32.sp,
@@ -143,27 +136,28 @@ fun GoogleLoginScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Email
+            // --- Email Input ---
             CustomTextField(
                 value = email,
-                label = context.getString(R.string.mail_label),
+                label = stringResource(id = R.string.mail_label),
                 onValueChange = { email = it }
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Password
+            // --- Password Input ---
             CustomTextField(
                 value = password,
-                label = context.getString(R.string.password_label),
+                label = stringResource(id = R.string.password_label),
                 onValueChange = { password = it },
                 isPassword = true
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // --- Login Button (Email/Password) ---
             AuthButton(
-                text = context.getString(R.string.continue_button),
+                text = stringResource(id = R.string.continue_button),
                 loading = isLoading,
                 onClick = {
                     if (email.isNotBlank() && password.isNotBlank()) {
@@ -175,7 +169,8 @@ fun GoogleLoginScreen(
                                 if (task.isSuccessful) {
                                     onLoginSuccess()
                                 } else {
-                                    Toast.makeText(context, "Error: ${task.exception?.message}", Toast.LENGTH_LONG).show()
+                                    val errorMsg = task.exception?.message ?: ""
+                                    Toast.makeText(context, context.getString(R.string.error_msg_prefix, errorMsg), Toast.LENGTH_LONG).show()
                                 }
                             }
                     } else {
@@ -186,8 +181,9 @@ fun GoogleLoginScreen(
 
             Spacer(modifier = Modifier.height(30.dp))
 
+            // --- Google Sign-In Button ---
             AuthButton(
-                text = context.getString(R.string.continue_with_google),
+                text = stringResource(id = R.string.continue_with_google),
                 icon = R.drawable.ic_google,
                 backgroundColor = Color(0xFF757569),
                 loading = false,
@@ -196,17 +192,16 @@ fun GoogleLoginScreen(
                 }
             )
 
-            // enlace para restablecer contraseña
+            // --- Navigation Links ---
             ForgotPasswordText(onClick = onForgotPasswordClick)
-
             SignUpText(onClick = onNavigateToRegister)
 
             Spacer(modifier = Modifier.height(20.dp))
-
             Spacer(modifier = Modifier.height(30.dp))
 
+            // --- Policies Text ---
             Text(
-                text = context.getString(R.string.policies),
+                text = stringResource(id = R.string.policies),
                 color = Color.White,
                 fontSize = 11.sp,
                 lineHeight = 12.sp,
@@ -219,8 +214,16 @@ fun GoogleLoginScreen(
     }
 }
 
+/**
+ * A styled TextField component used for Authentication forms.
+ */
 @Composable
-fun CustomTextField(value: String, label: String, onValueChange: (String) -> Unit, isPassword: Boolean = false) {
+fun CustomTextField(
+    value: String,
+    label: String,
+    onValueChange: (String) -> Unit,
+    isPassword: Boolean = false
+) {
     TextField(
         value = value,
         onValueChange = onValueChange,
@@ -251,8 +254,17 @@ fun CustomTextField(value: String, label: String, onValueChange: (String) -> Uni
     )
 }
 
+/**
+ * A reusable Button component with loading state support and optional icon.
+ */
 @Composable
-fun AuthButton(text: String, icon: Int? = null, backgroundColor: Color = Color(0xFF4D54BF), loading: Boolean, onClick: () -> Unit) {
+fun AuthButton(
+    text: String,
+    icon: Int? = null,
+    backgroundColor: Color = Color(0xFF4D54BF),
+    loading: Boolean,
+    onClick: () -> Unit
+) {
     Box(
         modifier = Modifier.fillMaxWidth(),
         contentAlignment = Alignment.Center
@@ -293,76 +305,69 @@ fun AuthButton(text: String, icon: Int? = null, backgroundColor: Color = Color(0
 
 @Composable
 fun SignUpText(onClick: () -> Unit) {
-    val context = LocalContext.current
-    val annotatedText = buildAnnotatedString {
-        append(context.getString(R.string.dont_account) + " ")
-        pushStringAnnotation(tag = "SIGNUP", annotation = "signup")
-        withStyle(
-            style = SpanStyle(
-                color = Color(0xFFF2E423),
-                textDecoration = TextDecoration.Underline
-            )
-        ) {
-            append(context.getString(R.string.sign_up))
-        }
-        pop()
-    }
-
-    ClickableText(
-        text = annotatedText,
+    Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 12.dp, bottom = 8.dp),
-        style = TextStyle(
-            color = Color.White,
-            fontSize = 14.sp,
-            fontFamily = InterFont,
-            textAlign = TextAlign.Center
-        ),
-        onClick = { offset ->
-            annotatedText.getStringAnnotations(tag = "SIGNUP", start = offset, end = offset)
-                .firstOrNull()?.let {
-                    onClick()
-                }
-        }
-    )
+        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // "You don't have an account? "
+        Text(
+            text = stringResource(id = R.string.dont_account) + " ",
+            style = TextStyle(
+                color = Color.White,
+                fontSize = 14.sp,
+                fontFamily = InterFont
+            )
+        )
+
+        // "Sign up" link
+        Text(
+            text = stringResource(id = R.string.sign_up),
+            style = TextStyle(
+                color = Color(0xFFF2E423),
+                fontSize = 14.sp,
+                fontFamily = InterFont,
+                textDecoration = TextDecoration.Underline,
+                fontWeight = FontWeight.Bold
+            ),
+            modifier = Modifier.clickable { onClick() }
+        )
+    }
 }
 
 @Composable
 fun ForgotPasswordText(onClick: () -> Unit) {
-    val context = LocalContext.current
-    val annotatedText = buildAnnotatedString {
-        append("¿Olvidaste tu contraseña? ")
-        pushStringAnnotation(tag = "RESET", annotation = "reset")
-        withStyle(
-            style = SpanStyle(
-                color = Color(0xFFF2E423),
-                textDecoration = TextDecoration.Underline
-            )
-        ) {
-            append("\nRestablecer contraseña")
-        }
-        pop()
-    }
-
-    ClickableText(
-        text = annotatedText,
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 16.dp, bottom = 4.dp),
-        style = TextStyle(
-            color = Color.White,
-            fontSize = 14.sp,
-            fontFamily = InterFont,
-            textAlign = TextAlign.Center
-        ),
-        onClick = { offset ->
-            annotatedText.getStringAnnotations(tag = "RESET", start = offset, end = offset)
-                .firstOrNull()?.let {
-                    onClick()
-                }
-        }
-    )
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // "Forgot your password?"
+        Text(
+            text = stringResource(id = R.string.forgot_password_question),
+            style = TextStyle(
+                color = Color.White,
+                fontSize = 14.sp,
+                fontFamily = InterFont
+            )
+        )
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        // "Reset password" link
+        Text(
+            text = stringResource(id = R.string.reset_password),
+            style = TextStyle(
+                color = Color(0xFFF2E423),
+                fontSize = 14.sp,
+                fontFamily = InterFont,
+                textDecoration = TextDecoration.Underline,
+                fontWeight = FontWeight.Bold
+            ),
+            modifier = Modifier.clickable { onClick() }
+        )
+    }
 }
-
-

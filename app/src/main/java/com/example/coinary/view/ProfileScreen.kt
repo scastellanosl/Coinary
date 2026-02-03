@@ -25,6 +25,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -41,29 +42,42 @@ import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.launch
-import androidx.compose.ui.res.stringResource
 
+/**
+ * Screen for managing the user profile.
+ * Allows the user to view and edit their personal information (name, profile picture),
+ * configure notification settings, and sign out of the application.
+ *
+ * It uses SharedPreferences for local persistence of profile data to ensure
+ * a seamless user experience even when offline or before Firebase syncs.
+ */
 @Composable
 fun ProfileScreen(
     navController: NavController,
     onLogout: () -> Unit
 ) {
+    // --- Screen Configuration & Context ---
     val context = LocalContext.current
-    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
-    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
-    val screenHeightDp = LocalConfiguration.current.screenHeightDp.toFloat()
-    val screenWidthDp = LocalConfiguration.current.screenWidthDp.toFloat()
+    val configuration = LocalConfiguration.current
+    val screenHeight = configuration.screenHeightDp.dp
+    val screenWidth = configuration.screenWidthDp.dp
+    val screenHeightDp = configuration.screenHeightDp.toFloat()
+    val screenWidthDp = configuration.screenWidthDp.toFloat()
 
+    // --- System UI Controller ---
     val systemUiController = rememberSystemUiController()
     val statusBarColor = Color.Black
     SideEffect {
         systemUiController.setStatusBarColor(color = statusBarColor, darkIcons = false)
     }
 
+    // --- Authentication & User Data ---
     val googleAuthClient = remember { GoogleAuthClient(context) }
     val coroutineScope = rememberCoroutineScope()
     val user = googleAuthClient.getSignedInUser()
+    val firebaseUser = remember { Firebase.auth.currentUser }
 
+    // --- Notification Time Picker State ---
     var hour by remember { mutableStateOf(18) }
     var minute by remember { mutableStateOf(0) }
 
@@ -74,15 +88,13 @@ fun ProfileScreen(
         }, hour, minute, false)
     }
 
-    // SharedPreferences para persistir datos localmente
+    // --- Local Persistence (SharedPreferences) ---
     val prefs = remember {
         context.getSharedPreferences("profile_prefs", android.content.Context.MODE_PRIVATE)
     }
 
-    // Estados para perfil
-    val firebaseUser = remember { Firebase.auth.currentUser }
-
-    // Cargar desde SharedPreferences primero, luego desde Firebase
+    // --- Profile State ---
+    // Load from SharedPreferences first for immediate UI response, fallback to Firebase.
     var displayName by remember {
         mutableStateOf(
             prefs.getString("display_name", null)
@@ -102,16 +114,18 @@ fun ProfileScreen(
         mutableStateOf(prefs.getLong("last_name_edit", 0L))
     }
 
+    // Editing State
     var editingName by remember { mutableStateOf(false) }
     var nameDraft by remember { mutableStateOf(displayName) }
     var errorMsg by remember { mutableStateOf<String?>(null) }
 
+    // --- Image Picker Logic ---
     val pickPhotoLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = { uri ->
             if (uri != null) {
                 try {
-                    // Dar permisos permanentes a la URI
+                    // Grant persistable URI permission to access the content even after a restart
                     context.contentResolver.takePersistableUriPermission(
                         uri,
                         Intent.FLAG_GRANT_READ_URI_PERMISSION
@@ -119,21 +133,21 @@ fun ProfileScreen(
 
                     photoUri = uri
 
-                    // Guardar en SharedPreferences para persistencia local
+                    // Save locally in SharedPreferences
                     prefs.edit()
                         .putString("photo_uri", uri.toString())
                         .apply()
 
-                    // Guardar en Firebase Auth para sincronización
+                    // Sync with Firebase Auth
                     firebaseUser?.updateProfile(
                         UserProfileChangeRequest.Builder()
                             .setPhotoUri(uri)
                             .build()
                     )?.addOnCompleteListener {
-                        // Sincronizado
+                        // Sync completed (optional handling)
                     }
                 } catch (e: Exception) {
-                    // En caso de error con permisos persistentes
+                    // Fallback in case of permission errors
                     photoUri = uri
                     prefs.edit()
                         .putString("photo_uri", uri.toString())
@@ -143,7 +157,16 @@ fun ProfileScreen(
         }
     )
 
-    // Validaciones
+    // Load localized error strings
+    val errorInvalidName = stringResource(R.string.error_invalid_name)
+    val errorEditLimit = stringResource(R.string.error_edit_limit)
+
+    // --- Validation Logic ---
+
+    /**
+     * Validates the format of the user's name.
+     * Rules: Length 3-20, allowed characters (Letters, accents), and banned words.
+     */
     fun isNameValid(name: String): Boolean {
         val trimmed = name.trim()
         if (trimmed.length !in 3..20) return false
@@ -153,19 +176,25 @@ fun ProfileScreen(
         return banned.none { it in trimmed.lowercase() }
     }
 
+    /**
+     * Checks if the user is allowed to edit their name based on the time cooldown (15 days).
+     */
     fun canEditName(): Boolean {
         val now = System.currentTimeMillis()
         val days15 = 15L * 24 * 60 * 60 * 1000
         return now - lastEditMillis >= days15
     }
 
+    /**
+     * Saves the modified name to both local storage and Firebase.
+     */
     fun saveName() {
         if (!isNameValid(nameDraft)) {
-            errorMsg = "Nombre inválido: solo letras/espacios, 3-20 caracteres, sin palabras prohibidas."
+            errorMsg = errorInvalidName
             return
         }
         if (!canEditName()) {
-            errorMsg = "Solo puedes cambiar el nombre una vez cada 15 días."
+            errorMsg = errorEditLimit
             return
         }
         displayName = nameDraft.trim()
@@ -173,13 +202,13 @@ fun ProfileScreen(
         errorMsg = null
         editingName = false
 
-        // Guardar en SharedPreferences
+        // Update SharedPreferences
         prefs.edit()
             .putString("display_name", displayName)
             .putLong("last_name_edit", lastEditMillis)
             .apply()
 
-        // Guardar en Firebase Auth
+        // Update Firebase Auth
         firebaseUser?.updateProfile(
             UserProfileChangeRequest.Builder()
                 .setDisplayName(displayName)
@@ -187,8 +216,9 @@ fun ProfileScreen(
         )?.addOnCompleteListener { }
     }
 
+    // --- UI Layout ---
     Column(modifier = Modifier.fillMaxSize()) {
-        // Header
+        // 1. Top Bar
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -219,11 +249,11 @@ fun ProfileScreen(
             }
         }
 
-        // Contenido principal
+        // 2. Main Content
         Box(modifier = Modifier.fillMaxSize()) {
             Image(
                 painter = painterResource(id = R.drawable.darker_background),
-                contentDescription = "Background",
+                contentDescription = stringResource(R.string.background_desc),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 5.dp),
@@ -231,18 +261,17 @@ fun ProfileScreen(
             )
 
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                // Avatar editable CIRCULAR
+                // -- Avatar Section --
                 Box(
                     modifier = Modifier
                         .offset(y = (screenHeight * 0.025f))
                         .fillMaxWidth(0.25f)
                         .aspectRatio(1f)
                 ) {
-                    // Mostrar imagen circular
                     if (photoUri != null) {
                         AsyncImage(
                             model = photoUri,
-                            contentDescription = "Foto de perfil",
+                            contentDescription = stringResource(R.string.profile_pic_desc),
                             modifier = Modifier
                                 .fillMaxSize()
                                 .clip(CircleShape),
@@ -251,7 +280,7 @@ fun ProfileScreen(
                     } else {
                         Image(
                             painter = painterResource(id = R.drawable.user_icon),
-                            contentDescription = "Foto de perfil",
+                            contentDescription = stringResource(R.string.profile_pic_desc),
                             modifier = Modifier
                                 .fillMaxSize()
                                 .clip(CircleShape),
@@ -259,7 +288,7 @@ fun ProfileScreen(
                         )
                     }
 
-                    // Lapicito movido más a la derecha
+                    // Edit Icon (Pencil)
                     IconButton(
                         onClick = {
                             pickPhotoLauncher.launch(
@@ -273,16 +302,16 @@ fun ProfileScreen(
                     ) {
                         Icon(
                             Icons.Default.Edit,
-                            "Editar foto",
+                            stringResource(R.string.edit_photo_desc),
                             tint = Color.White,
                             modifier = Modifier.size(20.dp)
                         )
                     }
                 }
 
-                // Nombre del usuario
+                // -- Display Name Header --
                 Text(
-                    text = displayName.ifBlank { user?.username ?: "User" },
+                    text = displayName.ifBlank { user?.username ?: stringResource(R.string.default_user_name) },
                     fontWeight = FontWeight.Bold,
                     fontSize = (screenWidthDp * 0.042f).sp,
                     color = Color.White,
@@ -292,11 +321,11 @@ fun ProfileScreen(
                     textAlign = TextAlign.Center
                 )
 
-                // Your Info Card
+                // -- User Info Card --
                 Box(modifier = Modifier.fillMaxWidth()) {
                     Image(
                         painter = painterResource(id = R.drawable.fondo_contenedor_categoria),
-                        contentDescription = "Card background",
+                        contentDescription = stringResource(R.string.card_background_desc),
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = screenWidth * 0.048f)
@@ -309,7 +338,7 @@ fun ProfileScreen(
                             .padding(horizontal = screenWidth * 0.048f)
                             .padding(top = screenHeight * 0.038f)
                     ) {
-                        // Your Info
+                        // Title
                         Text(
                             text = stringResource(R.string.your_info),
                             color = Color.White,
@@ -319,9 +348,9 @@ fun ProfileScreen(
                             modifier = Modifier.fillMaxWidth()
                         )
 
-                        // Name editable
+                        // Name Field
                         Text(
-                            text = "Nombre",
+                            text = stringResource(R.string.name_label),
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
                             fontSize = (screenWidthDp * 0.055f).sp,
@@ -336,7 +365,7 @@ fun ProfileScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = displayName.ifBlank { "Usuario" },
+                                text = displayName.ifBlank { stringResource(R.string.default_user_name) },
                                 color = Color.White,
                                 fontWeight = FontWeight.Thin,
                                 fontSize = (screenWidthDp * 0.050f).sp
@@ -346,15 +375,16 @@ fun ProfileScreen(
                                 editingName = true
                                 errorMsg = null
                             }) {
-                                Icon(Icons.Default.Edit, "Editar nombre", tint = Color.White)
+                                Icon(Icons.Default.Edit, stringResource(R.string.edit_name_desc), tint = Color.White)
                             }
                         }
 
+                        // Editable TextField for Name
                         if (editingName) {
                             OutlinedTextField(
                                 value = nameDraft,
                                 onValueChange = { nameDraft = it },
-                                label = { Text("Nuevo nombre", color = Color.White.copy(alpha = 0.7f)) },
+                                label = { Text(stringResource(R.string.new_name_label), color = Color.White.copy(alpha = 0.7f)) },
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                                 singleLine = true,
                                 modifier = Modifier.fillMaxWidth(),
@@ -373,15 +403,16 @@ fun ProfileScreen(
                                 horizontalArrangement = Arrangement.Center
                             ) {
                                 TextButton(onClick = { editingName = false }) {
-                                    Text("Cancelar", color = Color.White)
+                                    Text(stringResource(R.string.cancel_button), color = Color.White)
                                 }
                                 Spacer(Modifier.width(12.dp))
                                 Button(onClick = { saveName() }) {
-                                    Text("Guardar")
+                                    Text(stringResource(R.string.save_button))
                                 }
                             }
                         }
 
+                        // Error Message Display
                         if (errorMsg != null) {
                             Text(
                                 text = errorMsg!!,
@@ -394,7 +425,7 @@ fun ProfileScreen(
                             )
                         }
 
-                        // Email
+                        // Email Field (Read-only)
                         Text(
                             text = stringResource(R.string.email),
                             color = Color.White,
@@ -406,7 +437,7 @@ fun ProfileScreen(
                                 .fillMaxWidth()
                         )
                         Text(
-                            text = user?.email ?: FirebaseAuth.getInstance().currentUser?.email ?: "mailusuario",
+                            text = user?.email ?: FirebaseAuth.getInstance().currentUser?.email ?: stringResource(R.string.default_email),
                             color = Color.White,
                             fontWeight = FontWeight.Thin,
                             fontSize = (screenWidthDp * 0.050f).sp,
@@ -416,7 +447,7 @@ fun ProfileScreen(
                                 .fillMaxWidth()
                         )
 
-                        // Hora de notificación
+                        // Notification Time Picker
                         Text(
                             text = stringResource(R.string.hour),
                             color = Color.White,
@@ -435,6 +466,7 @@ fun ProfileScreen(
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
+                            // Hour Box
                             Box(
                                 modifier = Modifier
                                     .size(screenHeight * 0.06f)
@@ -442,7 +474,7 @@ fun ProfileScreen(
                             ) {
                                 Image(
                                     painter = painterResource(id = R.drawable.button_background),
-                                    contentDescription = "Hour background",
+                                    contentDescription = stringResource(R.string.hour_bg_desc),
                                     modifier = Modifier.fillMaxSize()
                                 )
                                 Text(
@@ -462,6 +494,7 @@ fun ProfileScreen(
                                 modifier = Modifier.padding(horizontal = 10.dp)
                             )
 
+                            // Minute Box
                             Box(
                                 modifier = Modifier
                                     .size(screenHeight * 0.06f)
@@ -469,7 +502,7 @@ fun ProfileScreen(
                             ) {
                                 Image(
                                     painter = painterResource(id = R.drawable.button_background),
-                                    contentDescription = "Minute background",
+                                    contentDescription = stringResource(R.string.minute_bg_desc),
                                     modifier = Modifier.fillMaxSize()
                                 )
                                 Text(
@@ -483,6 +516,7 @@ fun ProfileScreen(
 
                             Spacer(modifier = Modifier.width((screenWidth * 0.022f)))
 
+                            // AM/PM Indicator
                             Box(
                                 modifier = Modifier
                                     .size(screenHeight * 0.06f)
@@ -491,7 +525,7 @@ fun ProfileScreen(
                             ) {
                                 Image(
                                     painter = painterResource(id = R.drawable.button_hour),
-                                    contentDescription = "AM/PM background",
+                                    contentDescription = stringResource(R.string.ampm_bg_desc),
                                     modifier = Modifier.fillMaxSize()
                                 )
                                 Text(
@@ -505,9 +539,9 @@ fun ProfileScreen(
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // Mensaje de protección
+                        // Data Protection Message
                         Text(
-                            text = "Tus datos están protegidos y sincronizados con Firebase.",
+                            text = stringResource(R.string.data_protection_msg),
                             color = Color.White.copy(alpha = 0.8f),
                             fontSize = 13.sp,
                             textAlign = TextAlign.Center,
@@ -518,7 +552,7 @@ fun ProfileScreen(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // Botón logout
+                // -- Logout Button --
                 Button(
                     onClick = {
                         coroutineScope.launch {
@@ -545,4 +579,3 @@ fun ProfileScreen(
         }
     }
 }
-

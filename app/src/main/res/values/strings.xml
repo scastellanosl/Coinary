@@ -16,6 +16,11 @@
     <string name="dont_account">You don\'t have an account?</string>
     <string name="sign_up">Sign up</string>
 
+    <string name="forgot_password_question">Forgot your password?</string>
+    <string name="reset_password">Reset password</string>
+    <string name="collage_desc">Coinary Collage Image</string>
+    <string name="error_msg_prefix">Error: %1$s</string>
+
     /////////////// MainActivity.kt //////////////////
 
     <string name="greeting">Hello!!</string>
@@ -28,6 +33,26 @@
     <string name="food">Food</string>
     <string name="gifts">Gifts</string>
     <string name="transport">Transport</string>
+
+    /////////////// HomeScreen.kt //////////////////
+
+    <string name="top_frame_desc">Top frame</string>
+    <string name="user_photo_desc">User photo</string>
+    <string name="notification_icon_desc">Notifications</string>
+    <string name="recommendations_desc">Recommendations</string>
+    <string name="predictions_desc">Predictions</string>
+    <string name="coinary_bg_desc">Coinary background</string>
+    <string name="week_container_desc">Weekly stats container</string>
+    <string name="bottom_frame_desc">Bottom frame</string>
+    <string name="filter_day">Day</string>
+    <string name="filter_week">Week</string>
+    <string name="filter_month">Month</string>
+    <string name="filter_year">Year</string>
+
+    <string name="title_this_day">Today</string>
+    <string name="title_this_week">This Week</string>
+    <string name="title_this_month">This Month</string>
+    <string name="title_this_year">This Year</string>
 
     /////////////// MovementScreen.kt //////////////////
 
@@ -85,6 +110,25 @@
     <string name="save_changes">Save changes</string>
     <string name="logout">Close session</string>
 
+    <string name="background_desc">Background</string>
+    <string name="profile_pic_desc">Profile picture</string>
+    <string name="edit_photo_desc">Edit photo</string>
+    <string name="edit_name_desc">Edit name</string>
+    <string name="card_background_desc">Card background</string>
+    <string name="name_label">Name</string>
+    <string name="default_user_name">User</string>
+    <string name="new_name_label">New name</string>
+    <string name="cancel_button">Cancel</string>
+    <string name="save_button">Save</string>
+    <string name="default_email">user@mail.com</string>
+    <string name="hour_bg_desc">Hour background</string>
+    <string name="minute_bg_desc">Minute background</string>
+    <string name="ampm_bg_desc">AM/PM background</string>
+    <string name="data_protection_msg">Your data is protected and synchronized with Firebase.</string>
+
+    <string name="error_invalid_name">Invalid name: letters/spaces only, 3-20 chars, no banned words.</string>
+    <string name="error_edit_limit">You can only change your name once every 15 days.</string>
+
     /////////////// RegisterScreen.kt //////////////////
 
     <string name="mail_error">Invalid email format</string>
@@ -137,12 +181,52 @@
     </string-array>
     <string name="stats_title">Monthly stats</string>
 
-    <string name="no_data_selected_month">There are no no data for the month selected</string>
+    <string name="no_data_selected_month">There are no data for the month selected</string>
     <string name="bars">Bars</string>
     <string name="lines">Lines</string>
     <string name="cake">Cake</string>
 
     <string name="select_date">Select date</string>
     <string name="select_hour">Select hour</string>
+
+    <string name="pdf_dialog_title">Generate PDF Report</string>
+    <string name="pdf_select_option">Select transactions to include:</string>
+    <string name="pdf_option_all">All (Income and Expense)</string>
+    <string name="pdf_option_income">Income only</string>
+    <string name="pdf_option_expense">Expense only</string>
+    <string name="pdf_generate_btn">Generate PDF</string>
+    <string name="pdf_cancel_btn">Cancel</string>
+    <string name="pdf_no_data">No data to generate report</string>
+    <string name="pdf_error">Error generating PDF: %1$s</string>
+    <string name="pdf_share_title">Share PDF Report</string>
+
+    <string name="no_transactions_found">(No income or expenses found)</string>
+    <string name="legend_income">Income</string>
+    <string name="legend_expense">Expenses</string>
+
+    <string name="report_filter_all">Complete (Income and Expenses)</string>
+    <string name="report_filter_income">Income Only</string>
+    <string name="report_filter_expense">Expenses Only</string>
+
+    <string name="pdf_file_prefix">Coinary_Report</string>
+
+    <string name="pdf_no_data_toast">No data available to generate the report.</string>
+    <string name="pdf_generated_msg">PDF generated successfully.</string>
+    <string name="pdf_error_msg">Error generating PDF: %1$s</string>
+
+    <string name="pdf_header_description">Description</string>
+    <string name="pdf_header_category">Category</string>
+    <string name="pdf_header_date">Date</string>
+    <string name="pdf_header_amount">Amount</string>
+    <string name="pdf_total_label">Total</string>
+
+    /////////////// PdfGenerator.kt //////////////////
+
+    <string name="pdf_report_title">Financial Report</string>
+    <string name="pdf_period_label">Period:</string>
+    <string name="pdf_type_label">Report Type:</string>
+    <string name="pdf_total_income">Total Income:</string>
+    <string name="pdf_total_expense">Total Expenses:</string>
+    <string name="pdf_net_balance">Net Balance:</string>
 
 </resources>

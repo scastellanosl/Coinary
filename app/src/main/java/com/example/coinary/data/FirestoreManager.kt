@@ -1,18 +1,13 @@
 package com.example.coinary.data
 
-// Importaciones necesarias para Firebase y Kotlin
-import com.google.firebase.firestore.FirebaseFirestore
+import com.example.coinary.model.Expense
+import com.example.coinary.model.Income
+import com.google.firebase.Timestamp
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import com.google.firebase.Timestamp
-import com.google.firebase.auth.FirebaseAuth
-import com.example.coinary.model.Income
-import com.example.coinary.model.Expense
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.util.Calendar
-import java.util.Date
 import java.util.Locale
 
 /**
@@ -657,5 +652,47 @@ class FirestoreManager {
                 println("Error al eliminar gasto: $e")
                 onFailure(e)
             }
+    }
+
+    /**
+     * Retrieves expense amounts grouped by category within a specific date range in real-time.
+     * @param startDate The start Timestamp of the range.
+     * @param endDate The end Timestamp of the range.
+     * @param onCategorizedExpensesLoaded Callback invoked with a map of category to total amount.
+     * @param onFailure Callback invoked if an error occurs.
+     * @return A ListenerRegistration to stop listening for updates.
+     */
+    fun getExpensesByCategoryByDateRangeRealtime(
+        startDate: Timestamp,
+        endDate: Timestamp,
+        onCategorizedExpensesLoaded: (Map<String, Double>) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) = getCurrentUserId()?.let { userId ->
+
+        db.collection("users").document(userId)
+            .collection("expenses")
+            .whereGreaterThanOrEqualTo("date", startDate)
+            .whereLessThanOrEqualTo("date", endDate)
+            .addSnapshotListener { snapshots, e ->
+                if (e != null) {
+                    println("Error listening for filtered expenses: $e")
+                    onFailure(e)
+                    return@addSnapshotListener
+                }
+
+                val categorizedExpenses = mutableMapOf<String, Double>()
+                if (snapshots != null) {
+                    for (doc in snapshots) {
+                        val category = doc.getString("category") ?: "Uncategorized"
+                        val amount = doc.getDouble("amount") ?: 0.0
+                        // Sumar al acumulador de la categoría
+                        categorizedExpenses[category] = (categorizedExpenses[category] ?: 0.0) + amount
+                    }
+                }
+                onCategorizedExpensesLoaded(categorizedExpenses)
+            }
+    } ?: run {
+        onFailure(Exception("User not authenticated."))
+        null
     }
 }
