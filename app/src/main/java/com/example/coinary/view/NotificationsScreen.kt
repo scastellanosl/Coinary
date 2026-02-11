@@ -1,11 +1,11 @@
 package com.example.coinary.view
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -27,7 +28,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -37,12 +37,9 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.coinary.R
 import com.example.coinary.data.ReminderItem
-import com.example.coinary.utils.ReminderStorage
 import com.example.coinary.utils.NotificationScheduler
+import com.example.coinary.utils.ReminderStorage
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-
-import androidx.compose.material.icons.filled.Delete
-import android.widget.Toast
 
 @Composable
 fun NotificationsScreen(

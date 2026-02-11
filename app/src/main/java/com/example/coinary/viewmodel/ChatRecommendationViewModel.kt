@@ -40,7 +40,7 @@ data class RecommendationUiState(
 class RecommendationViewModel(
     private val firestoreManager: FirestoreManager = FirestoreManager()
 ) : ViewModel() {
-    private val GEMINI_API_KEY = "AIzaSyBD_Xgq4seC1NFPwKI0BgRuzkSNbVcFn6A"
+    private val GEMINI_API_KEY = ""
     private val _uiState = MutableStateFlow(RecommendationUiState())
     val uiState: StateFlow<RecommendationUiState> = _uiState
 

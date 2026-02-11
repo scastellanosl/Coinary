@@ -24,8 +24,7 @@ class HomeViewModel(
     private val firestoreManager: FirestoreManager = FirestoreManager()
 ) : ViewModel() {
 
-    // --- Global Totals State ---
-    // These flows hold historical totals (all-time)
+    // --- Dynamic Totals State (Filtered by TimeRange) ---
     private val _totalIncome = MutableStateFlow(0.0)
     val totalIncome: StateFlow<Double> = _totalIncome
 
@@ -39,12 +38,10 @@ class HomeViewModel(
 
     // --- Filtered Data State ---
     // Holds the expense data grouped by category, updated dynamically based on the selected TimeRange.
-    // Note: Variable name kept as 'weekly...' for compatibility, but it holds dynamic ranges.
     private val _weeklyCategorizedExpenses = MutableStateFlow<Map<String, Double>>(emptyMap())
     val weeklyCategorizedExpenses: StateFlow<Map<String, Double>> = _weeklyCategorizedExpenses
 
     init {
-        fetchTotals()
         // Initialize with the default time range (Week)
         setTimeRange(TimeRange.WEEK)
     }
@@ -52,47 +49,63 @@ class HomeViewModel(
     /**
      * Updates the selected time range and triggers a data fetch for the new period.
      * Intended to be called from the UI layer.
+     *
+     * This now updates 3 things:
+     * 1. The Pie Chart data (Categorized Expenses)
+     * 2. The Total Income Text
+     * 3. The Total Expense Text
+     *
      * @param range The new TimeRange selected by the user.
      */
     fun setTimeRange(range: TimeRange) {
         _selectedTimeRange.value = range
-        fetchExpensesForRange(range)
+        fetchDataForRange(range)
     }
 
     /**
      * Calculates the date bounds and requests filtered data from Firestore.
      */
-    private fun fetchExpensesForRange(range: TimeRange) {
+    private fun fetchDataForRange(range: TimeRange) {
         // 1. Calculate the start and end dates based on the selected filter
         val (startDate, endDate) = calculateDateRange(range)
+        val startTs = Timestamp(startDate)
+        val endTs = Timestamp(endDate)
 
-        // 2. Fetch real-time data from Firestore using the calculated bounds
         viewModelScope.launch {
+            // 2. Fetch Categorized Expenses for the Pie Chart
             firestoreManager.getExpensesByCategoryByDateRangeRealtime(
-                startDate = Timestamp(startDate),
-                endDate = Timestamp(endDate),
+                startDate = startTs,
+                endDate = endTs,
                 onCategorizedExpensesLoaded = { categorizedData ->
                     _weeklyCategorizedExpenses.value = categorizedData
                 },
                 onFailure = { e ->
-                    println("Error fetching filtered expenses: ${e.message}")
+                    println("Error fetching filtered expenses chart: ${e.message}")
                 }
             )
-        }
-    }
 
-    /**
-     * Fetches the all-time total income and expenses in real-time.
-     */
-    private fun fetchTotals() {
-        viewModelScope.launch {
-            firestoreManager.getTotalIncomesRealtime(
-                onTotalIncomeLoaded = { _totalIncome.value = it },
-                onFailure = { println("Error fetching income: ${it.message}") }
+            // 3. Fetch Total Income for the selected range
+            firestoreManager.getIncomeSumByDateRangeRealtime(
+                startDate = startTs,
+                endDate = endTs,
+                onResult = { total ->
+                    _totalIncome.value = total
+                },
+                onFailure = { e ->
+                    println("Error fetching filtered total income: ${e.message}")
+                }
             )
-            firestoreManager.getTotalExpensesRealtime(
-                onTotalExpenseLoaded = { _totalExpenses.value = it },
-                onFailure = { println("Error fetching expenses: ${it.message}") }
+
+            // 4. Fetch Total Expenses for the selected range
+            firestoreManager.getExpenseSumByDateRangeRealtime(
+                startDate = startTs,
+                endDate = endTs,
+                onResult = { total ->
+                    _totalExpenses.value = total
+                },
+                onFailure = { e ->
+                    println("Error fetching filtered total expenses: ${e.message}")
+                }
             )
         }
     }

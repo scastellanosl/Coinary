@@ -9,42 +9,15 @@ import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.AttachMoney
-import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -55,6 +28,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -65,7 +39,10 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-
+/**
+ * Screen for creating a new Reminder.
+ * Allows the user to select a date, time, category, and amount for a notification.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReminderScreen(
@@ -73,11 +50,12 @@ fun ReminderScreen(
     onBackClick: () -> Unit = {},
     onLogout: () -> Unit = {}
 ) {
-
+    // --- Context & System UI Setup ---
     val context = LocalContext.current
-
     val systemUiController = rememberSystemUiController()
     val statusBarColor = Color.Black
+
+    // Set status bar color
     SideEffect {
         systemUiController.setStatusBarColor(
             color = statusBarColor,
@@ -85,42 +63,39 @@ fun ReminderScreen(
         )
     }
 
+    // --- Responsive Configuration ---
+    // Calculate sizes based on screen dimensions for better responsiveness
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
     val screenHeight = configuration.screenHeightDp.dp
 
     val titleFontSize = if (screenWidth < 360.dp) 22.sp else 26.sp
     val labelFontSize = if (screenWidth < 360.dp) 14.sp else 16.sp
-    val buttonHeight = if (screenHeight < 600.dp) 32.dp else 36.dp
     val buttonHorizontalPadding = if (screenWidth < 360.dp) 12.dp else 20.dp
 
-    var selectedMovementType by remember { mutableStateOf("Income") }
+    // --- State Variables ---
     var bottomButtonSelected by remember { mutableStateOf<String?>(null) }
+    var expanded by remember { mutableStateOf(false) } // For Dropdown menu
 
-    var expanded by remember { mutableStateOf(false) }
+    // Load categories from resources
     val categories: List<String> = remember {
         context.resources.getStringArray(R.array.categories).toList()
     }
     var selectedCategory by remember {
-        mutableStateOf(
-            if (categories.isNotEmpty()) {
-                categories[0]
-            } else {
-                ""
-            }
-        )
+        mutableStateOf(if (categories.isNotEmpty()) categories[0] else "")
     }
+
+    // Form inputs
     var reminderName by remember { mutableStateOf("") }
-    // Este 'amount' es para el valor monetario
     var amount by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
 
-    // --- NUEVAS VARIABLES DE ESTADO PARA FECHA Y HORA ---
+    // --- Date & Time Picker Logic ---
     val calendar = remember { Calendar.getInstance() }
     var selectedDate by remember { mutableStateOf("") }
     var selectedTime by remember { mutableStateOf("") }
 
-    // Date Picker Dialog
+    // Date Picker Dialog Setup
     val year = calendar.get(Calendar.YEAR)
     val month = calendar.get(Calendar.MONTH)
     val day = calendar.get(Calendar.DAY_OF_MONTH)
@@ -134,7 +109,7 @@ fun ReminderScreen(
         }, year, month, day
     )
 
-    // Time Picker Dialog
+    // Time Picker Dialog Setup
     val hour = calendar.get(Calendar.HOUR_OF_DAY)
     val minute = calendar.get(Calendar.MINUTE)
 
@@ -148,7 +123,7 @@ fun ReminderScreen(
         }, hour, minute, false
     )
 
-
+    // --- Common Styles ---
     val commonFieldModifier = Modifier
         .fillMaxWidth()
         .padding(horizontal = buttonHorizontalPadding)
@@ -158,14 +133,15 @@ fun ReminderScreen(
             shape = RoundedCornerShape(12.dp)
         )
 
-    // NUEVO: Estado de scroll
     val scrollState = rememberScrollState()
 
+    // --- Main Layout ---
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
     ) {
+        // Background Image
         Image(
             painter = painterResource(id = R.drawable.fondo_movimentos),
             contentDescription = null,
@@ -176,12 +152,14 @@ fun ReminderScreen(
                 .padding(top = 40.dp)
         )
 
+        // Scrollable Content Column
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
                 .verticalScroll(scrollState)
         ) {
+            // -- Header (Back & Notification Icons) --
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -189,9 +167,7 @@ fun ReminderScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = {
-                    navController.popBackStack()
-                }) {
+                IconButton(onClick = { navController.popBackStack() }) {
                     Icon(
                         imageVector = Icons.Default.ArrowBack,
                         contentDescription = "Back",
@@ -210,6 +186,7 @@ fun ReminderScreen(
 
             Spacer(modifier = Modifier.height(40.dp))
 
+            // -- Title --
             Text(
                 text = context.getString(R.string.create_reminder),
                 fontFamily = InterFont,
@@ -219,7 +196,10 @@ fun ReminderScreen(
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )
+
             Spacer(modifier = Modifier.height(20.dp))
+
+            // -- Name Input --
             TextField(
                 value = reminderName,
                 onValueChange = { reminderName = it },
@@ -251,6 +231,8 @@ fun ReminderScreen(
             )
 
             Spacer(modifier = Modifier.height(20.dp))
+
+            // -- Date & Time Buttons --
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -258,6 +240,7 @@ fun ReminderScreen(
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // Date Button
                 Button(
                     onClick = { datePickerDialog.show() },
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Gray.copy(alpha = 0.5f)),
@@ -266,11 +249,16 @@ fun ReminderScreen(
                 ) {
                     Icon(imageVector = Icons.Default.CalendarToday, contentDescription = "Select Date", tint = Color.White)
                     Spacer(Modifier.width(8.dp))
-                    Text(text = if (selectedDate.isEmpty()) context.getString(R.string.select_date) else selectedDate, color = Color.White)
+                    Text(
+                        text = if (selectedDate.isEmpty()) context.getString(R.string.select_date) else selectedDate,
+                        color = Color.White,
+                        fontSize = 12.sp
+                    )
                 }
 
                 Spacer(modifier = Modifier.width(16.dp))
 
+                // Time Button
                 Button(
                     onClick = { timePickerDialog.show() },
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Gray.copy(alpha = 0.5f)),
@@ -279,21 +267,26 @@ fun ReminderScreen(
                 ) {
                     Icon(imageVector = Icons.Default.Schedule, contentDescription = "Select Time", tint = Color.White)
                     Spacer(Modifier.width(8.dp))
-                    Text(text = if (selectedTime.isEmpty()) context.getString(R.string.select_hour) else selectedTime, color = Color.White)
+                    Text(
+                        text = if (selectedTime.isEmpty()) context.getString(R.string.select_hour) else selectedTime,
+                        color = Color.White,
+                        fontSize = 12.sp
+                    )
                 }
             }
 
             Spacer(modifier = Modifier.height(20.dp))
 
-
+            // -- Category, Amount & Description Container --
             Box(
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
                     .padding(15.dp)
             ) {
+                // Container Background
                 Image(
                     painter = painterResource(id = R.drawable.fondo_contenedor_categoria),
-                    contentDescription = "Fondo contenedor categoria",
+                    contentDescription = "Container background",
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.FillBounds
                 )
@@ -304,6 +297,7 @@ fun ReminderScreen(
                         .padding(16.dp)
                         .align(Alignment.TopCenter)
                 ) {
+                    // Category Label
                     Text(
                         text = context.getString(R.string.select_category),
                         fontFamily = InterFont,
@@ -314,8 +308,10 @@ fun ReminderScreen(
                             .align(Alignment.CenterHorizontally)
                             .padding(bottom = 10.dp)
                     )
+
                     Spacer(modifier = Modifier.height(10.dp))
 
+                    // -- Category Dropdown --
                     ExposedDropdownMenuBox(
                         expanded = expanded,
                         onExpandedChange = { expanded = !expanded },
@@ -359,18 +355,26 @@ fun ReminderScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
+                    // -- Amount Input (NUMERIC KEYBOARD) --
                     TextField(
                         value = amount,
-                        onValueChange = { amount = it },
+                        onValueChange = { newText ->
+                            // Validate input: Only allow digits and max one decimal point
+                            if (newText.all { it.isDigit() || it == '.' } && newText.count { it == '.' } <= 1) {
+                                amount = newText
+                            }
+                        },
                         label = {
                             Text(
-                                text = context.getString(R.string.amount), // Asegúrate de tener este String
+                                text = context.getString(R.string.amount),
                                 fontFamily = InterFont,
                                 fontWeight = FontWeight.Normal,
                                 fontSize = labelFontSize,
                                 color = Color(0xFF868686)
                             )
                         },
+                        // Enable Numeric/Decimal Keyboard
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         singleLine = true,
                         modifier = commonFieldModifier,
                         textStyle = TextStyle(
@@ -382,7 +386,7 @@ fun ReminderScreen(
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.AttachMoney,
-                                contentDescription = "Dollar symbol",
+                                contentDescription = "Currency symbol",
                                 tint = Color.White
                             )
                         },
@@ -395,10 +399,12 @@ fun ReminderScreen(
                             disabledIndicatorColor = Color.Transparent
                         )
                     )
+
                     Spacer(modifier = Modifier.height(30.dp))
 
+                    // Description Label
                     Text(
-                        text = context.getString(R.string.short_description), // Asegúrate de tener este String
+                        text = context.getString(R.string.short_description),
                         color = Color.White,
                         fontFamily = InterFont,
                         fontSize = (labelFontSize.value - 2).sp,
@@ -408,13 +414,16 @@ fun ReminderScreen(
                             .align(Alignment.CenterHorizontally)
                             .padding(horizontal = 30.dp)
                     )
+
                     Spacer(modifier = Modifier.height(15.dp))
+
+                    // -- Description Input --
                     TextField(
                         value = description,
                         onValueChange = { description = it },
                         label = {
                             Text(
-                                text = context.getString(R.string.add_description), // Asegúrate de tener este String
+                                text = context.getString(R.string.add_description),
                                 fontFamily = InterFont,
                                 fontWeight = FontWeight.Normal,
                                 fontSize = labelFontSize,
@@ -437,7 +446,10 @@ fun ReminderScreen(
                             disabledIndicatorColor = Color.Transparent
                         )
                     )
+
                     Spacer(modifier = Modifier.height(15.dp))
+
+                    // -- Action Buttons (Save / Cancel) --
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -450,6 +462,7 @@ fun ReminderScreen(
                             isSelected = bottomButtonSelected == context.getString(R.string.save),
                             onClick = {
                                 bottomButtonSelected = context.getString(R.string.save)
+                                // Validate all fields are filled
                                 if (
                                     selectedDate.isNotEmpty() &&
                                     selectedTime.isNotEmpty() &&
@@ -459,19 +472,22 @@ fun ReminderScreen(
                                     selectedCategory.isNotEmpty()
                                 ) {
                                     val dateTimeString = "$selectedDate $selectedTime"
+                                    // Schedule the notification
                                     NotificationScheduler.scheduleNotification(
                                         context,
                                         dateTimeString,
                                         reminderName,
-                                        description
+                                        "$description - ${context.getString(R.string.amount)}: $amount"
                                     )
-                                    // Limpiar el formulario después de guardar
+                                    // Clear form
                                     reminderName = ""
                                     amount = ""
                                     description = ""
                                     selectedDate = ""
                                     selectedTime = ""
                                     selectedCategory = if (categories.isNotEmpty()) categories[0] else ""
+
+                                    Toast.makeText(context, "Recordatorio guardado", Toast.LENGTH_SHORT).show()
                                 } else {
                                     Toast.makeText(
                                         context,
@@ -486,11 +502,11 @@ fun ReminderScreen(
                         Spacer(modifier = Modifier.width(12.dp))
 
                         MovementTypeButton2(
-                            context.getString(R.string.cancel),
+                            text = context.getString(R.string.cancel),
                             isSelected = bottomButtonSelected == context.getString(R.string.cancel),
                             onClick = {
                                 bottomButtonSelected = context.getString(R.string.cancel)
-                                // Clear the form
+                                // Clear form
                                 reminderName = ""
                                 amount = ""
                                 description = ""
@@ -507,7 +523,9 @@ fun ReminderScreen(
     }
 }
 
-
+/**
+ * Custom styled button component used for Save/Cancel actions.
+ */
 @Composable
 fun MovementTypeButton2(
     text: String,

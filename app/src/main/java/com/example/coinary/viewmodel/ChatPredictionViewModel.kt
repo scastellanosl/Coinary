@@ -55,7 +55,7 @@ class PredictionViewModel(
     private fun initializeGemini() {
         generativeModel = GenerativeModel(
             modelName = "gemini-2.5-flash",
-            apiKey = GEMINI_API_KEY
+            apiKey = ""
         )
 
         val initialPrompt = """
