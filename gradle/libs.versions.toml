@@ -20,6 +20,8 @@ visionInternalVkp = "18.2.3"
 navigationComposeAndroid = "2.9.0"
 generativeai = "0.3.0"
 foundation = "1.10.1"
+foundationVersion = "1.10.2"
+uiText = "1.10.2"
 
 [libraries]
 accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanistSystemuicontroller" }
@@ -56,6 +58,8 @@ androidx-navigation-compose-android = { group = "androidx.navigation", name = "n
 material-icons-extended = "androidx.compose.material:material-icons-extended:1.6.0"
 google-generativeai = { module = "com.google.ai.client.generativeai:generativeai", version.ref = "generativeai" }
 androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
+androidx-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundationVersion" }
+androidx-compose-ui-text = { group = "androidx.compose.ui", name = "ui-text", version.ref = "uiText" }
 
 
 [plugins]

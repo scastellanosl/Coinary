@@ -1,7 +1,9 @@
 package com.example.coinary.data
 
+import com.example.coinary.model.Debt
 import com.example.coinary.model.Expense
 import com.example.coinary.model.Income
+import com.example.coinary.model.SavingsGoal
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -514,4 +516,338 @@ class FirestoreManager {
 
         return Pair(start, end)
     }
+
+    // ============================================================================================
+// REGION: DEBT OPERATIONS
+// ============================================================================================
+
+    /**
+     * Persists a new [Debt] record to the specific user's Firestore sub-collection.
+     */
+    fun addDebt(debt: Debt, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+        val userId = getCurrentUserId() ?: return onFailure(Exception("User not authenticated."))
+
+        val debtData = hashMapOf(
+            "amount" to debt.amount,
+            "description" to debt.description,
+            "creditor" to debt.creditor,
+            "dueDate" to debt.dueDate,
+            "isPaid" to debt.isPaid,
+            "amountPaid" to debt.amountPaid,
+            "createdAt" to Timestamp.now()
+        )
+
+        db.collection("users").document(userId)
+            .collection("debts")
+            .add(debtData)
+            .addOnSuccessListener { documentReference ->
+                debt.id = documentReference.id
+                println("Debt added successfully with ID: ${documentReference.id}")
+                onSuccess()
+            }
+            .addOnFailureListener { e ->
+                println("Error adding debt: $e")
+                onFailure(e)
+            }
+    }
+
+    /**
+     * Real-time listener for the user's debt records.
+     */
+    fun getDebtsRealtime(
+        onDebtsLoaded: (List<Debt>) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) = getCurrentUserId()?.let { userId ->
+        db.collection("users").document(userId)
+            .collection("debts")
+            .orderBy("dueDate", Query.Direction.ASCENDING)
+            .addSnapshotListener { snapshots, e ->
+                if (e != null) {
+                    println("Error listening for debts: $e")
+                    onFailure(e)
+                    return@addSnapshotListener
+                }
+                val debtsList = snapshots?.map { doc ->
+                    doc.toObject(Debt::class.java).apply { id = doc.id }
+                } ?: emptyList()
+                onDebtsLoaded(debtsList)
+            }
+    } ?: run { onFailure(Exception("User not authenticated.")) ; null }
+
+    /**
+     * Calculates the sum of all unpaid debts in real-time.
+     */
+    fun getTotalUnpaidDebtsRealtime(
+        onTotalDebtLoaded: (Double) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) = getCurrentUserId()?.let { userId ->
+        db.collection("users").document(userId)
+            .collection("debts")
+            .whereEqualTo("isPaid", false)
+            .addSnapshotListener { snapshots, e ->
+                if (e != null) {
+                    println("Error listening for total unpaid debts: $e")
+                    onFailure(e)
+                    return@addSnapshotListener
+                }
+                val total = snapshots?.sumOf {
+                    val amount = it.getDouble("amount") ?: 0.0
+                    val paid = it.getDouble("amountPaid") ?: 0.0
+                    amount - paid
+                } ?: 0.0
+                onTotalDebtLoaded(total)
+            }
+    } ?: run { onFailure(Exception("User not authenticated.")) ; null }
+
+    /**
+     * Updates an existing debt document.
+     */
+    fun updateDebt(debt: Debt, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+        val userId = getCurrentUserId() ?: return onFailure(Exception("User not authenticated."))
+
+        if (debt.id.isEmpty()) {
+            onFailure(Exception("Debt ID not provided for update."))
+            return
+        }
+
+        val updates = hashMapOf<String, Any>(
+            "amount" to debt.amount,
+            "description" to debt.description,
+            "creditor" to debt.creditor,
+            "dueDate" to debt.dueDate,
+            "isPaid" to debt.isPaid,
+            "amountPaid" to debt.amountPaid
+        )
+
+        db.collection("users").document(userId)
+            .collection("debts").document(debt.id)
+            .update(updates)
+            .addOnSuccessListener {
+                println("Debt updated successfully.")
+                onSuccess()
+            }
+            .addOnFailureListener { e ->
+                println("Error updating debt: $e")
+                onFailure(e)
+            }
+    }
+
+    /**
+     * Makes a payment towards a debt, updating the amountPaid field.
+     * Automatically marks the debt as paid if amountPaid reaches or exceeds the total amount.
+     */
+    fun makeDebtPayment(
+        debtId: String,
+        paymentAmount: Double,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        val userId = getCurrentUserId() ?: return onFailure(Exception("User not authenticated."))
+
+        val debtRef = db.collection("users").document(userId)
+            .collection("debts").document(debtId)
+
+        db.runTransaction { transaction ->
+            val snapshot = transaction.get(debtRef)
+            val currentPaid = snapshot.getDouble("amountPaid") ?: 0.0
+            val totalAmount = snapshot.getDouble("amount") ?: 0.0
+
+            val newPaid = currentPaid + paymentAmount
+            val isPaid = newPaid >= totalAmount
+
+            transaction.update(debtRef, mapOf(
+                "amountPaid" to newPaid,
+                "isPaid" to isPaid
+            ))
+        }.addOnSuccessListener {
+            println("Payment recorded successfully.")
+            onSuccess()
+        }.addOnFailureListener { e ->
+            println("Error recording payment: $e")
+            onFailure(e)
+        }
+    }
+
+    /**
+     * Deletes a specific debt document.
+     */
+    fun deleteDebt(debtId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+        val userId = getCurrentUserId() ?: return onFailure(Exception("User not authenticated."))
+
+        db.collection("users").document(userId)
+            .collection("debts").document(debtId)
+            .delete()
+            .addOnSuccessListener {
+                println("Debt deleted successfully.")
+                onSuccess()
+            }
+            .addOnFailureListener { e ->
+                println("Error deleting debt: $e")
+                onFailure(e)
+            }
+    }
+
+// ============================================================================================
+// REGION: SAVINGS GOAL OPERATIONS
+// ============================================================================================
+
+    /**
+     * Persists a new [SavingsGoal] record to the specific user's Firestore sub-collection.
+     */
+    fun addSavingsGoal(goal: SavingsGoal, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+        val userId = getCurrentUserId() ?: return onFailure(Exception("User not authenticated."))
+
+        val goalData = hashMapOf(
+            "name" to goal.name,
+            "targetAmount" to goal.targetAmount,
+            "currentAmount" to goal.currentAmount,
+            "deadline" to goal.deadline,
+            "isCompleted" to goal.isCompleted,
+            "createdAt" to Timestamp.now()
+        )
+
+        db.collection("users").document(userId)
+            .collection("savingsGoals")
+            .add(goalData)
+            .addOnSuccessListener { documentReference ->
+                goal.id = documentReference.id
+                println("Savings goal added successfully with ID: ${documentReference.id}")
+                onSuccess()
+            }
+            .addOnFailureListener { e ->
+                println("Error adding savings goal: $e")
+                onFailure(e)
+            }
+    }
+
+    /**
+     * Real-time listener for the user's savings goals.
+     */
+    fun getSavingsGoalsRealtime(
+        onGoalsLoaded: (List<SavingsGoal>) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) = getCurrentUserId()?.let { userId ->
+        db.collection("users").document(userId)
+            .collection("savingsGoals")
+            .orderBy("deadline", Query.Direction.ASCENDING)
+            .addSnapshotListener { snapshots, e ->
+                if (e != null) {
+                    println("Error listening for savings goals: $e")
+                    onFailure(e)
+                    return@addSnapshotListener
+                }
+                val goalsList = snapshots?.map { doc ->
+                    doc.toObject(SavingsGoal::class.java).apply { id = doc.id }
+                } ?: emptyList()
+                onGoalsLoaded(goalsList)
+            }
+    } ?: run { onFailure(Exception("User not authenticated.")) ; null }
+
+    /**
+     * Calculates the total amount saved across all active goals in real-time.
+     */
+    fun getTotalSavedAmountRealtime(
+        onTotalSavedLoaded: (Double) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) = getCurrentUserId()?.let { userId ->
+        db.collection("users").document(userId)
+            .collection("savingsGoals")
+            .addSnapshotListener { snapshots, e ->
+                if (e != null) {
+                    println("Error listening for total saved amount: $e")
+                    onFailure(e)
+                    return@addSnapshotListener
+                }
+                val total = snapshots?.sumOf { it.getDouble("currentAmount") ?: 0.0 } ?: 0.0
+                onTotalSavedLoaded(total)
+            }
+    } ?: run { onFailure(Exception("User not authenticated.")) ; null }
+
+    /**
+     * Updates an existing savings goal document.
+     */
+    fun updateSavingsGoal(goal: SavingsGoal, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+        val userId = getCurrentUserId() ?: return onFailure(Exception("User not authenticated."))
+
+        if (goal.id.isEmpty()) {
+            onFailure(Exception("Savings goal ID not provided for update."))
+            return
+        }
+
+        val updates = hashMapOf<String, Any>(
+            "name" to goal.name,
+            "targetAmount" to goal.targetAmount,
+            "currentAmount" to goal.currentAmount,
+            "deadline" to goal.deadline,
+            "isCompleted" to goal.isCompleted
+        )
+
+        db.collection("users").document(userId)
+            .collection("savingsGoals").document(goal.id)
+            .update(updates)
+            .addOnSuccessListener {
+                println("Savings goal updated successfully.")
+                onSuccess()
+            }
+            .addOnFailureListener { e ->
+                println("Error updating savings goal: $e")
+                onFailure(e)
+            }
+    }
+
+    /**
+     * Adds money to a savings goal, updating the currentAmount field.
+     * Automatically marks the goal as completed if currentAmount reaches or exceeds the targetAmount.
+     */
+    fun addToSavingsGoal(
+        goalId: String,
+        amountToAdd: Double,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        val userId = getCurrentUserId() ?: return onFailure(Exception("User not authenticated."))
+
+        val goalRef = db.collection("users").document(userId)
+            .collection("savingsGoals").document(goalId)
+
+        db.runTransaction { transaction ->
+            val snapshot = transaction.get(goalRef)
+            val currentAmount = snapshot.getDouble("currentAmount") ?: 0.0
+            val targetAmount = snapshot.getDouble("targetAmount") ?: 0.0
+
+            val newAmount = currentAmount + amountToAdd
+            val isCompleted = newAmount >= targetAmount
+
+            transaction.update(goalRef, mapOf(
+                "currentAmount" to newAmount,
+                "isCompleted" to isCompleted
+            ))
+        }.addOnSuccessListener {
+            println("Amount added to savings goal successfully.")
+            onSuccess()
+        }.addOnFailureListener { e ->
+            println("Error adding to savings goal: $e")
+            onFailure(e)
+        }
+    }
+
+    /**
+     * Deletes a specific savings goal document.
+     */
+    fun deleteSavingsGoal(goalId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+        val userId = getCurrentUserId() ?: return onFailure(Exception("User not authenticated."))
+
+        db.collection("users").document(userId)
+            .collection("savingsGoals").document(goalId)
+            .delete()
+            .addOnSuccessListener {
+                println("Savings goal deleted successfully.")
+                onSuccess()
+            }
+            .addOnFailureListener { e ->
+                println("Error deleting savings goal: $e")
+                onFailure(e)
+            }
+    }
+
 }

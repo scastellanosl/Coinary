@@ -1,4 +1,6 @@
 package com.example.coinary.view
+
+import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.widget.DatePicker
 import android.widget.Toast
@@ -56,6 +58,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -65,19 +68,18 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.coinary.R
-import com.example.coinary.view.MovementTypeButton
 import com.example.coinary.viewmodel.MovementViewModel
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
-
+import com.example.coinary.utils.ThousandSeparatorTransformation
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddMovementScreen(
     navController: NavController,
-    movementViewModel: MovementViewModel = viewModel(), // Inyecta el ViewModel
+    movementViewModel: MovementViewModel = viewModel(),
     onBackClick: () -> Unit = {},
     onLogout: () -> Unit = {}
 ) {
@@ -96,27 +98,24 @@ fun AddMovementScreen(
 
     val titleFontSize = if (screenWidth < 360.dp) 22.sp else 26.sp
     val labelFontSize = if (screenWidth < 360.dp) 14.sp else 16.sp
-    val buttonHeight = if (screenHeight < 600.dp) 32.dp else 36.dp
+    val buttonHeight = if (screenHeight < 600.dp) 40.dp else 44.dp
     val buttonHorizontalPadding = if (screenWidth < 360.dp) 12.dp else 20.dp
 
-    val contexto = LocalContext.current
-
-    var selectedMovementType by remember { mutableStateOf(contexto.getString(R.string.income)) } // "Income" o "Expense"
-    // var bottomButtonSelected by remember { mutableStateOf<String?>(null) } // No es necesario para el guardado
-
-    var expanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
-    // Categorías específicas para ingresos y gastos (mejor que R.array.categories genéricas)
+    var selectedMovementType by remember { mutableStateOf(context.getString(R.string.income)) }
+
+    var expanded by remember { mutableStateOf(false) }
+
     val incomeCategories = remember { context.resources.getStringArray(R.array.income_categories).toList() }
     val expenseCategories = remember { context.resources.getStringArray(R.array.expense_categories).toList() }
     val currentCategories = if (selectedMovementType == context.getString(R.string.income)) incomeCategories else expenseCategories
 
-    var selectedCategory by remember { mutableStateOf(context.getString(R.string.select_category)) } // Valor inicial
+    var selectedCategory by remember { mutableStateOf(context.getString(R.string.select_category)) }
 
     var amount by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
-    var selectedDate by remember { mutableStateOf(Calendar.getInstance()) } // Para la fecha
+    var selectedDate by remember { mutableStateOf(Calendar.getInstance()) }
 
     val commonFieldModifier = Modifier
         .fillMaxWidth()
@@ -129,18 +128,17 @@ fun AddMovementScreen(
 
     val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 
-    // Observar el estado del ViewModel
     val uiState by movementViewModel.uiState.collectAsState()
+
+
     LaunchedEffect(uiState) {
         uiState.successMessage?.let { message ->
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-            // Limpiar campos después de guardar exitosamente
             amount = ""
             description = ""
             selectedCategory = context.getString(R.string.select_category)
             selectedDate = Calendar.getInstance()
             movementViewModel.resetMessages()
-            // Opcional: Navegar hacia atrás o a otra pantalla
             navController.popBackStack()
         }
         uiState.errorMessage?.let { message ->
@@ -149,7 +147,6 @@ fun AddMovementScreen(
         }
     }
 
-    // Estado del scroll
     val scrollState = rememberScrollState()
 
     Box(
@@ -169,9 +166,9 @@ fun AddMovementScreen(
 
         Column(
             modifier = Modifier
-                .fillMaxSize() // Mantener fillMaxSize para que el Column tome todo el espacio
+                .fillMaxSize()
                 .padding(horizontal = 16.dp)
-                .verticalScroll(scrollState) // <-- Aplicar el modificador de scroll aquí
+                .verticalScroll(scrollState)
         ) {
             Row(
                 modifier = Modifier
@@ -185,7 +182,7 @@ fun AddMovementScreen(
                 }) {
                     Icon(
                         imageVector = Icons.Default.ArrowBack,
-                        contentDescription = "Back",
+                        contentDescription = stringResource(R.string.back),
                         tint = Color.White
                     )
                 }
@@ -193,17 +190,17 @@ fun AddMovementScreen(
                 IconButton(onClick = { navController.navigate("notifications") }) {
                     Icon(
                         imageVector = Icons.Default.Notifications,
-                        contentDescription = "Notifications",
+                        contentDescription = stringResource(R.string.notifications),
                         tint = Color.White
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(30.dp))
 
             Text(
-                text = context.getString(R.string.add_movement),
-                fontFamily = InterFont, // Asegúrate de que InterFont esté disponible
+                text = stringResource(R.string.add_movement),
+                fontFamily = InterFont,
                 fontSize = titleFontSize,
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
@@ -211,38 +208,43 @@ fun AddMovementScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(30.dp))
 
+            // Botones superiores: Income, Expense, Debt, Savings Goal
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally)
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
             ) {
                 MovementTypeButton(
-                    text = context.getString(R.string.income),
-                    isSelected = selectedMovementType == context.getString(R.string.income),
+                    text = stringResource(R.string.income),
+                    isSelected = selectedMovementType == stringResource(R.string.income),
                     onClick = {
                         selectedMovementType = context.getString(R.string.income)
                         selectedCategory = context.getString(R.string.select_category)
                     },
                     modifier = Modifier
-                        .width(130.dp)
-                        .height(buttonHeight)
+                        .weight(1f)
+                        .height(buttonHeight),
+                    backgroundColor = Color(0xFF4c6ef5),
+                    textColor = Color.White
                 )
 
                 MovementTypeButton(
-                    text = context.getString(R.string.expense),
+                    text = stringResource(R.string.expense),
                     isSelected = selectedMovementType == context.getString(R.string.expense),
                     onClick = {
                         selectedMovementType = context.getString(R.string.expense)
                         selectedCategory = context.getString(R.string.select_category)
                     },
                     modifier = Modifier
-                        .width(130.dp)
-                        .height(buttonHeight)
+                        .weight(1f)
+                        .height(buttonHeight),
+                    backgroundColor = Color.White,
+                    textColor = Color.Black
                 )
             }
 
-            Spacer(modifier = Modifier.height(50.dp))
+            Spacer(modifier = Modifier.height(30.dp))
 
             Box(
                 modifier = Modifier
@@ -251,7 +253,7 @@ fun AddMovementScreen(
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.fondo_contenedor_categoria),
-                    contentDescription = "Fondo contenedor categoria",
+                    contentDescription = stringResource(R.string.category_background),
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.FillBounds
                 )
@@ -263,7 +265,7 @@ fun AddMovementScreen(
                         .align(Alignment.TopCenter)
                 ) {
                     Text(
-                        text = context.getString(R.string.select_category),
+                        text = stringResource(R.string.select_category),
                         fontFamily = InterFont,
                         fontWeight = FontWeight.SemiBold,
                         color = Color.White,
@@ -281,13 +283,13 @@ fun AddMovementScreen(
                     ) {
                         TextField(
                             value = selectedCategory,
-                            onValueChange = {}, // No permite edición directa
+                            onValueChange = {},
                             readOnly = true,
-                            label = { Text(context.getString(R.string.select_category), color = Color(0xFF868686)) }, // Etiqueta para TextField
+                            label = { Text(stringResource(R.string.select_category), color = Color(0xFF868686)) },
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .menuAnchor(), // Esencial para el comportamiento del menú
+                                .menuAnchor(),
                             textStyle = TextStyle(
                                 fontFamily = InterFont,
                                 color = Color.White,
@@ -300,14 +302,14 @@ fun AddMovementScreen(
                                 focusedIndicatorColor = Color.Transparent,
                                 unfocusedIndicatorColor = Color.Transparent,
                                 disabledIndicatorColor = Color.Transparent,
-                                unfocusedTextColor = Color.White, // Color del texto cuando no está enfocado
-                                focusedTextColor = Color.White // Color del texto cuando está enfocado
+                                unfocusedTextColor = Color.White,
+                                focusedTextColor = Color.White
                             )
                         )
                         ExposedDropdownMenu(
                             expanded = expanded,
                             onDismissRequest = { expanded = false },
-                            modifier = Modifier.background(Color.DarkGray.copy(alpha = 0.9f)) // Fondo para el menú
+                            modifier = Modifier.background(Color.DarkGray.copy(alpha = 0.9f))
                         ) {
                             currentCategories.forEach { category ->
                                 DropdownMenuItem(
@@ -317,7 +319,7 @@ fun AddMovementScreen(
                                             fontWeight = FontWeight.Normal,
                                             fontSize = labelFontSize,
                                             text = category,
-                                            color = Color.White // Color del texto en el menú
+                                            color = Color.White
                                         )
                                     },
                                     onClick = {
@@ -331,17 +333,21 @@ fun AddMovementScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
+                    // Campo de cantidad con formato de miles
                     TextField(
                         value = amount,
                         onValueChange = { newValue ->
-                            // Permite solo números y un punto decimal
-                            if (newValue.matches(Regex("^\\d*\\.?\\d*\$"))) {
-                                amount = newValue
+                            // Remover puntos (separadores de miles) y permitir solo números y un punto decimal
+                            val cleaned = newValue.replace(".", "").replace(",", "")
+                            if (cleaned.isEmpty()) {
+                                amount = ""
+                            } else if (cleaned.matches(Regex("^\\d*\\.?\\d{0,2}$"))) {
+                                amount = cleaned
                             }
                         },
                         label = {
                             Text(
-                                text = context.getString(R.string.amount),
+                                text = stringResource(R.string.amount),
                                 fontFamily = InterFont,
                                 fontWeight = FontWeight.Normal,
                                 fontSize = labelFontSize,
@@ -349,7 +355,8 @@ fun AddMovementScreen(
                             )
                         },
                         singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), // Importante para el teclado numérico
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        visualTransformation = ThousandSeparatorTransformation(),
                         modifier = commonFieldModifier,
                         textStyle = TextStyle(
                             fontFamily = InterFont,
@@ -360,7 +367,7 @@ fun AddMovementScreen(
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.AttachMoney,
-                                contentDescription = "Dollar symbol",
+                                contentDescription = stringResource(R.string.amount),
                                 tint = Color.White
                             )
                         },
@@ -375,7 +382,7 @@ fun AddMovementScreen(
                             focusedTextColor = Color.White
                         )
                     )
-                    Spacer(modifier = Modifier.height(16.dp)) // Espacio después del monto
+                    Spacer(modifier = Modifier.height(16.dp))
 
                     // Selector de Fecha
                     val year = selectedDate.get(Calendar.YEAR)
@@ -388,13 +395,14 @@ fun AddMovementScreen(
                             selectedDate.set(selectedYear, selectedMonth, selectedDayOfMonth)
                         }, year, month, day
                     )
+
                     TextField(
                         value = dateFormatter.format(selectedDate.time),
-                        onValueChange = {}, // Read-only
+                        onValueChange = {},
                         readOnly = true,
                         label = {
                             Text(
-                                text = context.getString(R.string.date),
+                                text = stringResource(R.string.date),
                                 fontFamily = InterFont,
                                 fontWeight = FontWeight.Normal,
                                 fontSize = labelFontSize,
@@ -402,7 +410,7 @@ fun AddMovementScreen(
                             )
                         },
                         singleLine = true,
-                        modifier = commonFieldModifier.clickable { datePickerDialog.show() }, // Hace que todo el TextField sea clickeable
+                        modifier = commonFieldModifier.clickable { datePickerDialog.show() },
                         textStyle = TextStyle(
                             fontFamily = InterFont,
                             color = Color.White,
@@ -411,14 +419,14 @@ fun AddMovementScreen(
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.CalendarMonth,
-                                contentDescription = "Calendar icon",
+                                contentDescription = stringResource(R.string.calendar),
                                 tint = Color.White
                             )
                         },
                         trailingIcon = {
                             Icon(
                                 imageVector = Icons.Filled.ArrowDropDown,
-                                contentDescription = "Seleccionar fecha",
+                                contentDescription = stringResource(R.string.select_date),
                                 tint = Color.White
                             )
                         },
@@ -437,7 +445,7 @@ fun AddMovementScreen(
                     Spacer(modifier = Modifier.height(30.dp))
 
                     Text(
-                        text = context.getString(R.string.short_description),
+                        text = stringResource(R.string.short_description),
                         color = Color.White,
                         fontFamily = InterFont,
                         fontSize = (labelFontSize.value - 2).sp,
@@ -448,12 +456,13 @@ fun AddMovementScreen(
                             .padding(horizontal = 30.dp)
                     )
                     Spacer(modifier = Modifier.height(15.dp))
+
                     TextField(
                         value = description,
                         onValueChange = { description = it },
                         label = {
                             Text(
-                                text = context.getString(R.string.add_description),
+                                text = stringResource(R.string.add_description),
                                 fontFamily = InterFont,
                                 fontWeight = FontWeight.Normal,
                                 fontSize = labelFontSize,
@@ -461,7 +470,7 @@ fun AddMovementScreen(
                             )
                         },
                         singleLine = true,
-                        modifier = commonFieldModifier, // Elimina el padding vertical extra aquí
+                        modifier = commonFieldModifier,
                         textStyle = TextStyle(
                             fontFamily = InterFont,
                             color = Color.White,
@@ -478,20 +487,19 @@ fun AddMovementScreen(
                             focusedTextColor = Color.White
                         )
                     )
-                    Spacer(modifier = Modifier.height(15.dp))
+                    Spacer(modifier = Modifier.height(20.dp))
 
-                    // Botones inferiores independientes (Save / Cancel)
+                    // Botones Save / Cancel más grandes
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 8.dp),
-                        horizontalArrangement = Arrangement.Center,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Botón de Guardar
                         MovementTypeButton(
-                            text = context.getString(R.string.save),
-                            isSelected = uiState.isLoading, // Opcional: indicar que está cargando
+                            text = stringResource(R.string.save),
+                            isSelected = false,
                             onClick = {
                                 val amountDouble = amount.toDoubleOrNull()
                                 if (amountDouble == null || description.isBlank() || selectedCategory == context.getString(R.string.select_category)) {
@@ -504,9 +512,9 @@ fun AddMovementScreen(
                                         amount = amountDouble,
                                         description = description,
                                         category = selectedCategory,
-                                        date = selectedDate.time // Usa .time para obtener Date de Calendar
+                                        date = selectedDate.time
                                     )
-                                } else { // Es un Gasto
+                                } else {
                                     movementViewModel.saveExpense(
                                         amount = amountDouble,
                                         description = description,
@@ -515,20 +523,26 @@ fun AddMovementScreen(
                                     )
                                 }
                             },
-                            modifier = Modifier.height(36.dp),
-                            enabled = !uiState.isLoading // Deshabilita mientras carga
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(50.dp),
+                            enabled = !uiState.isLoading,
+                            backgroundColor = Color(0xFF4c6ef5),
+                            textColor = Color.White,
+                            isLoading = uiState.isLoading
                         )
 
-                        Spacer(modifier = Modifier.width(12.dp))
-
-                        // Botón de Cancelar
                         MovementTypeButton(
-                            text = context.getString(R.string.cancel),
-                            isSelected = false, // Nunca estará seleccionado de esta manera
+                            text = stringResource(R.string.cancel),
+                            isSelected = false,
                             onClick = {
-                                navController.popBackStack() // Simplemente vuelve a la pantalla anterior
+                                navController.popBackStack()
                             },
-                            modifier = Modifier.height(36.dp)
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(50.dp),
+                            backgroundColor = Color.White,
+                            textColor = Color.Black
                         )
                     }
                 }
@@ -537,32 +551,32 @@ fun AddMovementScreen(
     }
 }
 
-
 @Composable
 fun MovementTypeButton(
     text: String,
     isSelected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    enabled: Boolean = true // Añadir parámetro de habilitación
+    enabled: Boolean = true,
+    backgroundColor: Color = Color(0xFF4c6ef5),
+    textColor: Color = Color.White,
+    isLoading: Boolean = false
 ) {
-    val context = LocalContext.current
-
     Button(
         onClick = onClick,
-        modifier = modifier.height(36.dp),
+        modifier = modifier,
         colors = ButtonDefaults.buttonColors(
-            containerColor = if (isSelected) Color(0xFF4c6ef5) else Color.Transparent,
-            disabledContainerColor = Color.Gray.copy(alpha = 0.5f) // Color cuando está deshabilitado
+            containerColor = if (isSelected) backgroundColor else Color.Transparent,
+            disabledContainerColor = Color.Gray.copy(alpha = 0.5f)
         ),
         shape = RoundedCornerShape(12.dp),
         border = if (!isSelected) ButtonDefaults.outlinedButtonBorder.copy(
-            brush = Brush.linearGradient(listOf(Color.Gray, Color.Gray))
+            brush = Brush.linearGradient(listOf(backgroundColor, backgroundColor))
         ) else null,
-        contentPadding = PaddingValues(horizontal = 20.dp),
-        enabled = enabled // Usar el parámetro enabled
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+        enabled = enabled
     ) {
-        if (text == context.getString(R.string.save) && !enabled) { // Muestra CircularProgressIndicator solo para "Guardar" cuando está cargando
+        if (isLoading) {
             CircularProgressIndicator(
                 modifier = Modifier.size(24.dp),
                 color = Color.White,
@@ -571,9 +585,10 @@ fun MovementTypeButton(
         } else {
             Text(
                 text = text,
-                color = Color.White,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium
+                color = if (isSelected) textColor else backgroundColor,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold,
+                fontFamily = InterFont
             )
         }
     }

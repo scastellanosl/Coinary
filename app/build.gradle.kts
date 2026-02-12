@@ -83,6 +83,8 @@ dependencies {
     implementation(libs.vision.internal.vkp)
     implementation(libs.material.icons.extended)
     implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.foundation)
+    implementation(libs.androidx.compose.ui.text)
 
     // Test dependencies
     testImplementation(libs.junit)

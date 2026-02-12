@@ -228,5 +228,10 @@
     <string name="pdf_total_income">Renda Total:</string>
     <string name="pdf_total_expense">Despesa Total:</string>
     <string name="pdf_net_balance">Saldo Líquido:</string>
+    <string name="back">Back\n</string>
+    <string name="debt">Deuda</string>
+    <string name="savings_goal">Meta de Ahorro\n</string>
+    <string name="category_background">Categoria\n</string>
+    <string name="calendar">"Calendario "</string>
 
 </resources>

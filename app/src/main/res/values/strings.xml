@@ -228,5 +228,15 @@
     <string name="pdf_total_income">Total Income:</string>
     <string name="pdf_total_expense">Total Expenses:</string>
     <string name="pdf_net_balance">Net Balance:</string>
+    <string name="back">Back\n</string>
+    <string name="debt">Deuda</string>
+    <string name="savings_goal">Meta de Ahorro\n</string>
+    <string name="category_background">Categoria\n</string>
+    <string name="calendar">"Calendario "</string>
+    <string name="debts_tab">Deudas\n</string>
+    <string name="goals_tab">Metas</string>
+    <string name="add_new_debt">Nueva deuda\n</string>
+    <string name="add_new_goal">Nueva meta</string>
+    <string name="progress_percent">Porcentaje de avance\n</string>
 
 </resources>
