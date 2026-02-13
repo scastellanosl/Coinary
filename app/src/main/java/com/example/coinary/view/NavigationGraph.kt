@@ -119,7 +119,7 @@ fun NavigationGraph(navController: NavHostController) {
 
         // 2. Movimientos (Añadir Gasto/Ingreso)
         composable("movements_screen") {
-            AddMovementScreen(navController = navController)
+            MovementScreen(navController = navController)
         }
 
         // 3. Stats (Reportes)

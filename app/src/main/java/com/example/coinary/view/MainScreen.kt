@@ -18,14 +18,14 @@ import androidx.navigation.navArgument
 
 @Composable
 fun MainScreen(rootNavController: NavHostController) {
-    // 1. Controlador interno
+    // 1. Controlador interno para la navegación dentro del Scaffold
     val mainNavController = rememberNavController()
 
-    // 2. Detectar ruta actual
+    // 2. Detectar ruta actual para decidir si mostrar la BottomBar
     val navBackStackEntry by mainNavController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // 3. CAMBIO: Agregamos "add_menu" y "debts_goals" a la lista para que se vea la barra
+    // 3. Configuración de visibilidad de la barra inferior
     val showBottomBar = currentRoute in listOf(
         "home",
         "stats",
@@ -35,8 +35,8 @@ fun MainScreen(rootNavController: NavHostController) {
         "profile",
         "recomendaciones",
         "predicciones",
-        "add_menu", // <--- AHORA EL MENÚ TIENE BARRA
-        // Para que deudas también tenga barra (opcional, si quieres que se vea ahí también)
+        "add_menu",
+        "ant_expenses", // <--- Agregado para que se vea la barra en Gastos Hormiga
         "debts_goals/{activeTab}"
     )
 
@@ -45,7 +45,6 @@ fun MainScreen(rootNavController: NavHostController) {
             if (showBottomBar) {
                 BottomNavigationBar(
                     navController = mainNavController,
-                    // 4. CAMBIO: Ahora navegamos internamente, NO usamos rootNavController
                     onMenuClick = {
                         mainNavController.navigate("add_menu")
                     }
@@ -69,7 +68,6 @@ fun MainScreen(rootNavController: NavHostController) {
                     HomeScreen(
                         navController = mainNavController,
                         onAddNewClick = {
-                            // El botón flotante también navega interno ahora
                             mainNavController.navigate("add_menu")
                         },
                         onLogout = {
@@ -80,13 +78,17 @@ fun MainScreen(rootNavController: NavHostController) {
                     )
                 }
 
-                // --- 5. CAMBIO: AGREGAMOS EL MENÚ AQUÍ ADENTRO ---
+                // --- MENÚ PRINCIPAL (GRID) ---
                 composable("add_menu") {
                     AddMenuScreen(navController = mainNavController)
                 }
 
-                // --- 6. CAMBIO: TRAEMOS LA RUTA DE DEUDAS AQUÍ TAMBIÉN ---
-                // (Para que los botones del menú funcionen dentro de MainScreen)
+                // --- GASTOS HORMIGA (RUTA QUE FALTABA) ---
+                composable("ant_expenses") {
+                    AntExpensesScreen(navController = mainNavController)
+                }
+
+                // --- DEUDAS Y METAS ---
                 composable(
                     route = "debts_goals/{activeTab}",
                     arguments = listOf(navArgument("activeTab") { type = NavType.StringType })
@@ -101,7 +103,7 @@ fun MainScreen(rootNavController: NavHostController) {
 
                 // --- MOVIMIENTOS ---
                 composable("movement") {
-                    AddMovementScreen(
+                    MovementScreen(
                         navController = mainNavController,
                         onLogout = { }
                     )
@@ -143,6 +145,8 @@ fun MainScreen(rootNavController: NavHostController) {
                 composable("predicciones") {
                     PrediccionesPantalla(navController = mainNavController)
                 }
+
+                // --- DIVISA ---
                 composable("currency_screen") {
                     CurrencyScreen(
                         navController = mainNavController,

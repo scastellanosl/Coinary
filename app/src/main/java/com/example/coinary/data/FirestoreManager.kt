@@ -195,6 +195,7 @@ class FirestoreManager {
             "description" to expense.description,
             "category" to expense.category,
             "date" to expense.date,
+            "isAntExpense" to expense.isAntExpense, // <--- NUEVO CAMPO
             "createdAt" to Timestamp.now()
         )
 
@@ -203,28 +204,50 @@ class FirestoreManager {
             .add(expenseData)
             .addOnSuccessListener { documentReference ->
                 expense.id = documentReference.id
-                println("Expense added successfully with ID: ${documentReference.id}")
                 onSuccess()
             }
-            .addOnFailureListener { e ->
-                println("Error adding expense: $e")
-                onFailure(e)
-            }
+            .addOnFailureListener { e -> onFailure(e) }
     }
 
     /**
-     * Real-time listener for the user's expense records.
+     * PRO FEATURE: Counts expenses in a category within the last 7 days.
+     * Used by the ViewModel to decide if a new expense is a "pattern" (Ant Expense).
      */
-    fun getExpensesRealtime(
+    fun getRecentExpensesCount(
+        category: String,
+        onResult: (Int) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        val userId = getCurrentUserId() ?: return onFailure(Exception("User not authenticated."))
+
+        val calendar = Calendar.getInstance()
+        calendar.add(Calendar.DAY_OF_YEAR, -7)
+        val oneWeekAgo = Timestamp(calendar.time)
+
+        db.collection("users").document(userId)
+            .collection("expenses")
+            .whereEqualTo("category", category)
+            .whereGreaterThanOrEqualTo("date", oneWeekAgo)
+            .get()
+            .addOnSuccessListener { snapshot ->
+                onResult(snapshot.size())
+            }
+            .addOnFailureListener { e -> onFailure(e) }
+    }
+
+    /**
+     * Real-time listener specifically for Ant Expenses (automatic detection).
+     */
+    fun getAntExpensesRealtime(
         onExpensesLoaded: (List<Expense>) -> Unit,
         onFailure: (Exception) -> Unit
     ) = getCurrentUserId()?.let { userId ->
         db.collection("users").document(userId)
             .collection("expenses")
+            .whereEqualTo("isAntExpense", true) // <--- Filtro para la nueva pantalla
             .orderBy("date", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshots, e ->
                 if (e != null) {
-                    println("Error listening for expenses: $e")
                     onFailure(e)
                     return@addSnapshotListener
                 }
@@ -233,8 +256,7 @@ class FirestoreManager {
                 } ?: emptyList()
                 onExpensesLoaded(expensesList)
             }
-    } ?: run { onFailure(Exception("User not authenticated.")) ; null }
-
+    } ?: run { onFailure(Exception("User not authenticated.")); null }
     /**
      * Calculates the sum of all expense records (All-time) in real-time.
      */

@@ -7,10 +7,10 @@ import com.google.firebase.Timestamp
  * This structure maps directly to a Firestore document.
  */
 data class Expense(
-    var id: String = "", // Firestore document ID, will be assigned after saving
-    val amount: Double = 0.0,
-    val description: String = "",
-    val category: String = "",
-    val date: Timestamp = Timestamp.now(), // Date of the expense
-    val createdAt: Timestamp = Timestamp.now() // Timestamp when the record was created in Firestore
+    var id: String = "",
+    var amount: Double = 0.0,
+    var description: String = "",
+    var category: String = "",
+    var date: Timestamp = Timestamp.now(),
+    var isAntExpense: Boolean = false
 )

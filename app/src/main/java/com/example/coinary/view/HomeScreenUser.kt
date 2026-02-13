@@ -52,7 +52,7 @@ import kotlin.math.min
 @Composable
 fun HomeScreen(
     navController: NavController,
-    onAddNewClick: () -> Unit, // Callback para el botón flotante (+)
+    onAddNewClick: () -> Unit, // Callback mantenido por compatibilidad, aunque ya no se usa aquí visualmente
     onLogout: () -> Unit,
     homeViewModel: HomeViewModel = viewModel()
 ) {
@@ -146,15 +146,7 @@ fun HomeScreen(
     }
 
     Scaffold(
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = onAddNewClick,
-                containerColor = Color(0xFF4C6EF5), // Azul Coinary
-                contentColor = Color.White
-            ) {
-                Icon(Icons.Default.TrendingUp, contentDescription = "Añadir") // O Icons.Default.Add
-            }
-        },
+        // HE ELIMINADO EL FLOATING ACTION BUTTON DE AQUÍ
         containerColor = Color.Black
     ) { paddingValues ->
 

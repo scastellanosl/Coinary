@@ -15,20 +15,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.coinary.repository.GoogleAuthClient
-import com.example.coinary.view.AddMenuScreen
-import com.example.coinary.view.AddMovementScreen
-import com.example.coinary.view.DebtsAndGoalsScreen // <--- 1. IMPORTANTE: Importa el nombre correcto
-import com.example.coinary.view.GoogleLoginScreen
-import com.example.coinary.view.HomeScreen
-import com.example.coinary.view.MainScreen
-import com.example.coinary.view.NotificationsScreen
-import com.example.coinary.view.PrediccionesPantalla
-import com.example.coinary.view.ProfileScreen
-import com.example.coinary.view.RecomendacionesPantalla
-import com.example.coinary.view.RegisterScreen
-import com.example.coinary.view.ReminderScreen
-import com.example.coinary.view.ResetPasswordScreen
-import com.example.coinary.view.StatsScreen
+// IMPORTAMOS LA VISTA CON EL NOMBRE CORRECTO
+import com.example.coinary.view.MovementScreen
+import com.example.coinary.view.*
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
@@ -51,11 +40,7 @@ fun AppNavigation() {
                         popUpTo("register") { inclusive = true }
                     }
                 } else {
-                    Toast.makeText(
-                        context,
-                        "Error: ${signInResult.exceptionOrNull()?.message}",
-                        Toast.LENGTH_LONG
-                    ).show()
+                    Toast.makeText(context, "Error: ${signInResult.exceptionOrNull()?.message}", Toast.LENGTH_LONG).show()
                 }
             }
         }
@@ -75,105 +60,72 @@ fun AppNavigation() {
             // --- LOGIN & REGISTER ---
             composable("login") {
                 GoogleLoginScreen(
-                    onLoginSuccess = {
-                        navController.navigate("main") {
-                            popUpTo("login") { inclusive = true }
-                        }
-                    },
+                    onLoginSuccess = { navController.navigate("main") { popUpTo("login") { inclusive = true } } },
                     onNavigateToRegister = { navController.navigate("register") },
                     onForgotPasswordClick = { navController.navigate("reset_password") }
                 )
             }
-
             composable("register") {
                 RegisterScreen(
-                    onRegisterSuccess = {
-                        navController.navigate("main") {
-                            popUpTo("register") { inclusive = true }
-                        }
-                    },
+                    onRegisterSuccess = { navController.navigate("main") { popUpTo("register") { inclusive = true } } },
                     onLoginClick = { navController.popBackStack() },
                     googleAuthClient = googleAuthClient,
                     launcher = launcher
                 )
             }
+            composable("reset_password") { ResetPasswordScreen(onBackToLogin = { navController.popBackStack() }) }
 
-            composable("reset_password") {
-                ResetPasswordScreen(onBackToLogin = { navController.popBackStack() })
-            }
+            // --- MAIN ---
+            composable("main") { MainScreen(rootNavController = navController) }
 
-            // --- MAIN & HOME ---
-            composable("main") {
-                MainScreen(rootNavController = navController)
-            }
-
+            // --- HOME & MENU ---
             composable("home") {
                 HomeScreen(
                     navController = navController,
                     onAddNewClick = { navController.navigate("add_menu") },
-                    onLogout = {
-                        FirebaseAuth.getInstance().signOut()
-                        navController.navigate("login") {
-                            popUpTo("main") { inclusive = true }
-                        }
-                    }
+                    onLogout = { FirebaseAuth.getInstance().signOut(); navController.navigate("login") { popUpTo("main") { inclusive = true } } }
                 )
             }
+            composable("add_menu") { AddMenuScreen(navController = navController) }
 
-            // --- PANTALLA DEL MENÚ (GRID) ---
-            composable("add_menu") {
-                AddMenuScreen(navController = navController)
+            // --- MOVIMIENTOS (AQUÍ ESTABA EL ERROR) ---
+            // Actualizado para llamar a MovementScreen
+            composable("movements_screen") {
+                MovementScreen(navController = navController, onLogout = {})
+            }
+            composable("movement") {
+                MovementScreen(navController = navController, onLogout = {})
             }
 
-            // --- DESTINOS DEL MENÚ ---
+            // --- OTRAS PANTALLAS ---
             composable("reminder_screen") { ReminderScreen(navController = navController) }
             composable("reminder") { ReminderScreen(navController = navController) }
-            composable("movements_screen") { AddMovementScreen(navController = navController, onLogout = {}) }
-            composable("movement") { AddMovementScreen(navController = navController, onLogout = {}) }
             composable("reports_screen") { StatsScreen(navController = navController) }
             composable("stats") { StatsScreen(navController = navController) }
             composable("currency_screen") { StatsScreen(navController = navController) }
 
-            // 5. DEUDAS Y METAS (CORREGIDO)
+            composable("ant_expenses") { AntExpensesScreen(navController = navController) }
+
             composable(
                 route = "debts_goals/{activeTab}",
                 arguments = listOf(navArgument("activeTab") { type = NavType.StringType })
             ) { backStackEntry ->
                 val activeTab = backStackEntry.arguments?.getString("activeTab") ?: "deudas"
-
-                // 2. CORREGIDO: Nombre de la función y nombre del parámetro
-                DebtsAndGoalsScreen(
-                    navController = navController,
-                    initialTab = activeTab,
-                    onBackClick = { navController.popBackStack() } // <--- onBackClick, no onBack
-                )
+                DebtsAndGoalsScreen(navController = navController, initialTab = activeTab, onBackClick = { navController.popBackStack() })
             }
 
-            // --- OTRAS PANTALLAS ---
             composable("profile") {
                 ProfileScreen(
                     navController = navController,
-                    onLogout = {
-                        FirebaseAuth.getInstance().signOut()
-                        navController.navigate("login") {
-                            popUpTo("main") { inclusive = true }
-                        }
-                    }
+                    onLogout = { FirebaseAuth.getInstance().signOut(); navController.navigate("login") { popUpTo("main") { inclusive = true } } }
                 )
             }
-
             composable("notifications") {
                 NotificationsScreen(
                     navController = navController,
-                    onLogout = {
-                        FirebaseAuth.getInstance().signOut()
-                        navController.navigate("login") {
-                            popUpTo("main") { inclusive = true }
-                        }
-                    }
+                    onLogout = { FirebaseAuth.getInstance().signOut(); navController.navigate("login") { popUpTo("main") { inclusive = true } } }
                 )
             }
-
             composable("recommendations") { RecomendacionesPantalla(navController = navController) }
             composable("recomendaciones") { RecomendacionesPantalla(navController = navController) }
             composable("predictions") { PrediccionesPantalla(navController = navController) }

@@ -34,7 +34,7 @@ fun HomeNavGraph(
 
         // --- 2. MOVEMENT (¡ESTO FALTABA Y CAUSABA EL ERROR!) ---
         composable("movement") {
-            AddMovementScreen(
+            MovementScreen(
                 navController = mainNavController,
                 onLogout = { /* Lógica opcional */ }
             )
