@@ -1,6 +1,5 @@
 package com.example.coinary.view
 
-
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -23,7 +22,10 @@ import androidx.navigation.NavController
 import com.example.coinary.R
 
 @Composable
-fun BottomNavigationBar(navController: NavController) {
+fun BottomNavigationBar(
+    navController: NavController,
+    onMenuClick: () -> Unit
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -33,10 +35,10 @@ fun BottomNavigationBar(navController: NavController) {
     ) {
         Row(
             modifier = Modifier.wrapContentWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(20.dp), // Aumenté un poco el espacio ya que hay menos botones
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Botón Home
+            // --- 1. Botón Home (SE QUEDA IGUAL) ---
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(
                     contentAlignment = Alignment.Center,
@@ -50,41 +52,23 @@ fun BottomNavigationBar(navController: NavController) {
                         modifier = Modifier.fillMaxSize()
                     )
                     Image(
-                        painter = painterResource(id = R.drawable.home_icon), // Pon el icono que tengas para Home
+                        painter = painterResource(id = R.drawable.home_icon),
                         contentDescription = "Home icon",
                         modifier = Modifier.size(28.dp)
                     )
                 }
             }
 
-            // Botón de Estadísticas (Stats)
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier
-                        .size(56.dp)
-                        .clickable { navController.navigate("stats") }
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.button_background),
-                        contentDescription = "Button background",
-                        modifier = Modifier.fillMaxSize()
-                    )
-                    Image(
-                        painter = painterResource(id = R.drawable.stats_icon),
-                        contentDescription = "Stats icon",
-                        modifier = Modifier.size(28.dp)
-                    )
-                }
-            }
+            // --- (ELIMINADO) Botón de Estadísticas ---
 
-            // Botón de Añadir (Add)
+            // --- 2. Botón de Añadir / Menú (SE QUEDA IGUAL) ---
+            // Este botón abre el menú Grid
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
                         .size(56.dp)
-                        .clickable { navController.navigate("movement") }
+                        .clickable { onMenuClick() }
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.button_background),
@@ -99,22 +83,25 @@ fun BottomNavigationBar(navController: NavController) {
                 }
             }
 
-            // Botón de Editar (Pencil)
+            // --- 3. Botón de Lápiz (MODIFICADO) ---
+            // Ahora lleva a "movement" (Agregar Movimiento)
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
                         .size(56.dp)
-                        .clickable { navController.navigate("reminder") }
+                        // CAMBIO AQUÍ: Antes iba a "reminder", ahora va a "movement"
+                        .clickable { navController.navigate("movement") }
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.button_background),
                         contentDescription = "Button background",
                         modifier = Modifier.fillMaxSize()
                     )
+                    // Mantenemos el icono del lápiz como pediste
                     Image(
                         painter = painterResource(id = R.drawable.pencil_icon),
-                        contentDescription = "Pencil icon",
+                        contentDescription = "Movement icon",
                         modifier = Modifier.size(28.dp)
                     )
                 }

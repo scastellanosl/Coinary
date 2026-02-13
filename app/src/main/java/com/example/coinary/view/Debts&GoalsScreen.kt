@@ -47,6 +47,7 @@ import java.util.*
 @Composable
 fun DebtsAndGoalsScreen(
     navController: NavController,
+    initialTab: String, // <--- 1. AGREGAMOS ESTE PARÁMETRO
     viewModel: DebtGoalViewModel = viewModel(),
     onBackClick: () -> Unit = { navController.popBackStack() }
 ) {
@@ -60,7 +61,9 @@ fun DebtsAndGoalsScreen(
         )
     }
 
-    var selectedTab by remember { mutableStateOf("Deudas") }
+    val startTab = if (initialTab.equals("ahorros", ignoreCase = true)) "Metas" else "Deudas"
+
+    var selectedTab by remember { mutableStateOf(startTab) }
     var selectedDebt by remember { mutableStateOf<Debt?>(null) }
     var selectedGoal by remember { mutableStateOf<SavingsGoal?>(null) }
 
@@ -235,8 +238,6 @@ fun DebtsAndGoalsScreen(
                     }
                 }
             }
-
-            BottomNavigationBar(navController = navController)
         }
     }
 }

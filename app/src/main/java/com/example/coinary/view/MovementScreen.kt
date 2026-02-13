@@ -1,6 +1,5 @@
 package com.example.coinary.view
 
-import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.widget.DatePicker
 import android.widget.Toast
@@ -19,7 +18,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -68,21 +66,24 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.coinary.R
+import com.example.coinary.utils.ThousandSeparatorTransformation
 import com.example.coinary.viewmodel.MovementViewModel
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
-import com.example.coinary.utils.ThousandSeparatorTransformation
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddMovementScreen(
     navController: NavController,
-    movementViewModel: MovementViewModel = viewModel(),
+    // CORRECCIÓN: Quitamos el ViewModel de los parámetros para evitar VerifyError
     onBackClick: () -> Unit = {},
     onLogout: () -> Unit = {}
 ) {
+    // CORRECCIÓN: Inicializamos el ViewModel aquí dentro
+    val movementViewModel: MovementViewModel = viewModel()
+
     val systemUiController = rememberSystemUiController()
     val statusBarColor = Color.Black
     SideEffect {
@@ -129,7 +130,6 @@ fun AddMovementScreen(
     val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 
     val uiState by movementViewModel.uiState.collectAsState()
-
 
     LaunchedEffect(uiState) {
         uiState.successMessage?.let { message ->
@@ -210,7 +210,7 @@ fun AddMovementScreen(
 
             Spacer(modifier = Modifier.height(30.dp))
 
-            // Botones superiores: Income, Expense, Debt, Savings Goal
+            // Botones superiores: Income, Expense
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
@@ -337,7 +337,6 @@ fun AddMovementScreen(
                     TextField(
                         value = amount,
                         onValueChange = { newValue ->
-                            // Remover puntos (separadores de miles) y permitir solo números y un punto decimal
                             val cleaned = newValue.replace(".", "").replace(",", "")
                             if (cleaned.isEmpty()) {
                                 amount = ""
@@ -489,7 +488,7 @@ fun AddMovementScreen(
                     )
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    // Botones Save / Cancel más grandes
+                    // Botones Save / Cancel
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
