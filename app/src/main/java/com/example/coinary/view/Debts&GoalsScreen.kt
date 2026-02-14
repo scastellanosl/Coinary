@@ -298,14 +298,15 @@ fun DebtActionDialog(
     val remainingAmount = debt.remainingBalance()
 
     var paymentAmount by remember { mutableStateOf("") }
-
     var isNewIncome by remember { mutableStateOf(false) }
-
     val context = LocalContext.current
+
+    // DETECTAR SI ESTÁ COMPLETAMENTE PAGADA
+    val isPaid = debt.isPaid || debt.amountPaid >= debt.amount
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        confirmButton = { /* Vacío */ },
+        confirmButton = { },
         containerColor = Color(0xFF1E1E1E),
         shape = RoundedCornerShape(20.dp),
         text = {
@@ -320,31 +321,222 @@ fun DebtActionDialog(
                     overflow = TextOverflow.Ellipsis
                 )
 
+                //  MOSTRAR BADGE SI ESTÁ PAGADA
+                if (isPaid) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color(0xFF4CAF50), RoundedCornerShape(8.dp))
+                            .padding(12.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = " Deuda Pagada Completamente",
+                            color = Color.White,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = InterFont
+                        )
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
                     Column {
-                        Text(text = currencyFormat.format(debt.amount).replace("COP", "$"), fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.White, fontFamily = InterFont)
-                        Text(text = "Deuda total", fontSize = 12.sp, color = Color.White.copy(alpha = 0.6f), fontFamily = InterFont)
+                        Text(
+                            text = currencyFormat.format(debt.amount).replace("COP", ""),
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            fontFamily = InterFont
+                        )
+                        Text(
+                            text = "Deuda total",
+                            fontSize = 12.sp,
+                            color = Color.White.copy(alpha = 0.6f),
+                            fontFamily = InterFont
+                        )
                     }
                     Column(horizontalAlignment = Alignment.End) {
-                        Text(text = dateFormat.format(debt.dueDate.toDate()), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White, fontFamily = InterFont)
-                        Text(text = "Fecha límite", fontSize = 12.sp, color = Color.White.copy(alpha = 0.6f), fontFamily = InterFont)
+                        Text(
+                            text = dateFormat.format(debt.dueDate.toDate()),
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            fontFamily = InterFont
+                        )
+                        Text(
+                            text = "Fecha límite",
+                            fontSize = 12.sp,
+                            color = Color.White.copy(alpha = 0.6f),
+                            fontFamily = InterFont
+                        )
                     }
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                Box(modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)).background(Color(0xFF2D2D2D))) {
-                    Box(modifier = Modifier.fillMaxWidth(progressPercentage / 100f).fillMaxHeight().background(brush = Brush.horizontalGradient(colors = listOf(Color(0xFF4c6ef5), Color(0xFF5E7EFF))), shape = RoundedCornerShape(4.dp)))
+                // Barra de progreso
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(8.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(Color(0xFF2D2D2D))
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(progressPercentage / 100f)
+                            .fillMaxHeight()
+                            .background(
+                                brush = Brush.horizontalGradient(
+                                    colors = listOf(Color(0xFF4c6ef5), Color(0xFF5E7EFF))
+                                ),
+                                shape = RoundedCornerShape(4.dp)
+                            )
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = "Restante: ${currencyFormat.format(remainingAmount).replace("COP", "$")}", fontSize = 14.sp, color = Color.White.copy(alpha = 0.7f), fontFamily = InterFont)
+                Text(
+                    text = "llevas un progreso del ${progressPercentage.toInt()}%",
+                    fontSize = 14.sp,
+                    color = Color.White.copy(alpha = 0.8f),
+                    fontFamily = InterFont,
+                    fontWeight = FontWeight.Medium
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Restante: ${currencyFormat.format(remainingAmount).replace("COP", "")}",
+                    fontSize = 14.sp,
+                    color = Color.White.copy(alpha = 0.7f),
+                    fontFamily = InterFont
+                )
+
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Aquí iría el TextField y Checkbox (abreviado para no repetir todo el código de los componentes auxiliares)
-                // El código completo de los diálogos y tarjetas se mantiene igual que en la versión anterior.
+                //  DESHABILITAR CAMPO SI ESTÁ PAGADA
+                TextField(
+                    value = paymentAmount,
+                    onValueChange = { newValue ->
+                        if (!isPaid) {
+                            val cleaned = newValue.replace(".", "").replace(",", "")
+                            if (cleaned.isEmpty()) {
+                                paymentAmount = ""
+                            } else if (cleaned.matches(Regex("\\d{0,12}"))) {
+                                paymentAmount = cleaned
+                            }
+                        }
+                    },
+                    label = {
+                        Text(
+                            text = "Monto a pagar",
+                            fontFamily = InterFont,
+                            color = Color(0xFF868686)
+                        )
+                    },
+                    enabled = !isPaid,
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    visualTransformation = ThousandSeparatorTransformation(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .border(1.dp, Color.White.copy(alpha = 0.3f), RoundedCornerShape(12.dp)),
+                    textStyle = TextStyle(fontFamily = InterFont, color = Color.White, fontSize = 16.sp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        unfocusedTextColor = Color.White,
+                        focusedTextColor = Color.White,
+                        disabledContainerColor = Color(0xFF2D2D2D),
+                        disabledTextColor = Color.Gray
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                //  DESHABILITAR CHECKBOX SI ESTÁ PAGADA
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(enabled = !isPaid) { isNewIncome = !isNewIncome }
+                ) {
+                    Checkbox(
+                        checked = isNewIncome,
+                        onCheckedChange = { if (!isPaid) isNewIncome = it },
+                        enabled = !isPaid,
+                        colors = CheckboxDefaults.colors(
+                            checkedColor = Color(0xFF4c6ef5),
+                            uncheckedColor = Color.Gray,
+                            checkmarkColor = Color.White,
+                            disabledCheckedColor = Color.Gray,
+                            disabledUncheckedColor = Color.DarkGray
+                        )
+                    )
+                    Text(
+                        text = "Registrar como nuevo ingreso",
+                        color = if (isPaid) Color.Gray else Color.White,
+                        fontSize = 14.sp,
+                        fontFamily = InterFont
+                    )
+                }
+
+                Text(
+                    text = "Marca si este dinero NO sale de tu saldo actual.",
+                    color = Color.Gray,
+                    fontSize = 10.sp,
+                    fontFamily = InterFont,
+                    modifier = Modifier.padding(start = 12.dp, bottom = 16.dp)
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                //  DESHABILITAR BOTÓN DE PAGAR SI ESTÁ PAGADA
+                Button(
+                    onClick = {
+                        val amount = paymentAmount.toDoubleOrNull()
+                        if (amount == null || amount <= 0) {
+                            Toast.makeText(context, "Ingresa un monto válido", Toast.LENGTH_SHORT).show()
+                            return@Button
+                        }
+                        if (amount > remainingAmount) {
+                            Toast.makeText(
+                                context,
+                                "El monto excede la deuda restante",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            return@Button
+                        }
+                        onPayment(amount, isNewIncome)
+                    },
+                    enabled = !isPaid,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF4c6ef5),
+                        disabledContainerColor = Color.Gray //
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(
+                        text = "Pagar",
+                        color = Color.White,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        fontFamily = InterFont
+                    )
+                }
             }
         }
     )
@@ -359,16 +551,19 @@ fun GoalActionDialog(
     onContribute: (Double, Boolean) -> Unit,
     onChangeDate: (Date) -> Unit
 ) {
-    val currencyFormat = remember { NumberFormat.getCurrencyInstance(Locale("es", "CO")).apply { maximumFractionDigits = 0 } }
+    val currencyFormat = remember { NumberFormat.getCurrencyInstance(Locale("es", "CO")).apply {
+        maximumFractionDigits = 0
+    }}
     val dateFormat = remember { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) }
     val progressPercentage = goal.progressPercentage()
     val remainingAmount = goal.remainingAmount()
 
     var contributionAmount by remember { mutableStateOf("") }
-
     var isNewIncome by remember { mutableStateOf(false) }
-
     val context = LocalContext.current
+
+    //  DETECTAR SI ESTÁ COMPLETADA
+    val isCompleted = goal.isCompleted || goal.currentAmount >= goal.targetAmount
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -377,17 +572,57 @@ fun GoalActionDialog(
         shape = RoundedCornerShape(20.dp),
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
-                Text(text = goal.name, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.White, fontFamily = InterFont, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                Text(
+                    text = goal.name,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    fontFamily = InterFont,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                //  MOSTRAR BADGE SI ESTÁ COMPLETADA
+                if (isCompleted) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color(0xFF4CAF50), RoundedCornerShape(8.dp))
+                            .padding(12.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = " Meta Completada",
+                            color = Color.White,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = InterFont
+                        )
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Column {
-                        Text(text = currencyFormat.format(goal.targetAmount).replace("COP", "$"), fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.White, fontFamily = InterFont)
+                        Text(
+                            text = currencyFormat.format(goal.targetAmount).replace("COP", ""),
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            fontFamily = InterFont
+                        )
                         Text(text = "Meta", fontSize = 12.sp, color = Color.White.copy(alpha = 0.6f), fontFamily = InterFont)
                     }
                     Column(horizontalAlignment = Alignment.End) {
-                        Text(text = dateFormat.format(goal.deadline.toDate()), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White, fontFamily = InterFont)
+                        Text(
+                            text = dateFormat.format(goal.deadline.toDate()),
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            fontFamily = InterFont
+                        )
                         Text(text = "Fecha límite", fontSize = 12.sp, color = Color.White.copy(alpha = 0.6f), fontFamily = InterFont)
                     }
                 }
@@ -395,45 +630,88 @@ fun GoalActionDialog(
                 Spacer(modifier = Modifier.height(20.dp))
 
                 Box(modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)).background(Color(0xFF2D2D2D))) {
-                    Box(modifier = Modifier.fillMaxWidth(progressPercentage / 100f).fillMaxHeight().background(brush = Brush.horizontalGradient(colors = listOf(Color(0xFF4c6ef5), Color(0xFF5E7EFF))), shape = RoundedCornerShape(4.dp)))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(progressPercentage / 100f)
+                            .fillMaxHeight()
+                            .background(
+                                brush = Brush.horizontalGradient(colors = listOf(Color(0xFF4c6ef5), Color(0xFF5E7EFF))),
+                                shape = RoundedCornerShape(4.dp)
+                            )
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = "Restante: ${currencyFormat.format(remainingAmount).replace("COP", "$")}", fontSize = 14.sp, color = Color.White.copy(alpha = 0.7f), fontFamily = InterFont)
+                Text(
+                    text = "Restante: ${currencyFormat.format(remainingAmount).replace("COP", "")}",
+                    fontSize = 14.sp,
+                    color = Color.White.copy(alpha = 0.7f),
+                    fontFamily = InterFont
+                )
+
                 Spacer(modifier = Modifier.height(24.dp))
 
+                //  DESHABILITAR CAMPO SI ESTÁ COMPLETADA
                 TextField(
                     value = contributionAmount,
-                    onValueChange = {
-                        val cleaned = it.replace(".", "").replace(",", "")
-                        if (cleaned.matches(Regex("^\\d*\\.?\\d{0,2}$"))) contributionAmount = cleaned
+                    onValueChange = { newValue ->
+                        if (!isCompleted) {
+                            val cleaned = newValue.replace(".", "").replace(",", "")
+                            if (cleaned.matches(Regex("\\d*"))) {
+                                contributionAmount = cleaned
+                            }
+                        }
                     },
                     label = { Text("Monto a aportar", fontFamily = InterFont, color = Color(0xFF868686)) },
+                    enabled = !isCompleted,
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     visualTransformation = ThousandSeparatorTransformation(),
-                    modifier = Modifier.fillMaxWidth().border(1.dp, Color.White.copy(alpha = 0.3f), RoundedCornerShape(12.dp)),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .border(1.dp, Color.White.copy(alpha = 0.3f), RoundedCornerShape(12.dp)),
                     textStyle = TextStyle(fontFamily = InterFont, color = Color.White, fontSize = 16.sp),
                     shape = RoundedCornerShape(12.dp),
-                    colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedTextColor = Color.White, unfocusedTextColor = Color.White)
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        disabledContainerColor = Color(0xFF2D2D2D),
+                        disabledTextColor = Color.Gray
+                    )
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
+                //  DESHABILITAR CHECKBOX SI ESTÁ COMPLETADA
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().clickable { isNewIncome = !isNewIncome }
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(enabled = !isCompleted) { isNewIncome = !isNewIncome }
                 ) {
                     Checkbox(
                         checked = isNewIncome,
-                        onCheckedChange = { isNewIncome = it },
-                        colors = CheckboxDefaults.colors(checkedColor = Color(0xFF4c6ef5), uncheckedColor = Color.Gray, checkmarkColor = Color.White)
+                        onCheckedChange = { if (!isCompleted) isNewIncome = it },
+                        enabled = !isCompleted,
+                        colors = CheckboxDefaults.colors(
+                            checkedColor = Color(0xFF4c6ef5),
+                            uncheckedColor = Color.Gray,
+                            checkmarkColor = Color.White
+                        )
                     )
-                    Text(text = "Registrar como nuevo ingreso", color = Color.White, fontSize = 14.sp, fontFamily = InterFont)
+                    Text("Registrar como nuevo ingreso", color = Color.White, fontSize = 14.sp, fontFamily = InterFont)
                 }
-                Text(text = "Marca si este dinero NO sale de tu saldo actual.", color = Color.Gray, fontSize = 10.sp, modifier = Modifier.padding(start = 12.dp, bottom = 16.dp))
+                Text(
+                    text = "Marca si este dinero NO sale de tu saldo actual.",
+                    color = Color.Gray,
+                    fontSize = 10.sp,
+                    modifier = Modifier.padding(start = 12.dp, bottom = 16.dp)
+                )
 
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    //  DESHABILITAR BOTÓN DE APORTAR SI ESTÁ COMPLETADA
                     Button(
                         onClick = {
                             val amount = contributionAmount.toDoubleOrNull()
@@ -443,8 +721,12 @@ fun GoalActionDialog(
                             }
                             onContribute(amount, isNewIncome)
                         },
+                        enabled = !isCompleted,
                         modifier = Modifier.weight(1f).height(50.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4c6ef5)),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF4c6ef5),
+                            disabledContainerColor = Color.Gray
+                        ),
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Text("Aportar", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, fontFamily = InterFont)
@@ -454,10 +736,16 @@ fun GoalActionDialog(
                         onClick = {
                             val calendar = Calendar.getInstance()
                             calendar.time = goal.deadline.toDate()
-                            DatePickerDialog(context, { _, year, month, day ->
-                                val newDate = Calendar.getInstance().apply { set(year, month, day) }.time
-                                onChangeDate(newDate)
-                            }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show()
+                            DatePickerDialog(
+                                context,
+                                { _, year, month, day ->
+                                    val newDate = Calendar.getInstance().apply { set(year, month, day) }.time
+                                    onChangeDate(newDate)
+                                },
+                                calendar.get(Calendar.YEAR),
+                                calendar.get(Calendar.MONTH),
+                                calendar.get(Calendar.DAY_OF_MONTH)
+                            ).show()
                         },
                         modifier = Modifier.weight(1f).height(50.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color.White),
@@ -470,6 +758,7 @@ fun GoalActionDialog(
         }
     )
 }
+
 
 // ----------------------------------------------------------------------------------
 // --- COMPONENTES AUXILIARES ---

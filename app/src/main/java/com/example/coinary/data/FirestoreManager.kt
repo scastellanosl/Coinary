@@ -872,4 +872,55 @@ class FirestoreManager {
             }
     }
 
+    /**
+     * Obtiene todas las metas de ahorro del usuario actual (one-time fetch)
+     */
+    fun getAllSavingsGoals(
+        onSuccess: (List<SavingsGoal>) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        val userId = getCurrentUserId() ?: return onFailure(Exception("User not authenticated."))
+
+        db.collection("users").document(userId)
+            .collection("savingsGoals")
+            .get()
+            .addOnSuccessListener { snapshots ->
+                val goalsList = snapshots.map { doc ->
+                    doc.toObject(SavingsGoal::class.java).apply { id = doc.id }
+                }
+                println("Savings goals fetched successfully: ${goalsList.size} goals")
+                onSuccess(goalsList)
+            }
+            .addOnFailureListener { e ->
+                println("Error fetching all savings goals: $e")
+                onFailure(e)
+            }
+    }
+
+    /**
+     * Obtiene todas las deudas del usuario actual (one-time fetch)
+     */
+    fun getAllDebts(
+        onSuccess: (List<Debt>) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        val userId = getCurrentUserId() ?: return onFailure(Exception("User not authenticated."))
+
+        db.collection("users").document(userId)
+            .collection("debts")
+            .get()
+            .addOnSuccessListener { snapshots ->
+                val debtsList = snapshots.map { doc ->
+                    doc.toObject(Debt::class.java).apply { id = doc.id }
+                }
+                println("Debts fetched successfully: ${debtsList.size} debts")
+                onSuccess(debtsList)
+            }
+            .addOnFailureListener { e ->
+                println("Error fetching all debts: $e")
+                onFailure(e)
+            }
+    }
+
+
 }

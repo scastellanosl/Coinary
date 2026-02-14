@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -326,22 +327,42 @@ fun HomeScreen(
                             modifier = Modifier.background(Color(0xFF2B2B2B))
                         ) {
                             DropdownMenuItem(
-                                text = { Text(stringResource(R.string.filter_day), color = Color.White) },
+                                text = {
+                                    Text(
+                                        stringResource(R.string.filter_day),
+                                        color = Color.White
+                                    )
+                                },
                                 onClick = {
                                     homeViewModel.setTimeRange(TimeRange.DAY); expanded = false
                                 })
                             DropdownMenuItem(
-                                text = { Text(stringResource(R.string.filter_week), color = Color.White) },
+                                text = {
+                                    Text(
+                                        stringResource(R.string.filter_week),
+                                        color = Color.White
+                                    )
+                                },
                                 onClick = {
                                     homeViewModel.setTimeRange(TimeRange.WEEK); expanded = false
                                 })
                             DropdownMenuItem(
-                                text = { Text(stringResource(R.string.filter_month), color = Color.White) },
+                                text = {
+                                    Text(
+                                        stringResource(R.string.filter_month),
+                                        color = Color.White
+                                    )
+                                },
                                 onClick = {
                                     homeViewModel.setTimeRange(TimeRange.MONTH); expanded = false
                                 })
                             DropdownMenuItem(
-                                text = { Text(stringResource(R.string.filter_year), color = Color.White) },
+                                text = {
+                                    Text(
+                                        stringResource(R.string.filter_year),
+                                        color = Color.White
+                                    )
+                                },
                                 onClick = {
                                     homeViewModel.setTimeRange(TimeRange.YEAR); expanded = false
                                 })
@@ -442,7 +463,7 @@ fun HomeScreen(
                 modifier = Modifier
                     .fillMaxWidth(0.95f)
                     .align(Alignment.CenterHorizontally)
-                    .fillMaxHeight(0.68f) // Ajusta altura restante
+                    .fillMaxHeight(0.68f)
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.marco_inferior),
@@ -450,19 +471,36 @@ fun HomeScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.FillBounds
                 )
+
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(screenHeight * 0.02f)
+                        .padding(
+                            top = screenHeight * 0.008f,
+                            start = screenWidth * 0.02f,
+                            end = screenWidth * 0.02f,
+                            bottom = screenHeight * 0.02f
+                        )
                 ) {
+                    // Título muy arriba
                     Text(
                         text = stringResource(R.string.top_expenses),
                         color = Color.White,
-                        fontWeight = FontWeight.Thin,
-                        fontSize = 24.sp
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        modifier = Modifier.padding(vertical = screenHeight * 0.003f),
+                        style = androidx.compose.ui.text.TextStyle(
+                            shadow = androidx.compose.ui.graphics.Shadow(
+                                color = Color.Black.copy(alpha = 0.8f),
+                                offset = androidx.compose.ui.geometry.Offset(2f, 2f),
+                                blurRadius = 5f
+                            )
+                        )
                     )
-                    Spacer(modifier = Modifier.height(screenHeight * 0.05f))
+
+                    // ESPACIADOR ENORME para separar título de tarjetas
+                    Spacer(modifier = Modifier.height(screenHeight * 0.12f))
 
                     // Top 3 categorías
                     val topExpenses =
@@ -473,51 +511,63 @@ fun HomeScreen(
                         R.drawable.rectangle3
                     )
 
+                    // Contenedor de tarjetas - HORIZONTALES Y COMPACTAS
                     Row(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = screenWidth * 0.02f),
-                        horizontalArrangement = Arrangement.SpaceAround
+                            .fillMaxWidth(0.92f)
+                            .padding(horizontal = screenWidth * 0.01f),
+                        horizontalArrangement = Arrangement.spacedBy(
+                            space = screenWidth * 0.018f,
+                            alignment = Alignment.CenterHorizontally
+                        ),
+                        verticalAlignment = Alignment.Top
                     ) {
-                        // Iterar y mostrar tarjetas (o vacías si hay menos de 3)
                         for (i in 0 until 3) {
                             if (i < topExpenses.size) {
                                 val entry = topExpenses[i]
-                                val displayCategory =
-                                    categoryTranslationMap[entry.key] ?: entry.key
+                                val displayCategory = categoryTranslationMap[entry.key] ?: entry.key
                                 val bgRes = cardBackgrounds.getOrElse(i) { R.drawable.rectangle1 }
                                 val iconRes =
                                     categoryIconMap[displayCategory] ?: R.drawable.gift_icon
                                 val categoryDisplayColor =
                                     categoryColorMap[displayCategory] ?: Color.Gray
 
+                                // Tarjeta MÁS ANCHA y MÁS BAJA (horizontal)
                                 Box(
                                     modifier = Modifier
                                         .weight(1f)
-                                        .aspectRatio(0.85f)
-                                        .padding(horizontal = screenWidth * 0.01f),
-                                    contentAlignment = Alignment.TopCenter
+                                        .aspectRatio(1.1f), // MÁS ANCHA QUE ALTA (horizontal)
+                                    contentAlignment = Alignment.Center
                                 ) {
+                                    // Fondo de la tarjeta
                                     Image(
                                         painter = painterResource(id = bgRes),
                                         contentDescription = null,
                                         modifier = Modifier.fillMaxSize(),
                                         contentScale = ContentScale.FillBounds,
-                                        alpha = 0.9f
+                                        alpha = 0.95f
                                     )
+
+                                    // Contenido de la tarjeta - COMPACTO
                                     Column(
                                         horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.Center,
                                         modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(top = screenHeight * 0.015f)
+                                            .fillMaxSize()
+                                            .padding(
+                                                vertical = screenHeight * 0.012f,
+                                                horizontal = screenWidth * 0.012f
+                                            )
                                     ) {
+                                        // Etiqueta de categoría MÁS GRANDE
                                         Row(
                                             verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.Center
+                                            horizontalArrangement = Arrangement.Center,
+                                            modifier = Modifier.fillMaxWidth()
                                         ) {
                                             Box(
                                                 modifier = Modifier
-                                                    .size(screenWidth * 0.02f)
+                                                    .size(screenWidth * 0.022f)
                                                     .clip(CircleShape)
                                                     .background(categoryDisplayColor)
                                             )
@@ -525,36 +575,88 @@ fun HomeScreen(
                                             Text(
                                                 text = displayCategory,
                                                 color = Color.White,
-                                                fontSize = 12.sp,
+                                                fontSize = 12.sp, // MÁS GRANDE
                                                 fontWeight = FontWeight.Bold,
-                                                maxLines = 1
+                                                maxLines = 1,
+                                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                                                style = androidx.compose.ui.text.TextStyle(
+                                                    shadow = androidx.compose.ui.graphics.Shadow(
+                                                        color = Color.Black.copy(alpha = 0.6f),
+                                                        offset = androidx.compose.ui.geometry.Offset(
+                                                            1f,
+                                                            1f
+                                                        ),
+                                                        blurRadius = 3f
+                                                    )
+                                                )
                                             )
                                         }
+
+                                        Spacer(modifier = Modifier.height(screenHeight * 0.005f))
+
+                                        // Ícono MÁS PEQUEÑO
                                         Image(
                                             painter = painterResource(id = iconRes),
                                             contentDescription = null,
                                             modifier = Modifier
-                                                .size(screenHeight * 0.06f)
-                                                .padding(vertical = screenHeight * 0.008f)
+                                                .size(screenHeight * 0.038f) // MÁS PEQUEÑO
                                         )
+
+                                        Spacer(modifier = Modifier.height(screenHeight * 0.005f))
+
+                                        // Precio MÁS GRANDE Y VISIBLE
                                         Text(
                                             text = currencyFormatter.format(entry.value),
                                             color = Color.White,
-                                            fontSize = 10.sp,
-                                            fontWeight = FontWeight.Bold
+                                            fontSize = 12.sp, // MÁS GRANDE
+                                            fontWeight = FontWeight.Bold,
+                                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                            maxLines = 1,
+                                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                                            modifier = Modifier.padding(horizontal = screenWidth * 0.005f),
+                                            style = androidx.compose.ui.text.TextStyle(
+                                                shadow = androidx.compose.ui.graphics.Shadow(
+                                                    color = Color.Black.copy(alpha = 0.6f),
+                                                    offset = androidx.compose.ui.geometry.Offset(
+                                                        1f,
+                                                        1f
+                                                    ),
+                                                    blurRadius = 4f
+                                                )
+                                            )
                                         )
                                     }
                                 }
                             } else {
-                                // Espacio vacío para mantener el diseño
+                                // Tarjeta vacía horizontal
                                 Box(
                                     modifier = Modifier
                                         .weight(1f)
-                                        .aspectRatio(0.85f)
-                                )
+                                        .aspectRatio(1.1f)
+                                        .background(
+                                            color = Color.White.copy(alpha = 0.05f),
+                                            shape = RoundedCornerShape(10.dp)
+                                        )
+                                        .border(
+                                            width = 1.dp,
+                                            color = Color.White.copy(alpha = 0.2f),
+                                            shape = RoundedCornerShape(10.dp)
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.gift_icon),
+                                        contentDescription = null,
+                                        tint = Color.White.copy(alpha = 0.12f),
+                                        modifier = Modifier.size(screenHeight * 0.025f)
+                                    )
+                                }
                             }
                         }
                     }
+
+                    // Espacio inferior
+                    Spacer(modifier = Modifier.weight(1f))
                 }
             }
         }

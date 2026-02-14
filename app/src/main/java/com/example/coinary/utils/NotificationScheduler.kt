@@ -179,4 +179,193 @@ object NotificationScheduler {
             notificationManager.createNotificationChannel(channel)
         }
     }
+
+    // Agregar estas funciones al final del object NotificationScheduler
+
+    // --- 5. AGENDAR RECORDATORIOS DE DEUDA (15, 8, 1 día antes) ---
+    fun scheduleDebtReminders(
+        context: Context,
+        debtId: String,
+        debtDescription: String,
+        dueDate: Date
+    ) {
+        val calendar = Calendar.getInstance()
+        val currentTime = System.currentTimeMillis()
+
+        // Lista de días antes: [15, 8, 1]
+        val daysBeforeList = listOf(15, 8, 1)
+
+        daysBeforeList.forEach { daysBefore ->
+            calendar.time = dueDate
+            calendar.set(Calendar.HOUR_OF_DAY, 9) // 9:00 AM
+            calendar.set(Calendar.MINUTE, 0)
+            calendar.set(Calendar.SECOND, 0)
+            calendar.add(Calendar.DAY_OF_YEAR, -daysBefore)
+
+            // Solo programar si la fecha es futura
+            if (calendar.timeInMillis > currentTime) {
+                val notificationId = generateDebtNotificationId(debtId, daysBefore)
+
+                val title = when (daysBefore) {
+                    1 -> " Tu deuda vence mañana"
+                    8 -> "️ Tu deuda vence pronto en un plazo de 8 días"
+                    15 -> " Recordatorio de deuda dentro de 15 días"
+                    else -> " Recordatorio de deuda"
+                }
+
+                val message = "Deuda: $debtDescription\nVence en $daysBefore ${if (daysBefore == 1) "día" else "días"}"
+
+                val intent = Intent(context, NotificationReceiver::class.java).apply {
+                    putExtra("notificationId", notificationId)
+                    putExtra("title", title)
+                    putExtra("message", message)
+                    putExtra("isDaily", false)
+                    putExtra("debtId", debtId)
+                    putExtra("daysBefore", daysBefore)
+                }
+
+                val pendingIntent = PendingIntent.getBroadcast(
+                    context,
+                    notificationId,
+                    intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+
+                val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
+                try {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        alarmManager.setExactAndAllowWhileIdle(
+                            AlarmManager.RTC_WAKEUP,
+                            calendar.timeInMillis,
+                            pendingIntent
+                        )
+                    } else {
+                        alarmManager.setExact(
+                            AlarmManager.RTC_WAKEUP,
+                            calendar.timeInMillis,
+                            pendingIntent
+                        )
+                    }
+
+                    // Guardar en Storage
+                    val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+                    val reminder = ReminderItem(
+                        id = notificationId.toLong(),
+                        title = title as String,
+                        message = message,
+                        dateTime = dateFormat.format(calendar.time)
+                    )
+                    ReminderStorage.addReminder(context, reminder)
+
+                } catch (e: SecurityException) {
+                    e.printStackTrace()
+                }
+            }
+        }
+    }
+
+    // --- 6. CANCELAR RECORDATORIOS DE UNA DEUDA ---
+    fun cancelDebtReminders(context: Context, debtId: String) {
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val daysBeforeList = listOf(15, 8, 1)
+
+        daysBeforeList.forEach { daysBefore ->
+            val notificationId = generateDebtNotificationId(debtId, daysBefore)
+
+            val intent = Intent(context, NotificationReceiver::class.java)
+            val pendingIntent = PendingIntent.getBroadcast(
+                context,
+                notificationId,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
+            alarmManager.cancel(pendingIntent)
+
+            // Remover del Storage
+            ReminderStorage.removeReminder(context, notificationId.toLong())
+        }
+    }
+
+    // --- 7. NOTIFICACIÓN INMEDIATA AL COMPLETAR META ---
+    fun showGoalCompletedNotification(
+        context: Context,
+        goalId: String,
+        goalName: String,
+        targetAmount: Double
+    ) {
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        // Crear canal si no existe
+        createNotificationChannel(context)
+
+        val currencyFormat = java.text.NumberFormat.getCurrencyInstance(Locale("es", "CO")).apply {
+            maximumFractionDigits = 0
+        }
+        val formattedAmount = currencyFormat.format(targetAmount).replace("COP", "").trim()
+
+        val intent = Intent(context, com.example.coinary.MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            putExtra("navigate_to", "ahorros")
+        }
+
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            goalId.hashCode(),
+            intent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
+        val title = "Meta completada"
+        val message = "Felicitaciones Has completado tu meta de ahorro \"$goalName\" alcanzando $formattedAmount. ¡Sigue así! "
+
+        val notification = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            android.app.Notification.Builder(context, CHANNEL_ID)
+                .setContentTitle(title)
+                .setContentText("Has alcanzado tu meta: $goalName")
+                .setStyle(
+                    android.app.Notification.BigTextStyle()
+                        .bigText(message)
+                )
+                .setSmallIcon(android.R.drawable.ic_dialog_info)
+                .setAutoCancel(true)
+                .setContentIntent(pendingIntent)
+                .build()
+        } else {
+            @Suppress("DEPRECATION")
+            android.app.Notification.Builder(context)
+                .setContentTitle(title)
+                .setContentText("Has alcanzado tu meta: $goalName")
+                .setStyle(
+                    android.app.Notification.BigTextStyle()
+                        .bigText(message)
+                )
+                .setSmallIcon(android.R.drawable.ic_dialog_info)
+                .setAutoCancel(true)
+                .setContentIntent(pendingIntent)
+                .build()
+        }
+
+        notificationManager.notify(goalId.hashCode(), notification)
+
+        //  GUARDAR EN EL HISTORIAL DE NOTIFICACIONES
+        val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+        val currentDateTime = dateFormat.format(Date())
+
+        val reminder = com.example.coinary.data.ReminderItem(
+            id = System.currentTimeMillis(),
+            title = title,
+            message = message,
+            dateTime = currentDateTime
+        )
+        ReminderStorage.addReminder(context, reminder)
+    }
+
+    // --- 8. GENERAR ID ÚNICO PARA NOTIFICACIONES DE DEUDA ---
+    private fun generateDebtNotificationId(debtId: String, daysBefore: Int): Int {
+        // Genera un ID único combinando el hash del debtId con el número de días
+        return (debtId.hashCode() + daysBefore * 1000)
+    }
+
 }
