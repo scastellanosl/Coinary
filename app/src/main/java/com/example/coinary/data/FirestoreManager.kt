@@ -14,8 +14,8 @@ import java.util.Calendar
 import java.util.Locale
 
 /**
- * Manages all data persistence interactions with Firebase Firestore for the Coinary application.
- * Handles CRUD operations and real-time analytics aggregations.
+ * FirestoreManager: The core data engine for Coinary.
+ * Handles all CRUD operations and real-time data synchronization with Firebase Firestore.
  */
 class FirestoreManager {
 
@@ -23,22 +23,19 @@ class FirestoreManager {
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
 
     /**
-     * Helper method to retrieve the currently authenticated user's unique ID (UID).
-     * @return The UID string, or null if no user is logged in.
+     * Helper to retrieve the current authenticated user's ID.
      */
-    private fun getCurrentUserId(): String? {
-        return auth.currentUser?.uid
-    }
+    private fun getCurrentUserId(): String? = auth.currentUser?.uid
 
     // ============================================================================================
     // REGION: INCOME OPERATIONS
     // ============================================================================================
 
     /**
-     * Persists a new [Income] record to the specific user's Firestore sub-collection.
+     * Adds a new income record to Firestore.
      */
     fun addIncome(income: Income, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
-        val userId = getCurrentUserId() ?: return onFailure(Exception("User not authenticated."))
+        val userId = getCurrentUserId() ?: return onFailure(Exception("AUTH_ERROR: User not authenticated."))
 
         val incomeData = hashMapOf(
             "amount" to income.amount,
@@ -51,19 +48,15 @@ class FirestoreManager {
         db.collection("users").document(userId)
             .collection("incomes")
             .add(incomeData)
-            .addOnSuccessListener { documentReference ->
-                income.id = documentReference.id
-                println("Income added successfully with ID: ${documentReference.id}")
+            .addOnSuccessListener { docRef ->
+                income.id = docRef.id
                 onSuccess()
             }
-            .addOnFailureListener { e ->
-                println("Error adding income: $e")
-                onFailure(e)
-            }
+            .addOnFailureListener { e -> onFailure(e) }
     }
 
     /**
-     * Real-time listener for the user's income records.
+     * Real-time stream of all user incomes sorted by date.
      */
     fun getIncomesRealtime(
         onIncomesLoaded: (List<Income>) -> Unit,
@@ -74,7 +67,6 @@ class FirestoreManager {
             .orderBy("date", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshots, e ->
                 if (e != null) {
-                    println("Error listening for incomes: $e")
                     onFailure(e)
                     return@addSnapshotListener
                 }
@@ -83,10 +75,10 @@ class FirestoreManager {
                 } ?: emptyList()
                 onIncomesLoaded(incomesList)
             }
-    } ?: run { onFailure(Exception("User not authenticated.")) ; null }
+    } ?: run { onFailure(Exception("AUTH_ERROR: Session expired.")); null }
 
     /**
-     * Calculates the sum of all income records (All-time) in real-time.
+     * Real-time stream of the all-time total income sum.
      */
     fun getTotalIncomesRealtime(
         onTotalIncomeLoaded: (Double) -> Unit,
@@ -96,18 +88,16 @@ class FirestoreManager {
             .collection("incomes")
             .addSnapshotListener { snapshots, e ->
                 if (e != null) {
-                    println("Error listening for total incomes: $e")
                     onFailure(e)
                     return@addSnapshotListener
                 }
                 val total = snapshots?.sumOf { it.getDouble("amount") ?: 0.0 } ?: 0.0
                 onTotalIncomeLoaded(total)
             }
-    } ?: run { onFailure(Exception("User not authenticated.")) ; null }
+    } ?: run { onFailure(Exception("AUTH_ERROR: Session expired.")); null }
 
     /**
-     * Calculates the sum of incomes within a specific date range in real-time.
-     * Used for filtering totals by Day, Week, Month, etc.
+     * Sums incomes within a specific date range (Day, Week, Month, etc.).
      */
     fun getIncomeSumByDateRangeRealtime(
         startDate: Timestamp,
@@ -121,25 +111,20 @@ class FirestoreManager {
             .whereLessThanOrEqualTo("date", endDate)
             .addSnapshotListener { snapshots, e ->
                 if (e != null) {
-                    println("Error listening for income sum by date range: $e")
                     onFailure(e)
                     return@addSnapshotListener
                 }
                 val total = snapshots?.sumOf { it.getDouble("amount") ?: 0.0 } ?: 0.0
                 onResult(total)
             }
-    } ?: run { onFailure(Exception("User not authenticated.")) ; null }
+    } ?: run { onFailure(Exception("AUTH_ERROR: Session expired.")); null }
 
     /**
-     * Updates an existing income document.
+     * Updates an existing income record.
      */
     fun updateIncome(income: Income, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
-        val userId = getCurrentUserId() ?: return onFailure(Exception("User not authenticated."))
-
-        if (income.id.isEmpty()) {
-            onFailure(Exception("Income ID not provided for update."))
-            return
-        }
+        val userId = getCurrentUserId() ?: return onFailure(Exception("AUTH_ERROR: Session expired."))
+        if (income.id.isEmpty()) return onFailure(Exception("UPDATE_ERROR: Missing Document ID."))
 
         val updates = hashMapOf<String, Any>(
             "amount" to income.amount,
@@ -151,33 +136,20 @@ class FirestoreManager {
         db.collection("users").document(userId)
             .collection("incomes").document(income.id)
             .update(updates)
-            .addOnSuccessListener {
-                println("Income updated successfully.")
-                onSuccess()
-            }
-            .addOnFailureListener { e ->
-                println("Error updating income: $e")
-                onFailure(e)
-            }
+            .addOnSuccessListener { onSuccess() }
+            .addOnFailureListener { e -> onFailure(e) }
     }
 
     /**
-     * Deletes a specific income document.
+     * Deletes a specific income record.
      */
     fun deleteIncome(incomeId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
-        val userId = getCurrentUserId() ?: return onFailure(Exception("User not authenticated."))
-
+        val userId = getCurrentUserId() ?: return onFailure(Exception("AUTH_ERROR: Session expired."))
         db.collection("users").document(userId)
             .collection("incomes").document(incomeId)
             .delete()
-            .addOnSuccessListener {
-                println("Income deleted successfully.")
-                onSuccess()
-            }
-            .addOnFailureListener { e ->
-                println("Error deleting income: $e")
-                onFailure(e)
-            }
+            .addOnSuccessListener { onSuccess() }
+            .addOnFailureListener { e -> onFailure(e) }
     }
 
     // ============================================================================================
@@ -185,43 +157,37 @@ class FirestoreManager {
     // ============================================================================================
 
     /**
-     * Persists a new [Expense] record to the specific user's Firestore sub-collection.
+     * Persists a new expense, including the automatic "Ant Expense" detection flag.
      */
     fun addExpense(expense: Expense, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
-        val userId = getCurrentUserId() ?: return onFailure(Exception("User not authenticated."))
+        val userId = getCurrentUserId() ?: return onFailure(Exception("AUTH_ERROR: User not authenticated."))
 
         val expenseData = hashMapOf(
             "amount" to expense.amount,
             "description" to expense.description,
             "category" to expense.category,
             "date" to expense.date,
-            "isAntExpense" to expense.isAntExpense, // <--- NUEVO CAMPO
+            "isAntExpense" to expense.isAntExpense,
             "createdAt" to Timestamp.now()
         )
 
         db.collection("users").document(userId)
             .collection("expenses")
             .add(expenseData)
-            .addOnSuccessListener { documentReference ->
-                expense.id = documentReference.id
+            .addOnSuccessListener { docRef ->
+                expense.id = docRef.id
                 onSuccess()
             }
             .addOnFailureListener { e -> onFailure(e) }
     }
 
     /**
-     * PRO FEATURE: Counts expenses in a category within the last 7 days.
-     * Used by the ViewModel to decide if a new expense is a "pattern" (Ant Expense).
+     * Intelligent detection: Counts category occurrences in the last 7 days.
      */
-    fun getRecentExpensesCount(
-        category: String,
-        onResult: (Int) -> Unit,
-        onFailure: (Exception) -> Unit
-    ) {
-        val userId = getCurrentUserId() ?: return onFailure(Exception("User not authenticated."))
+    fun getRecentExpensesCount(category: String, onResult: (Int) -> Unit, onFailure: (Exception) -> Unit) {
+        val userId = getCurrentUserId() ?: return onFailure(Exception("AUTH_ERROR: Session expired."))
 
-        val calendar = Calendar.getInstance()
-        calendar.add(Calendar.DAY_OF_YEAR, -7)
+        val calendar = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -7) }
         val oneWeekAgo = Timestamp(calendar.time)
 
         db.collection("users").document(userId)
@@ -229,14 +195,12 @@ class FirestoreManager {
             .whereEqualTo("category", category)
             .whereGreaterThanOrEqualTo("date", oneWeekAgo)
             .get()
-            .addOnSuccessListener { snapshot ->
-                onResult(snapshot.size())
-            }
+            .addOnSuccessListener { snapshot -> onResult(snapshot.size()) }
             .addOnFailureListener { e -> onFailure(e) }
     }
 
     /**
-     * Real-time listener specifically for Ant Expenses (automatic detection).
+     * Streams all expenses flagged as "Ant Expenses".
      */
     fun getAntExpensesRealtime(
         onExpensesLoaded: (List<Expense>) -> Unit,
@@ -244,21 +208,22 @@ class FirestoreManager {
     ) = getCurrentUserId()?.let { userId ->
         db.collection("users").document(userId)
             .collection("expenses")
-            .whereEqualTo("isAntExpense", true) // <--- Filtro para la nueva pantalla
+            .whereEqualTo("isAntExpense", true)
             .orderBy("date", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshots, e ->
                 if (e != null) {
                     onFailure(e)
                     return@addSnapshotListener
                 }
-                val expensesList = snapshots?.map { doc ->
+                val list = snapshots?.map { doc ->
                     doc.toObject(Expense::class.java).apply { id = doc.id }
                 } ?: emptyList()
-                onExpensesLoaded(expensesList)
+                onExpensesLoaded(list)
             }
-    } ?: run { onFailure(Exception("User not authenticated.")); null }
+    } ?: run { onFailure(Exception("AUTH_ERROR: Session expired.")); null }
+
     /**
-     * Calculates the sum of all expense records (All-time) in real-time.
+     * Real-time stream of the all-time total expense sum.
      */
     fun getTotalExpensesRealtime(
         onTotalExpenseLoaded: (Double) -> Unit,
@@ -268,18 +233,16 @@ class FirestoreManager {
             .collection("expenses")
             .addSnapshotListener { snapshots, e ->
                 if (e != null) {
-                    println("Error listening for total expenses: $e")
                     onFailure(e)
                     return@addSnapshotListener
                 }
                 val total = snapshots?.sumOf { it.getDouble("amount") ?: 0.0 } ?: 0.0
                 onTotalExpenseLoaded(total)
             }
-    } ?: run { onFailure(Exception("User not authenticated.")) ; null }
+    } ?: run { onFailure(Exception("AUTH_ERROR: Session expired.")); null }
 
     /**
-     * Calculates the sum of expenses within a specific date range in real-time.
-     * Used for filtering totals by Day, Week, Month, etc.
+     * Sums expenses within a specific date range.
      */
     fun getExpenseSumByDateRangeRealtime(
         startDate: Timestamp,
@@ -293,26 +256,20 @@ class FirestoreManager {
             .whereLessThanOrEqualTo("date", endDate)
             .addSnapshotListener { snapshots, e ->
                 if (e != null) {
-                    println("Error listening for expense sum by date range: $e")
                     onFailure(e)
                     return@addSnapshotListener
                 }
-                // Sum all amounts in the filtered documents
                 val total = snapshots?.sumOf { it.getDouble("amount") ?: 0.0 } ?: 0.0
                 onResult(total)
             }
-    } ?: run { onFailure(Exception("User not authenticated.")) ; null }
+    } ?: run { onFailure(Exception("AUTH_ERROR: Session expired.")); null }
 
     /**
-     * Updates an existing expense document.
+     * Updates an existing expense record.
      */
     fun updateExpense(expense: Expense, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
-        val userId = getCurrentUserId() ?: return onFailure(Exception("User not authenticated."))
-
-        if (expense.id.isEmpty()) {
-            onFailure(Exception("Expense ID not provided for update."))
-            return
-        }
+        val userId = getCurrentUserId() ?: return onFailure(Exception("AUTH_ERROR: Session expired."))
+        if (expense.id.isEmpty()) return onFailure(Exception("UPDATE_ERROR: Missing Document ID."))
 
         val updates = hashMapOf<String, Any>(
             "amount" to expense.amount,
@@ -324,63 +281,41 @@ class FirestoreManager {
         db.collection("users").document(userId)
             .collection("expenses").document(expense.id)
             .update(updates)
-            .addOnSuccessListener {
-                println("Expense updated successfully.")
-                onSuccess()
-            }
-            .addOnFailureListener { e ->
-                println("Error updating expense: $e")
-                onFailure(e)
-            }
+            .addOnSuccessListener { onSuccess() }
+            .addOnFailureListener { e -> onFailure(e) }
     }
 
     /**
-     * Deletes a specific expense document.
+     * Deletes a specific expense record.
      */
     fun deleteExpense(expenseId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
-        val userId = getCurrentUserId() ?: return onFailure(Exception("User not authenticated."))
-
+        val userId = getCurrentUserId() ?: return onFailure(Exception("AUTH_ERROR: Session expired."))
         db.collection("users").document(userId)
             .collection("expenses").document(expenseId)
             .delete()
-            .addOnSuccessListener {
-                println("Expense deleted successfully.")
-                onSuccess()
-            }
-            .addOnFailureListener { e ->
-                println("Error deleting expense: $e")
-                onFailure(e)
-            }
+            .addOnSuccessListener { onSuccess() }
+            .addOnFailureListener { e -> onFailure(e) }
     }
 
     // ============================================================================================
-    // REGION: ANALYTICS & FILTERED QUERIES
+    // REGION: ANALYTICS & STATS
     // ============================================================================================
 
     /**
-     * Retrieves expenses aggregated by category for the current week (Monday to Sunday).
+     * Aggregates current weekly expenses by category.
      */
     fun getWeeklyExpensesByCategoryRealtime(
         onCategorizedExpensesLoaded: (Map<String, Double>) -> Unit,
         onFailure: (Exception) -> Unit
     ) = getCurrentUserId()?.let { userId ->
-        val calendar = Calendar.getInstance(Locale.getDefault())
-        calendar.firstDayOfWeek = Calendar.MONDAY
-
-        // Start of Week
-        calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
-        calendar.set(Calendar.HOUR_OF_DAY, 0)
-        calendar.set(Calendar.MINUTE, 0)
-        calendar.set(Calendar.SECOND, 0)
-        calendar.set(Calendar.MILLISECOND, 0)
+        val calendar = Calendar.getInstance(Locale.getDefault()).apply {
+            firstDayOfWeek = Calendar.MONDAY
+            set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
+            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+        }
         val startOfWeek = Timestamp(calendar.time)
-
-        // End of Week
         calendar.add(Calendar.DATE, 6)
-        calendar.set(Calendar.HOUR_OF_DAY, 23)
-        calendar.set(Calendar.MINUTE, 59)
-        calendar.set(Calendar.SECOND, 59)
-        calendar.set(Calendar.MILLISECOND, 999)
+        calendar.set(Calendar.HOUR_OF_DAY, 23); calendar.set(Calendar.MINUTE, 59); calendar.set(Calendar.SECOND, 59)
         val endOfWeek = Timestamp(calendar.time)
 
         db.collection("users").document(userId)
@@ -388,23 +323,19 @@ class FirestoreManager {
             .whereGreaterThanOrEqualTo("date", startOfWeek)
             .whereLessThanOrEqualTo("date", endOfWeek)
             .addSnapshotListener { snapshots, e ->
-                if (e != null) {
-                    println("Error listening for weekly categorized expenses: $e")
-                    onFailure(e)
-                    return@addSnapshotListener
-                }
-                val categorizedExpenses = mutableMapOf<String, Double>()
+                if (e != null) { onFailure(e); return@addSnapshotListener }
+                val categorized = mutableMapOf<String, Double>()
                 snapshots?.forEach { doc ->
-                    val category = doc.getString("category") ?: "Uncategorized"
-                    val amount = doc.getDouble("amount") ?: 0.0
-                    categorizedExpenses[category] = (categorizedExpenses[category] ?: 0.0) + amount
+                    val cat = doc.getString("category") ?: "Other"
+                    val amt = doc.getDouble("amount") ?: 0.0
+                    categorized[cat] = (categorized[cat] ?: 0.0) + amt
                 }
-                onCategorizedExpensesLoaded(categorizedExpenses)
+                onCategorizedExpensesLoaded(categorized)
             }
-    } ?: run { onFailure(Exception("User not authenticated.")) ; null }
+    } ?: run { onFailure(Exception("AUTH_ERROR: Session expired.")); null }
 
     /**
-     * Retrieves expense amounts grouped by category within a specific date range.
+     * Aggregates expenses by category within a custom date range.
      */
     fun getExpensesByCategoryByDateRangeRealtime(
         startDate: Timestamp,
@@ -412,515 +343,231 @@ class FirestoreManager {
         onCategorizedExpensesLoaded: (Map<String, Double>) -> Unit,
         onFailure: (Exception) -> Unit
     ) = getCurrentUserId()?.let { userId ->
-
         db.collection("users").document(userId)
             .collection("expenses")
             .whereGreaterThanOrEqualTo("date", startDate)
             .whereLessThanOrEqualTo("date", endDate)
             .addSnapshotListener { snapshots, e ->
-                if (e != null) {
-                    println("Error listening for filtered expenses: $e")
-                    onFailure(e)
-                    return@addSnapshotListener
-                }
-                val categorizedExpenses = mutableMapOf<String, Double>()
+                if (e != null) { onFailure(e); return@addSnapshotListener }
+                val categorized = mutableMapOf<String, Double>()
                 snapshots?.forEach { doc ->
-                    val category = doc.getString("category") ?: "Uncategorized"
-                    val amount = doc.getDouble("amount") ?: 0.0
-                    categorizedExpenses[category] = (categorizedExpenses[category] ?: 0.0) + amount
+                    val cat = doc.getString("category") ?: "Other"
+                    val amt = doc.getDouble("amount") ?: 0.0
+                    categorized[cat] = (categorized[cat] ?: 0.0) + amt
                 }
-                onCategorizedExpensesLoaded(categorizedExpenses)
+                onCategorizedExpensesLoaded(categorized)
             }
-    } ?: run { onFailure(Exception("User not authenticated.")) ; null }
+    } ?: run { onFailure(Exception("AUTH_ERROR: Session expired.")); null }
 
-    // --- Legacy / One-Time Monthly Methods ---
+    // ============================================================================================
+    // REGION: MONTHLY FETCH (USED BY PDF GENERATOR)
+    // ============================================================================================
 
     fun getMonthlyIncomesRealtime(
-        month: Int,
-        year: Int,
+        month: Int, year: Int,
         onIncomesLoaded: (List<Income>) -> Unit,
         onFailure: (Exception) -> Unit
     ) = getCurrentUserId()?.let { userId ->
-        val (startOfMonth, endOfMonth) = calculateMonthRange(month, year)
-
-        db.collection("users").document(userId)
-            .collection("incomes")
-            .whereGreaterThanOrEqualTo("date", startOfMonth)
-            .whereLessThanOrEqualTo("date", endOfMonth)
+        val (start, end) = calculateMonthRange(month, year)
+        db.collection("users").document(userId).collection("incomes")
+            .whereGreaterThanOrEqualTo("date", start).whereLessThanOrEqualTo("date", end)
             .orderBy("date", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshots, e ->
                 if (e != null) { onFailure(e); return@addSnapshotListener }
-                val incomesList = snapshots?.map { doc -> doc.toObject(Income::class.java).apply { id = doc.id } } ?: emptyList()
-                onIncomesLoaded(incomesList)
+                val list = snapshots?.map { it.toObject(Income::class.java).apply { id = it.id } } ?: emptyList()
+                onIncomesLoaded(list)
             }
-    } ?: run { onFailure(Exception("User not authenticated.")) ; null }
+    } ?: run { onFailure(Exception("AUTH_ERROR: Session expired.")); null }
 
     fun getMonthlyExpensesRealtime(
-        month: Int,
-        year: Int,
+        month: Int, year: Int,
         onExpensesLoaded: (List<Expense>) -> Unit,
         onFailure: (Exception) -> Unit
     ) = getCurrentUserId()?.let { userId ->
-        val (startOfMonth, endOfMonth) = calculateMonthRange(month, year)
-
-        db.collection("users").document(userId)
-            .collection("expenses")
-            .whereGreaterThanOrEqualTo("date", startOfMonth)
-            .whereLessThanOrEqualTo("date", endOfMonth)
+        val (start, end) = calculateMonthRange(month, year)
+        db.collection("users").document(userId).collection("expenses")
+            .whereGreaterThanOrEqualTo("date", start).whereLessThanOrEqualTo("date", end)
             .orderBy("date", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshots, e ->
                 if (e != null) { onFailure(e); return@addSnapshotListener }
-                val expensesList = snapshots?.map { doc -> doc.toObject(Expense::class.java).apply { id = doc.id } } ?: emptyList()
-                onExpensesLoaded(expensesList)
+                val list = snapshots?.map { it.toObject(Expense::class.java).apply { id = it.id } } ?: emptyList()
+                onExpensesLoaded(list)
             }
-    } ?: run { onFailure(Exception("User not authenticated.")) ; null }
+    } ?: run { onFailure(Exception("AUTH_ERROR: Session expired.")); null }
 
-    fun getMonthlyIncomesOnce(
-        month: Int,
-        year: Int,
-        onSuccess: (List<Income>) -> Unit,
-        onFailure: (Exception) -> Unit
-    ) {
-        val userId = getCurrentUserId() ?: return onFailure(Exception("User not authenticated."))
-        val (startOfMonth, endOfMonth) = calculateMonthRange(month, year)
-
-        db.collection("users").document(userId)
-            .collection("incomes")
-            .whereGreaterThanOrEqualTo("date", startOfMonth)
-            .whereLessThanOrEqualTo("date", endOfMonth)
-            .get()
-            .addOnSuccessListener { snapshots ->
-                val incomesList = snapshots.map { doc -> doc.toObject(Income::class.java).apply { id = doc.id } }
-                onSuccess(incomesList)
-            }
+    fun getMonthlyIncomesOnce(month: Int, year: Int, onSuccess: (List<Income>) -> Unit, onFailure: (Exception) -> Unit) {
+        val userId = getCurrentUserId() ?: return onFailure(Exception("AUTH_ERROR: Session expired."))
+        val (start, end) = calculateMonthRange(month, year)
+        db.collection("users").document(userId).collection("incomes")
+            .whereGreaterThanOrEqualTo("date", start).whereLessThanOrEqualTo("date", end).get()
+            .addOnSuccessListener { snap -> onSuccess(snap.map { it.toObject(Income::class.java).apply { id = it.id } }) }
             .addOnFailureListener { e -> onFailure(e) }
     }
 
-    fun getMonthlyExpensesOnce(
-        month: Int,
-        year: Int,
-        onSuccess: (List<Expense>) -> Unit,
-        onFailure: (Exception) -> Unit
-    ) {
-        val userId = getCurrentUserId() ?: return onFailure(Exception("User not authenticated."))
-        val (startOfMonth, endOfMonth) = calculateMonthRange(month, year)
-
-        db.collection("users").document(userId)
-            .collection("expenses")
-            .whereGreaterThanOrEqualTo("date", startOfMonth)
-            .whereLessThanOrEqualTo("date", endOfMonth)
-            .get()
-            .addOnSuccessListener { snapshots ->
-                val expensesList = snapshots.map { doc -> doc.toObject(Expense::class.java).apply { id = doc.id } }
-                onSuccess(expensesList)
-            }
+    fun getMonthlyExpensesOnce(month: Int, year: Int, onSuccess: (List<Expense>) -> Unit, onFailure: (Exception) -> Unit) {
+        val userId = getCurrentUserId() ?: return onFailure(Exception("AUTH_ERROR: Session expired."))
+        val (start, end) = calculateMonthRange(month, year)
+        db.collection("users").document(userId).collection("expenses")
+            .whereGreaterThanOrEqualTo("date", start).whereLessThanOrEqualTo("date", end).get()
+            .addOnSuccessListener { snap -> onSuccess(snap.map { it.toObject(Expense::class.java).apply { id = it.id } }) }
             .addOnFailureListener { e -> onFailure(e) }
     }
 
-    /**
-     * Helper to calculate start/end Timestamps for a given month/year.
-     */
     private fun calculateMonthRange(month: Int, year: Int): Pair<Timestamp, Timestamp> {
-        val calendar = Calendar.getInstance().apply {
-            set(Calendar.YEAR, year)
-            set(Calendar.MONTH, month - 1)
-            set(Calendar.DAY_OF_MONTH, 1)
-            set(Calendar.HOUR_OF_DAY, 0)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
+        val cal = Calendar.getInstance().apply {
+            set(year, month - 1, 1, 0, 0, 0); set(Calendar.MILLISECOND, 0)
         }
-        val start = Timestamp(calendar.time)
-
-        calendar.add(Calendar.MONTH, 1)
-        calendar.add(Calendar.MILLISECOND, -1)
-        val end = Timestamp(calendar.time)
-
-        return Pair(start, end)
+        val start = Timestamp(cal.time)
+        cal.add(Calendar.MONTH, 1); cal.add(Calendar.MILLISECOND, -1)
+        return Pair(start, Timestamp(cal.time))
     }
 
     // ============================================================================================
-// REGION: DEBT OPERATIONS
-// ============================================================================================
+    // REGION: DEBT OPERATIONS
+    // ============================================================================================
 
-    /**
-     * Persists a new [Debt] record to the specific user's Firestore sub-collection.
-     */
     fun addDebt(debt: Debt, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
-        val userId = getCurrentUserId() ?: return onFailure(Exception("User not authenticated."))
-
-        val debtData = hashMapOf(
-            "amount" to debt.amount,
-            "description" to debt.description,
-            "creditor" to debt.creditor,
-            "dueDate" to debt.dueDate,
-            "isPaid" to debt.isPaid,
-            "amountPaid" to debt.amountPaid,
-            "createdAt" to Timestamp.now()
+        val userId = getCurrentUserId() ?: return onFailure(Exception("AUTH_ERROR: Session expired."))
+        val data = hashMapOf(
+            "amount" to debt.amount, "description" to debt.description, "creditor" to debt.creditor,
+            "dueDate" to debt.dueDate, "isPaid" to debt.isPaid, "amountPaid" to debt.amountPaid, "createdAt" to Timestamp.now()
         )
-
-        db.collection("users").document(userId)
-            .collection("debts")
-            .add(debtData)
-            .addOnSuccessListener { documentReference ->
-                debt.id = documentReference.id
-                println("Debt added successfully with ID: ${documentReference.id}")
-                onSuccess()
-            }
-            .addOnFailureListener { e ->
-                println("Error adding debt: $e")
-                onFailure(e)
-            }
+        db.collection("users").document(userId).collection("debts").add(data)
+            .addOnSuccessListener { doc -> debt.id = doc.id; onSuccess() }
+            .addOnFailureListener { e -> onFailure(e) }
     }
 
-    /**
-     * Real-time listener for the user's debt records.
-     */
-    fun getDebtsRealtime(
-        onDebtsLoaded: (List<Debt>) -> Unit,
-        onFailure: (Exception) -> Unit
-    ) = getCurrentUserId()?.let { userId ->
-        db.collection("users").document(userId)
-            .collection("debts")
-            .orderBy("dueDate", Query.Direction.ASCENDING)
-            .addSnapshotListener { snapshots, e ->
-                if (e != null) {
-                    println("Error listening for debts: $e")
-                    onFailure(e)
-                    return@addSnapshotListener
+    fun getDebtsRealtime(onDebtsLoaded: (List<Debt>) -> Unit, onFailure: (Exception) -> Unit) =
+        getCurrentUserId()?.let { userId ->
+            db.collection("users").document(userId).collection("debts")
+                .orderBy("dueDate", Query.Direction.ASCENDING)
+                .addSnapshotListener { snapshots, e ->
+                    if (e != null) { onFailure(e); return@addSnapshotListener }
+                    val list = snapshots?.map { it.toObject(Debt::class.java).apply { id = it.id } } ?: emptyList()
+                    onDebtsLoaded(list)
                 }
-                val debtsList = snapshots?.map { doc ->
-                    doc.toObject(Debt::class.java).apply { id = doc.id }
-                } ?: emptyList()
-                onDebtsLoaded(debtsList)
-            }
-    } ?: run { onFailure(Exception("User not authenticated.")) ; null }
+        } ?: run { onFailure(Exception("AUTH_ERROR: Session expired.")); null }
 
-    /**
-     * Calculates the sum of all unpaid debts in real-time.
-     */
-    fun getTotalUnpaidDebtsRealtime(
-        onTotalDebtLoaded: (Double) -> Unit,
-        onFailure: (Exception) -> Unit
-    ) = getCurrentUserId()?.let { userId ->
-        db.collection("users").document(userId)
-            .collection("debts")
-            .whereEqualTo("isPaid", false)
-            .addSnapshotListener { snapshots, e ->
-                if (e != null) {
-                    println("Error listening for total unpaid debts: $e")
-                    onFailure(e)
-                    return@addSnapshotListener
+    fun getTotalUnpaidDebtsRealtime(onTotalDebtLoaded: (Double) -> Unit, onFailure: (Exception) -> Unit) =
+        getCurrentUserId()?.let { userId ->
+            db.collection("users").document(userId).collection("debts")
+                .whereEqualTo("isPaid", false)
+                .addSnapshotListener { snapshots, e ->
+                    if (e != null) { onFailure(e); return@addSnapshotListener }
+                    val total = snapshots?.sumOf { (it.getDouble("amount") ?: 0.0) - (it.getDouble("amountPaid") ?: 0.0) } ?: 0.0
+                    onTotalDebtLoaded(total)
                 }
-                val total = snapshots?.sumOf {
-                    val amount = it.getDouble("amount") ?: 0.0
-                    val paid = it.getDouble("amountPaid") ?: 0.0
-                    amount - paid
-                } ?: 0.0
-                onTotalDebtLoaded(total)
-            }
-    } ?: run { onFailure(Exception("User not authenticated.")) ; null }
+        } ?: run { onFailure(Exception("AUTH_ERROR: Session expired.")); null }
 
-    /**
-     * Updates an existing debt document.
-     */
     fun updateDebt(debt: Debt, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
-        val userId = getCurrentUserId() ?: return onFailure(Exception("User not authenticated."))
-
-        if (debt.id.isEmpty()) {
-            onFailure(Exception("Debt ID not provided for update."))
-            return
-        }
-
+        val userId = getCurrentUserId() ?: return onFailure(Exception("AUTH_ERROR: Session expired."))
         val updates = hashMapOf<String, Any>(
-            "amount" to debt.amount,
-            "description" to debt.description,
-            "creditor" to debt.creditor,
-            "dueDate" to debt.dueDate,
-            "isPaid" to debt.isPaid,
-            "amountPaid" to debt.amountPaid
+            "amount" to debt.amount, "description" to debt.description, "creditor" to debt.creditor,
+            "dueDate" to debt.dueDate, "isPaid" to debt.isPaid, "amountPaid" to debt.amountPaid
         )
-
-        db.collection("users").document(userId)
-            .collection("debts").document(debt.id)
-            .update(updates)
-            .addOnSuccessListener {
-                println("Debt updated successfully.")
-                onSuccess()
-            }
-            .addOnFailureListener { e ->
-                println("Error updating debt: $e")
-                onFailure(e)
-            }
+        db.collection("users").document(userId).collection("debts").document(debt.id).update(updates)
+            .addOnSuccessListener { onSuccess() }.addOnFailureListener { e -> onFailure(e) }
     }
 
-    /**
-     * Makes a payment towards a debt, updating the amountPaid field.
-     * Automatically marks the debt as paid if amountPaid reaches or exceeds the total amount.
-     */
-    fun makeDebtPayment(
-        debtId: String,
-        paymentAmount: Double,
-        onSuccess: () -> Unit,
-        onFailure: (Exception) -> Unit
-    ) {
-        val userId = getCurrentUserId() ?: return onFailure(Exception("User not authenticated."))
-
-        val debtRef = db.collection("users").document(userId)
-            .collection("debts").document(debtId)
-
+    fun makeDebtPayment(debtId: String, paymentAmount: Double, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+        val userId = getCurrentUserId() ?: return onFailure(Exception("AUTH_ERROR: Session expired."))
+        val ref = db.collection("users").document(userId).collection("debts").document(debtId)
         db.runTransaction { transaction ->
-            val snapshot = transaction.get(debtRef)
-            val currentPaid = snapshot.getDouble("amountPaid") ?: 0.0
-            val totalAmount = snapshot.getDouble("amount") ?: 0.0
-
-            val newPaid = currentPaid + paymentAmount
-            val isPaid = newPaid >= totalAmount
-
-            transaction.update(debtRef, mapOf(
-                "amountPaid" to newPaid,
-                "isPaid" to isPaid
-            ))
-        }.addOnSuccessListener {
-            println("Payment recorded successfully.")
-            onSuccess()
-        }.addOnFailureListener { e ->
-            println("Error recording payment: $e")
-            onFailure(e)
-        }
+            val snap = transaction.get(ref)
+            val newPaid = (snap.getDouble("amountPaid") ?: 0.0) + paymentAmount
+            val total = snap.getDouble("amount") ?: 0.0
+            transaction.update(ref, mapOf("amountPaid" to newPaid, "isPaid" to (newPaid >= total)))
+        }.addOnSuccessListener { onSuccess() }.addOnFailureListener { e -> onFailure(e) }
     }
 
-    /**
-     * Deletes a specific debt document.
-     */
     fun deleteDebt(debtId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
-        val userId = getCurrentUserId() ?: return onFailure(Exception("User not authenticated."))
-
-        db.collection("users").document(userId)
-            .collection("debts").document(debtId)
-            .delete()
-            .addOnSuccessListener {
-                println("Debt deleted successfully.")
-                onSuccess()
-            }
-            .addOnFailureListener { e ->
-                println("Error deleting debt: $e")
-                onFailure(e)
-            }
+        val userId = getCurrentUserId() ?: return onFailure(Exception("AUTH_ERROR: Session expired."))
+        db.collection("users").document(userId).collection("debts").document(debtId).delete()
+            .addOnSuccessListener { onSuccess() }.addOnFailureListener { e -> onFailure(e) }
     }
 
-// ============================================================================================
-// REGION: SAVINGS GOAL OPERATIONS
-// ============================================================================================
+    // ============================================================================================
+    // REGION: SAVINGS GOAL OPERATIONS
+    // ============================================================================================
 
-    /**
-     * Persists a new [SavingsGoal] record to the specific user's Firestore sub-collection.
-     */
     fun addSavingsGoal(goal: SavingsGoal, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
-        val userId = getCurrentUserId() ?: return onFailure(Exception("User not authenticated."))
-
-        val goalData = hashMapOf(
-            "name" to goal.name,
-            "targetAmount" to goal.targetAmount,
-            "currentAmount" to goal.currentAmount,
-            "deadline" to goal.deadline,
-            "isCompleted" to goal.isCompleted,
-            "createdAt" to Timestamp.now()
+        val userId = getCurrentUserId() ?: return onFailure(Exception("AUTH_ERROR: Session expired."))
+        val data = hashMapOf(
+            "name" to goal.name, "targetAmount" to goal.targetAmount, "currentAmount" to goal.currentAmount,
+            "deadline" to goal.deadline, "isCompleted" to goal.isCompleted, "createdAt" to Timestamp.now()
         )
-
-        db.collection("users").document(userId)
-            .collection("savingsGoals")
-            .add(goalData)
-            .addOnSuccessListener { documentReference ->
-                goal.id = documentReference.id
-                println("Savings goal added successfully with ID: ${documentReference.id}")
-                onSuccess()
-            }
-            .addOnFailureListener { e ->
-                println("Error adding savings goal: $e")
-                onFailure(e)
-            }
+        db.collection("users").document(userId).collection("savingsGoals").add(data)
+            .addOnSuccessListener { doc -> goal.id = doc.id; onSuccess() }
+            .addOnFailureListener { e -> onFailure(e) }
     }
 
-    /**
-     * Real-time listener for the user's savings goals.
-     */
-    fun getSavingsGoalsRealtime(
-        onGoalsLoaded: (List<SavingsGoal>) -> Unit,
-        onFailure: (Exception) -> Unit
-    ) = getCurrentUserId()?.let { userId ->
-        db.collection("users").document(userId)
-            .collection("savingsGoals")
-            .orderBy("deadline", Query.Direction.ASCENDING)
-            .addSnapshotListener { snapshots, e ->
-                if (e != null) {
-                    println("Error listening for savings goals: $e")
-                    onFailure(e)
-                    return@addSnapshotListener
+    fun getSavingsGoalsRealtime(onGoalsLoaded: (List<SavingsGoal>) -> Unit, onFailure: (Exception) -> Unit) =
+        getCurrentUserId()?.let { userId ->
+            db.collection("users").document(userId).collection("savingsGoals")
+                .orderBy("deadline", Query.Direction.ASCENDING)
+                .addSnapshotListener { snapshots, e ->
+                    if (e != null) { onFailure(e); return@addSnapshotListener }
+                    val list = snapshots?.map { it.toObject(SavingsGoal::class.java).apply { id = it.id } } ?: emptyList()
+                    onGoalsLoaded(list)
                 }
-                val goalsList = snapshots?.map { doc ->
-                    doc.toObject(SavingsGoal::class.java).apply { id = doc.id }
-                } ?: emptyList()
-                onGoalsLoaded(goalsList)
-            }
-    } ?: run { onFailure(Exception("User not authenticated.")) ; null }
+        } ?: run { onFailure(Exception("AUTH_ERROR: Session expired.")); null }
 
-    /**
-     * Calculates the total amount saved across all active goals in real-time.
-     */
-    fun getTotalSavedAmountRealtime(
-        onTotalSavedLoaded: (Double) -> Unit,
-        onFailure: (Exception) -> Unit
-    ) = getCurrentUserId()?.let { userId ->
-        db.collection("users").document(userId)
-            .collection("savingsGoals")
-            .addSnapshotListener { snapshots, e ->
-                if (e != null) {
-                    println("Error listening for total saved amount: $e")
-                    onFailure(e)
-                    return@addSnapshotListener
+    fun getTotalSavedAmountRealtime(onTotalSavedLoaded: (Double) -> Unit, onFailure: (Exception) -> Unit) =
+        getCurrentUserId()?.let { userId ->
+            db.collection("users").document(userId).collection("savingsGoals")
+                .addSnapshotListener { snapshots, e ->
+                    if (e != null) { onFailure(e); return@addSnapshotListener }
+                    val total = snapshots?.sumOf { it.getDouble("currentAmount") ?: 0.0 } ?: 0.0
+                    onTotalSavedLoaded(total)
                 }
-                val total = snapshots?.sumOf { it.getDouble("currentAmount") ?: 0.0 } ?: 0.0
-                onTotalSavedLoaded(total)
-            }
-    } ?: run { onFailure(Exception("User not authenticated.")) ; null }
+        } ?: run { onFailure(Exception("AUTH_ERROR: Session expired.")); null }
 
-    /**
-     * Updates an existing savings goal document.
-     */
     fun updateSavingsGoal(goal: SavingsGoal, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
-        val userId = getCurrentUserId() ?: return onFailure(Exception("User not authenticated."))
-
-        if (goal.id.isEmpty()) {
-            onFailure(Exception("Savings goal ID not provided for update."))
-            return
-        }
-
+        val userId = getCurrentUserId() ?: return onFailure(Exception("AUTH_ERROR: Session expired."))
         val updates = hashMapOf<String, Any>(
-            "name" to goal.name,
-            "targetAmount" to goal.targetAmount,
-            "currentAmount" to goal.currentAmount,
-            "deadline" to goal.deadline,
-            "isCompleted" to goal.isCompleted
+            "name" to goal.name, "targetAmount" to goal.targetAmount, "currentAmount" to goal.currentAmount,
+            "deadline" to goal.deadline, "isCompleted" to goal.isCompleted
         )
-
-        db.collection("users").document(userId)
-            .collection("savingsGoals").document(goal.id)
-            .update(updates)
-            .addOnSuccessListener {
-                println("Savings goal updated successfully.")
-                onSuccess()
-            }
-            .addOnFailureListener { e ->
-                println("Error updating savings goal: $e")
-                onFailure(e)
-            }
+        db.collection("users").document(userId).collection("savingsGoals").document(goal.id).update(updates)
+            .addOnSuccessListener { onSuccess() }.addOnFailureListener { e -> onFailure(e) }
     }
 
-    /**
-     * Adds money to a savings goal, updating the currentAmount field.
-     * Automatically marks the goal as completed if currentAmount reaches or exceeds the targetAmount.
-     */
-    fun addToSavingsGoal(
-        goalId: String,
-        amountToAdd: Double,
-        onSuccess: () -> Unit,
-        onFailure: (Exception) -> Unit
-    ) {
-        val userId = getCurrentUserId() ?: return onFailure(Exception("User not authenticated."))
-
-        val goalRef = db.collection("users").document(userId)
-            .collection("savingsGoals").document(goalId)
-
+    fun addToSavingsGoal(goalId: String, amountToAdd: Double, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+        val userId = getCurrentUserId() ?: return onFailure(Exception("AUTH_ERROR: Session expired."))
+        val ref = db.collection("users").document(userId).collection("savingsGoals").document(goalId)
         db.runTransaction { transaction ->
-            val snapshot = transaction.get(goalRef)
-            val currentAmount = snapshot.getDouble("currentAmount") ?: 0.0
-            val targetAmount = snapshot.getDouble("targetAmount") ?: 0.0
-
-            val newAmount = currentAmount + amountToAdd
-            val isCompleted = newAmount >= targetAmount
-
-            transaction.update(goalRef, mapOf(
-                "currentAmount" to newAmount,
-                "isCompleted" to isCompleted
-            ))
-        }.addOnSuccessListener {
-            println("Amount added to savings goal successfully.")
-            onSuccess()
-        }.addOnFailureListener { e ->
-            println("Error adding to savings goal: $e")
-            onFailure(e)
-        }
+            val snap = transaction.get(ref)
+            val newAmount = (snap.getDouble("currentAmount") ?: 0.0) + amountToAdd
+            val target = snap.getDouble("targetAmount") ?: 0.0
+            transaction.update(ref, mapOf("currentAmount" to newAmount, "isCompleted" to (newAmount >= target)))
+        }.addOnSuccessListener { onSuccess() }.addOnFailureListener { e -> onFailure(e) }
     }
 
-    /**
-     * Deletes a specific savings goal document.
-     */
     fun deleteSavingsGoal(goalId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
-        val userId = getCurrentUserId() ?: return onFailure(Exception("User not authenticated."))
-
-        db.collection("users").document(userId)
-            .collection("savingsGoals").document(goalId)
-            .delete()
-            .addOnSuccessListener {
-                println("Savings goal deleted successfully.")
-                onSuccess()
-            }
-            .addOnFailureListener { e ->
-                println("Error deleting savings goal: $e")
-                onFailure(e)
-            }
+        val userId = getCurrentUserId() ?: return onFailure(Exception("AUTH_ERROR: Session expired."))
+        db.collection("users").document(userId).collection("savingsGoals").document(goalId).delete()
+            .addOnSuccessListener { onSuccess() }.addOnFailureListener { e -> onFailure(e) }
     }
 
-    /**
-     * Obtiene todas las metas de ahorro del usuario actual (one-time fetch)
-     */
-    fun getAllSavingsGoals(
-        onSuccess: (List<SavingsGoal>) -> Unit,
-        onFailure: (Exception) -> Unit
-    ) {
-        val userId = getCurrentUserId() ?: return onFailure(Exception("User not authenticated."))
+    // ============================================================================================
+    // REGION: REPORT GENERATION HELPERS
+    // ============================================================================================
 
-        db.collection("users").document(userId)
-            .collection("savingsGoals")
-            .get()
-            .addOnSuccessListener { snapshots ->
-                val goalsList = snapshots.map { doc ->
-                    doc.toObject(SavingsGoal::class.java).apply { id = doc.id }
-                }
-                println("Savings goals fetched successfully: ${goalsList.size} goals")
-                onSuccess(goalsList)
-            }
-            .addOnFailureListener { e ->
-                println("Error fetching all savings goals: $e")
-                onFailure(e)
-            }
+    fun getAllSavingsGoals(onSuccess: (List<SavingsGoal>) -> Unit, onFailure: (Exception) -> Unit) {
+        val userId = getCurrentUserId() ?: return onFailure(Exception("AUTH_ERROR: Session expired."))
+        db.collection("users").document(userId).collection("savingsGoals").get()
+            .addOnSuccessListener { snap -> onSuccess(snap.map { it.toObject(SavingsGoal::class.java).apply { id = it.id } }) }
+            .addOnFailureListener { e -> onFailure(e) }
     }
 
-    /**
-     * Obtiene todas las deudas del usuario actual (one-time fetch)
-     */
-    fun getAllDebts(
-        onSuccess: (List<Debt>) -> Unit,
-        onFailure: (Exception) -> Unit
-    ) {
-        val userId = getCurrentUserId() ?: return onFailure(Exception("User not authenticated."))
-
-        db.collection("users").document(userId)
-            .collection("debts")
-            .get()
-            .addOnSuccessListener { snapshots ->
-                val debtsList = snapshots.map { doc ->
-                    doc.toObject(Debt::class.java).apply { id = doc.id }
-                }
-                println("Debts fetched successfully: ${debtsList.size} debts")
-                onSuccess(debtsList)
-            }
-            .addOnFailureListener { e ->
-                println("Error fetching all debts: $e")
-                onFailure(e)
-            }
+    fun getAllDebts(onSuccess: (List<Debt>) -> Unit, onFailure: (Exception) -> Unit) {
+        val userId = getCurrentUserId() ?: return onFailure(Exception("AUTH_ERROR: Session expired."))
+        db.collection("users").document(userId).collection("debts").get()
+            .addOnSuccessListener { snap -> onSuccess(snap.map { it.toObject(Debt::class.java).apply { id = it.id } }) }
+            .addOnFailureListener { e -> onFailure(e) }
     }
 
+    fun getIncomesByMonth(month: Int, year: Int, onSuccess: (List<Income>) -> Unit, onFailure: (Exception) -> Unit) = getMonthlyIncomesOnce(month, year, onSuccess, onFailure)
 
+    fun getExpensesByMonth(month: Int, year: Int, onSuccess: (List<Expense>) -> Unit, onFailure: (Exception) -> Unit) = getMonthlyExpensesOnce(month, year, onSuccess, onFailure)
 }

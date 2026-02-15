@@ -1,5 +1,6 @@
 package com.example.coinary.view
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -17,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -25,6 +27,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.coinary.R
 import com.example.coinary.utils.ThousandSeparatorTransformation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,21 +40,30 @@ import retrofit2.http.GET
 import java.text.NumberFormat
 import java.util.Locale
 
-// --- 1. CONFIGURACIÓN DE RED (API) ---
+// ============================================================================================
+// REGION: NETWORK CONFIGURATION (API)
+// ============================================================================================
 
-// Modelo de datos que viene de internet
+/**
+ * ApiResponse: Data transfer object for the exchange rates API.
+ * Maps the raw JSON response containing a map of currency codes and their values.
+ */
 data class ApiResponse(
     val rates: Map<String, Double>
 )
 
-// Interfaz para pedir los datos
+/**
+ * CurrencyApi: Retrofit service definition for fetching current exchange rates.
+ * Base currency is anchored to COP (Colombian Peso).
+ */
 interface CurrencyApi {
-    // Pedimos las tasas basadas en COP (Peso Colombiano)
     @GET("latest/COP")
     suspend fun getRates(): ApiResponse
 }
 
-// Objeto para crear la conexión
+/**
+ * RetrofitClient: Singleton provider for the CurrencyApi service.
+ */
 object RetrofitClient {
     private const val BASE_URL = "https://open.er-api.com/v6/"
 
@@ -64,28 +76,34 @@ object RetrofitClient {
     }
 }
 
-// --- 2. VIEWMODEL (Lógica Real) ---
+// ============================================================================================
+// REGION: VIEWMODEL (I18n Supported)
+// ============================================================================================
+
+/**
+ * CurrencyViewModel: Handles the state and logic for real-time currency conversion.
+ * Orchestrates API calls and manages localized UI states through resource IDs.
+ */
 class CurrencyViewModel : ViewModel() {
 
     data class Currency(
         val code: String,
-        val name: String,
+        @StringRes val nameResId: Int,
         val rateToCop: Double,
         val color: Color
     )
 
     data class CurrencyUiState(
         val baseAmountCop: Double = 0.0,
-        val isLoading: Boolean = false, // Para mostrar cargando
-        val errorMessage: String? = null,
+        val isLoading: Boolean = false,
+        @StringRes val errorResId: Int? = null,
         val currencies: List<Currency> = listOf(
-            // Valores iniciales (por si no hay internet)
-            Currency("USD", "Dólar Estadounidense", 3950.0, Color(0xFF4CAF50)),
-            Currency("EUR", "Euro", 4280.0, Color(0xFF2196F3)),
-            Currency("GBP", "Libra Esterlina", 5010.0, Color(0xFF9C27B0)),
-            Currency("MXN", "Peso Mexicano", 232.0, Color(0xFF009688)),
-            Currency("BRL", "Real Brasileño", 795.0, Color(0xFFFFC107)),
-            Currency("JPY", "Yen Japonés", 26.5, Color(0xFFE91E63))
+            Currency("USD", R.string.currency_usd, 3950.0, Color(0xFF4CAF50)),
+            Currency("EUR", R.string.currency_eur, 4280.0, Color(0xFF2196F3)),
+            Currency("GBP", R.string.currency_gbp, 5010.0, Color(0xFF9C27B0)),
+            Currency("MXN", R.string.currency_mxn, 232.0, Color(0xFF009688)),
+            Currency("BRL", R.string.currency_brl, 795.0, Color(0xFFFFC107)),
+            Currency("JPY", R.string.currency_jpy, 26.5, Color(0xFFE91E63))
         )
     )
 
@@ -93,30 +111,27 @@ class CurrencyViewModel : ViewModel() {
     val uiState: StateFlow<CurrencyUiState> = _uiState.asStateFlow()
 
     init {
-        // Al iniciar, buscamos los datos en internet
         fetchLiveRates()
     }
 
+    /**
+     * Executes the API request on a background thread.
+     * Replaces generic error Toasts with a user-friendly persistent warning in the UI.
+     */
     fun fetchLiveRates() {
         viewModelScope.launch(Dispatchers.IO) {
-            _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+            _uiState.value = _uiState.value.copy(isLoading = true, errorResId = null)
             try {
-                // 1. Llamamos a la API
                 val response = RetrofitClient.api.getRates()
-
-                // 2. Calculamos las tasas
-                // La API nos dice: 1 COP = 0.00025 USD
-                // Nosotros queremos: 1 USD = X COP.  (X = 1 / 0.00025)
-
                 val rates = response.rates
 
                 val updatedList = listOf(
-                    createCurrency("USD", "Dólar Estadounidense", rates["USD"], Color(0xFF4CAF50)),
-                    createCurrency("EUR", "Euro", rates["EUR"], Color(0xFF2196F3)),
-                    createCurrency("GBP", "Libra Esterlina", rates["GBP"], Color(0xFF9C27B0)),
-                    createCurrency("MXN", "Peso Mexicano", rates["MXN"], Color(0xFF009688)),
-                    createCurrency("BRL", "Real Brasileño", rates["BRL"], Color(0xFFFFC107)),
-                    createCurrency("JPY", "Yen Japonés", rates["JPY"], Color(0xFFE91E63))
+                    createCurrency("USD", R.string.currency_usd, rates["USD"], Color(0xFF4CAF50)),
+                    createCurrency("EUR", R.string.currency_eur, rates["EUR"], Color(0xFF2196F3)),
+                    createCurrency("GBP", R.string.currency_gbp, rates["GBP"], Color(0xFF9C27B0)),
+                    createCurrency("MXN", R.string.currency_mxn, rates["MXN"], Color(0xFF009688)),
+                    createCurrency("BRL", R.string.currency_brl, rates["BRL"], Color(0xFFFFC107)),
+                    createCurrency("JPY", R.string.currency_jpy, rates["JPY"], Color(0xFFE91E63))
                 )
 
                 _uiState.value = _uiState.value.copy(
@@ -125,23 +140,19 @@ class CurrencyViewModel : ViewModel() {
                 )
 
             } catch (e: Exception) {
-                // Si falla (sin internet), dejamos los valores por defecto y mostramos error
-                e.printStackTrace()
+                // UI Friendly Error: Set error resource ID for the view to display a warning
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    errorMessage = "Sin conexión. Usando valores aproximados."
+                    errorResId = R.string.currency_error_offline
                 )
             }
         }
     }
 
-    private fun createCurrency(code: String, name: String, rateFromApi: Double?, color: Color): Currency {
-        // Si la API devolvió null, usamos 1.0 para evitar división por cero
+    private fun createCurrency(code: String, @StringRes nameResId: Int, rateFromApi: Double?, color: Color): Currency {
         val safeRate = rateFromApi ?: 1.0
-        // Invertimos la tasa: Si 1 COP = 0.00025 USD -> 1 USD = 1/0.00025 COP
         val realRateToCop = 1 / safeRate
-
-        return Currency(code, name, realRateToCop, color)
+        return Currency(code, nameResId, realRateToCop, color)
     }
 
     fun updateAmount(amountString: String) {
@@ -151,7 +162,14 @@ class CurrencyViewModel : ViewModel() {
     }
 }
 
-// --- 3. PANTALLA UI ---
+// ============================================================================================
+// REGION: UI SCREEN
+// ============================================================================================
+
+/**
+ * CurrencyScreen: Interface for real-time currency conversion.
+ * Features thousand-separator formatting and responsive result list.
+ */
 @Composable
 fun CurrencyScreen(
     navController: NavController,
@@ -171,7 +189,7 @@ fun CurrencyScreen(
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
         ) {
-            // --- HEADER ---
+            // --- HEADER & NAVIGATION ---
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -181,10 +199,14 @@ fun CurrencyScreen(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = Color.White)
+                        Icon(
+                            Icons.Default.ArrowBack,
+                            contentDescription = stringResource(R.string.back_desc),
+                            tint = Color.White
+                        )
                     }
                     Text(
-                        text = "Divisas Hoy",
+                        text = stringResource(R.string.currency_title),
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
@@ -192,20 +214,23 @@ fun CurrencyScreen(
                     )
                 }
 
-                // Botón de refrescar
                 IconButton(onClick = { viewModel.fetchLiveRates() }) {
                     if (uiState.isLoading) {
                         CircularProgressIndicator(modifier = Modifier.size(20.dp), color = Color.White, strokeWidth = 2.dp)
                     } else {
-                        Icon(Icons.Default.Refresh, contentDescription = "Actualizar", tint = Color.White)
+                        Icon(
+                            Icons.Default.Refresh,
+                            contentDescription = stringResource(R.string.currency_refresh_desc),
+                            tint = Color.White
+                        )
                     }
                 }
             }
 
-            // Mensaje de error si no hay internet
-            uiState.errorMessage?.let { msg ->
+            // USER-FRIENDLY ALERT: Replaces intrusive Toasts with a red warning label
+            uiState.errorResId?.let { errorId ->
                 Text(
-                    text = msg,
+                    text = stringResource(errorId),
                     color = Color(0xFFFF5252),
                     fontSize = 12.sp,
                     modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
@@ -214,8 +239,13 @@ fun CurrencyScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // --- INPUT CARD ---
-            Text("Tu moneda base (COP)", color = Color.Gray, fontSize = 14.sp, modifier = Modifier.padding(bottom = 8.dp))
+            // --- CONVERSION INPUT CARD ---
+            Text(
+                text = stringResource(R.string.currency_base_label),
+                color = Color.Gray,
+                fontSize = 14.sp,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
 
             Card(
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E2E)),
@@ -231,7 +261,12 @@ fun CurrencyScreen(
                             Text("COP", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                         }
                         Spacer(modifier = Modifier.width(12.dp))
-                        Text("Peso Colombiano", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+                        Text(
+                            text = stringResource(R.string.currency_cop_name),
+                            color = Color.White,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 16.sp
+                        )
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -245,7 +280,7 @@ fun CurrencyScreen(
                                 viewModel.updateAmount(cleaned)
                             }
                         },
-                        label = { Text("Monto a convertir", color = Color.Gray) },
+                        label = { Text(stringResource(R.string.currency_input_label), color = Color.Gray) },
                         prefix = { Text("$ ", color = Color.White) },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -266,7 +301,13 @@ fun CurrencyScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Text("Conversión en tiempo real", color = Color.Gray, fontSize = 14.sp, modifier = Modifier.padding(bottom = 8.dp))
+            // --- REAL-TIME RESULTS LIST ---
+            Text(
+                text = stringResource(R.string.currency_realtime_label),
+                color = Color.Gray,
+                fontSize = 14.sp,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
 
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -280,6 +321,9 @@ fun CurrencyScreen(
     }
 }
 
+/**
+ * CurrencyResultItem: Individual list item representing a converted currency amount.
+ */
 @Composable
 fun CurrencyResultItem(
     currencyItem: CurrencyViewModel.Currency,
@@ -315,8 +359,12 @@ fun CurrencyResultItem(
                 }
                 Spacer(modifier = Modifier.width(12.dp))
                 Column {
-                    Text(currencyItem.name, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                    // Muestra el precio del día
+                    Text(
+                        text = stringResource(currencyItem.nameResId),
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp
+                    )
                     Text("1 ${currencyItem.code} = ${copFormat.format(currencyItem.rateToCop)}", color = Color.Gray, fontSize = 12.sp)
                 }
             }

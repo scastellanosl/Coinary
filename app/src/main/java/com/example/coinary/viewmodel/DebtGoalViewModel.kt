@@ -14,8 +14,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.text.NumberFormat
 import java.util.Date
+import java.util.Locale
 
+/**
+ * UI State holding the list of debts, goals, and current financial status.
+ */
 data class DebtGoalUiState(
     val debts: List<Debt> = emptyList(),
     val goals: List<SavingsGoal> = emptyList(),
@@ -25,6 +30,13 @@ data class DebtGoalUiState(
     val currentBalance: Double = 0.0
 )
 
+/**
+ * DebtGoalViewModel: Manages the business logic for Debts and Savings Goals.
+ * Handles Firestore interactions, balance calculation, and notification scheduling.
+ * Includes logic to delete records and update due dates.
+ *
+ * @param application The application context, used for accessing system services.
+ */
 class DebtGoalViewModel(application: Application) : AndroidViewModel(application) {
 
     private val firestoreManager = FirestoreManager()
@@ -41,14 +53,18 @@ class DebtGoalViewModel(application: Application) : AndroidViewModel(application
         monitorBalance()
     }
 
-    // --- MONITOREO DE SALDO ---
+    // --- BALANCE MONITORING ---
+
+    /**
+     * Subscribes to real-time updates for Income and Expenses to calculate the net balance.
+     */
     private fun monitorBalance() {
         firestoreManager.getTotalIncomesRealtime(
             onTotalIncomeLoaded = { income ->
                 totalIncome = income
                 updateLocalBalance()
             },
-            onFailure = { /* Manejo silencioso */ }
+            onFailure = { /* Silent failure */ }
         )
 
         firestoreManager.getTotalExpensesRealtime(
@@ -56,7 +72,7 @@ class DebtGoalViewModel(application: Application) : AndroidViewModel(application
                 totalExpense = expense
                 updateLocalBalance()
             },
-            onFailure = { /* Manejo silencioso */ }
+            onFailure = { /* Silent failure */ }
         )
     }
 
@@ -65,7 +81,9 @@ class DebtGoalViewModel(application: Application) : AndroidViewModel(application
         _uiState.value = _uiState.value.copy(currentBalance = balance)
     }
 
-    // ========== DEUDAS ==========
+    // ============================================================================================
+    // REGION: DEBTS
+    // ============================================================================================
 
     fun loadDebts() {
         firestoreManager.getDebtsRealtime(
@@ -73,14 +91,14 @@ class DebtGoalViewModel(application: Application) : AndroidViewModel(application
                 _uiState.value = _uiState.value.copy(debts = debtsList, isLoading = false)
             },
             onFailure = { e ->
-                _uiState.value = _uiState.value.copy(errorMessage = "Error: ${e.message}", isLoading = false)
+                _uiState.value = _uiState.value.copy(errorMessage = "Error loading debts: ${e.message}", isLoading = false)
             }
         )
     }
 
     fun addDebt(amount: Double, description: String, creditor: String, dueDate: Date) {
         if (amount <= 0 || description.isBlank() || creditor.isBlank()) {
-            _uiState.value = _uiState.value.copy(errorMessage = "Completa todos los campos correctamente")
+            _uiState.value = _uiState.value.copy(errorMessage = "Please complete all fields correctly.")
             return
         }
 
@@ -102,10 +120,9 @@ class DebtGoalViewModel(application: Application) : AndroidViewModel(application
                 onSuccess = {
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        successMessage = "Deuda creada exitosamente"
+                        successMessage = "Debt created successfully"
                     )
 
-                    // PROGRAMAR NOTIFICACIONES AUTOMÁTICAS
                     NotificationScheduler.scheduleDebtReminders(
                         context = getApplication<Application>().applicationContext,
                         debtId = debt.id,
@@ -118,7 +135,7 @@ class DebtGoalViewModel(application: Application) : AndroidViewModel(application
                 onFailure = { exception ->
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        errorMessage = "Error al crear deuda: ${exception.message}"
+                        errorMessage = "Error creating debt: ${exception.message}"
                     )
                 }
             )
@@ -126,35 +143,31 @@ class DebtGoalViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun makePayment(debtId: String, paymentAmount: Double, isNewIncome: Boolean) {
-        // Obtener la deuda actual
         val debt = _uiState.value.debts.find { it.id == debtId }
 
         if (debt == null) {
-            _uiState.value = _uiState.value.copy(errorMessage = "Deuda no encontrada")
+            _uiState.value = _uiState.value.copy(errorMessage = "Debt not found")
             return
         }
 
-        //  VALIDACIÓN: No permitir pagos si ya está completada
         if (debt.isPaid) {
-            _uiState.value = _uiState.value.copy(
-                errorMessage = "Esta deuda ya está pagada completamente."
-            )
+            _uiState.value = _uiState.value.copy(errorMessage = "This debt is already fully paid.")
             return
         }
 
-        //  VALIDACIÓN: No permitir pagar más de lo que falta
         val remainingAmount = debt.amount - debt.amountPaid
         if (paymentAmount > remainingAmount) {
+            val formattedRemaining = NumberFormat.getCurrencyInstance(Locale.getDefault()).format(remainingAmount)
             _uiState.value = _uiState.value.copy(
-                errorMessage = "Solo debes pagar ${java.text.NumberFormat.getCurrencyInstance(java.util.Locale("es", "CO")).format(remainingAmount).replace("COP", "").trim()} para liquidar esta deuda."
+                errorMessage = "You only need to pay $formattedRemaining to settle this debt."
             )
             return
         }
 
-        // VALIDACIÓN DE SALDO
         if (!isNewIncome && paymentAmount > _uiState.value.currentBalance) {
+            val formattedBalance = NumberFormat.getCurrencyInstance(Locale.getDefault()).format(_uiState.value.currentBalance)
             _uiState.value = _uiState.value.copy(
-                errorMessage = "Saldo insuficiente. Tienes: $${_uiState.value.currentBalance.toInt()}"
+                errorMessage = "Insufficient balance. You have: $formattedBalance"
             )
             return
         }
@@ -166,8 +179,8 @@ class DebtGoalViewModel(application: Application) : AndroidViewModel(application
             val newIncome = Income(
                 id = "",
                 amount = paymentAmount,
-                description = "Ingreso para pago: $debtDesc",
-                category = "Otros",
+                description = "Income for debt: $debtDesc",
+                category = "Other",
                 date = Timestamp.now()
             )
             firestoreManager.addIncome(newIncome, {}, {})
@@ -176,8 +189,8 @@ class DebtGoalViewModel(application: Application) : AndroidViewModel(application
         val newExpense = Expense(
             id = "",
             amount = paymentAmount,
-            description = "Pago deuda $debtDesc",
-            category = "Pago Deuda",
+            description = "Payment for debt: $debtDesc",
+            category = "Debt Payment",
             date = Timestamp.now()
         )
         firestoreManager.addExpense(newExpense, {}, {})
@@ -187,11 +200,10 @@ class DebtGoalViewModel(application: Application) : AndroidViewModel(application
             paymentAmount = paymentAmount,
             onSuccess = {
                 _uiState.value = _uiState.value.copy(
-                    successMessage = "Pago registrado exitosamente",
+                    successMessage = "Payment registered successfully",
                     isLoading = false
                 )
 
-                //  Si se pagó completamente, cancelar notificaciones pendientes
                 val newAmountPaid = debt.amountPaid + paymentAmount
                 if (newAmountPaid >= debt.amount) {
                     NotificationScheduler.cancelDebtReminders(
@@ -209,15 +221,28 @@ class DebtGoalViewModel(application: Application) : AndroidViewModel(application
         )
     }
 
+    /**
+     * Updates the due date of a debt and reschedules reminders accordingly.
+     */
     fun updateDebtDate(debtId: String, newDate: Date) {
         val debt = _uiState.value.debts.find { it.id == debtId } ?: return
         firestoreManager.updateDebt(
             debt.copy(dueDate = Timestamp(newDate)),
-            onSuccess = { _uiState.value = _uiState.value.copy(successMessage = "Fecha actualizada") },
-            onFailure = { _uiState.value = _uiState.value.copy(errorMessage = "Error al actualizar") }
+            onSuccess = {
+                val context = getApplication<Application>().applicationContext
+                // Cancel old reminders and set new ones for the updated date
+                NotificationScheduler.cancelDebtReminders(context, debtId)
+                NotificationScheduler.scheduleDebtReminders(context, debtId, debt.description, newDate)
+
+                _uiState.value = _uiState.value.copy(successMessage = "Date updated successfully")
+            },
+            onFailure = { _uiState.value = _uiState.value.copy(errorMessage = "Error updating date") }
         )
     }
 
+    /**
+     * Deletes a debt record and cancels all associated notifications.
+     */
     fun deleteDebt(debtId: String) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
@@ -225,7 +250,6 @@ class DebtGoalViewModel(application: Application) : AndroidViewModel(application
             firestoreManager.deleteDebt(
                 debtId = debtId,
                 onSuccess = {
-                    //  CANCELAR NOTIFICACIONES PROGRAMADAS
                     NotificationScheduler.cancelDebtReminders(
                         context = getApplication<Application>().applicationContext,
                         debtId = debtId
@@ -233,21 +257,23 @@ class DebtGoalViewModel(application: Application) : AndroidViewModel(application
 
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        successMessage = "Deuda eliminada"
+                        successMessage = "Debt deleted successfully"
                     )
                     loadDebts()
                 },
                 onFailure = { exception ->
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        errorMessage = "Error al eliminar deuda: ${exception.message}"
+                        errorMessage = "Error deleting debt: ${exception.message}"
                     )
                 }
             )
         }
     }
 
-    // ========== METAS ==========
+    // ============================================================================================
+    // REGION: SAVINGS GOALS
+    // ============================================================================================
 
     fun loadGoals() {
         firestoreManager.getSavingsGoalsRealtime(
@@ -255,7 +281,7 @@ class DebtGoalViewModel(application: Application) : AndroidViewModel(application
                 _uiState.value = _uiState.value.copy(goals = goals, isLoading = false)
             },
             onFailure = { e ->
-                _uiState.value = _uiState.value.copy(errorMessage = "Error: ${e.message}")
+                _uiState.value = _uiState.value.copy(errorMessage = "Error loading goals: ${e.message}")
             }
         )
     }
@@ -276,7 +302,7 @@ class DebtGoalViewModel(application: Application) : AndroidViewModel(application
             newGoal,
             onSuccess = {
                 _uiState.value = _uiState.value.copy(
-                    successMessage = "Meta creada",
+                    successMessage = "Goal created successfully",
                     isLoading = false
                 )
             },
@@ -291,39 +317,35 @@ class DebtGoalViewModel(application: Application) : AndroidViewModel(application
 
     fun contributeToGoal(goalId: String, contributionAmount: Double, isNewIncome: Boolean) {
         if (contributionAmount <= 0) {
-            _uiState.value = _uiState.value.copy(errorMessage = "Monto inválido")
+            _uiState.value = _uiState.value.copy(errorMessage = "Invalid amount")
             return
         }
 
-        // Obtener la meta actual ANTES de validar
         val currentGoal = _uiState.value.goals.find { it.id == goalId }
 
         if (currentGoal == null) {
-            _uiState.value = _uiState.value.copy(errorMessage = "Meta no encontrada")
+            _uiState.value = _uiState.value.copy(errorMessage = "Goal not found")
             return
         }
 
-        //  VALIDACIÓN: No permitir aportes si ya está completada
         if (currentGoal.isCompleted) {
-            _uiState.value = _uiState.value.copy(
-                errorMessage = "Esta meta ya está completada. No puedes aportar más."
-            )
+            _uiState.value = _uiState.value.copy(errorMessage = "This goal is already completed.")
             return
         }
 
-        //  VALIDACIÓN: No permitir aportar más de lo necesario
         val remainingAmount = currentGoal.targetAmount - currentGoal.currentAmount
         if (contributionAmount > remainingAmount) {
+            val formattedRemaining = NumberFormat.getCurrencyInstance(Locale.getDefault()).format(remainingAmount)
             _uiState.value = _uiState.value.copy(
-                errorMessage = "Solo necesitas aportar ${java.text.NumberFormat.getCurrencyInstance(java.util.Locale("es", "CO")).format(remainingAmount).replace("COP", "").trim()} para completar esta meta."
+                errorMessage = "You only need to contribute $formattedRemaining to complete this goal."
             )
             return
         }
 
-        // VALIDACIÓN DE SALDO
         if (!isNewIncome && contributionAmount > _uiState.value.currentBalance) {
+            val formattedBalance = NumberFormat.getCurrencyInstance(Locale.getDefault()).format(_uiState.value.currentBalance)
             _uiState.value = _uiState.value.copy(
-                errorMessage = "Saldo insuficiente. Tienes: $${_uiState.value.currentBalance.toInt()}"
+                errorMessage = "Insufficient balance. You have: $formattedBalance"
             )
             return
         }
@@ -331,12 +353,11 @@ class DebtGoalViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
 
-            // Registrar el gasto
             val newExpense = Expense(
                 id = "",
                 amount = contributionAmount,
-                description = "Aporte a meta: ${currentGoal.name}",
-                category = "Ahorro",
+                description = "Contribution to goal: ${currentGoal.name}",
+                category = "Savings",
                 date = Timestamp.now()
             )
             firestoreManager.addExpense(newExpense, {}, {})
@@ -345,8 +366,8 @@ class DebtGoalViewModel(application: Application) : AndroidViewModel(application
                 val newIncome = Income(
                     id = "",
                     amount = contributionAmount,
-                    description = "Ingreso para aporte: ${currentGoal.name}",
-                    category = "Otros",
+                    description = "Income for goal: ${currentGoal.name}",
+                    category = "Other",
                     date = Timestamp.now()
                 )
                 firestoreManager.addIncome(newIncome, {}, {})
@@ -358,38 +379,17 @@ class DebtGoalViewModel(application: Application) : AndroidViewModel(application
                 onSuccess = {
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        successMessage = "Aporte realizado exitosamente"
+                        successMessage = "Contribution successful"
                     )
 
-                    //  VERIFICAR SI SE COMPLETÓ LA META (solo si llega EXACTAMENTE al objetivo)
                     val newCurrentAmount = currentGoal.currentAmount + contributionAmount
                     if (newCurrentAmount >= currentGoal.targetAmount && !currentGoal.isCompleted) {
-                        //  META COMPLETADA
-                        val context = getApplication<Application>().applicationContext
-
-                        // Mostrar notificación inmediata
                         NotificationScheduler.showGoalCompletedNotification(
-                            context = context,
+                            context = getApplication<Application>().applicationContext,
                             goalId = currentGoal.id,
                             goalName = currentGoal.name,
                             targetAmount = currentGoal.targetAmount
                         )
-
-                        //  GUARDAR EN EL HISTORIAL DE NOTIFICACIONES
-                        val dateFormat = java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", java.util.Locale.getDefault())
-                        val currentDateTime = dateFormat.format(java.util.Date())
-                        val currencyFormat = java.text.NumberFormat.getCurrencyInstance(java.util.Locale("es", "CO")).apply {
-                            maximumFractionDigits = 0
-                        }
-                        val formattedAmount = currencyFormat.format(currentGoal.targetAmount).replace("COP", "").trim()
-
-                        val reminder = com.example.coinary.data.ReminderItem(
-                            id = System.currentTimeMillis(),
-                            title = "Meta completada",
-                            message = "Felicitaciones Has completado tu meta de ahorro \"${currentGoal.name}\" alcanzando $formattedAmount. ¡Sigue así! ",
-                            dateTime = currentDateTime
-                        )
-                        com.example.coinary.utils.ReminderStorage.addReminder(context, reminder)
                     }
 
                     loadGoals()
@@ -397,22 +397,53 @@ class DebtGoalViewModel(application: Application) : AndroidViewModel(application
                 onFailure = { exception ->
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        errorMessage = "Error al aportar: ${exception.message}"
+                        errorMessage = "Error contributing: ${exception.message}"
                     )
                 }
             )
         }
     }
 
+    /**
+     * Updates the deadline for a specific savings goal.
+     */
     fun updateGoalDate(goalId: String, newDate: Date) {
         val goal = _uiState.value.goals.find { it.id == goalId } ?: return
         firestoreManager.updateSavingsGoal(
             goal.copy(deadline = Timestamp(newDate)),
-            onSuccess = { _uiState.value = _uiState.value.copy(successMessage = "Fecha actualizada") },
-            onFailure = { _uiState.value = _uiState.value.copy(errorMessage = "Error al actualizar") }
+            onSuccess = { _uiState.value = _uiState.value.copy(successMessage = "Goal date updated successfully") },
+            onFailure = { _uiState.value = _uiState.value.copy(errorMessage = "Error updating goal date") }
         )
     }
 
+    /**
+     * Deletes a savings goal record from the user's collection.
+     */
+    fun deleteGoal(goalId: String) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true)
+            firestoreManager.deleteSavingsGoal(
+                goalId = goalId,
+                onSuccess = {
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        successMessage = "Goal deleted successfully"
+                    )
+                    loadGoals()
+                },
+                onFailure = { e ->
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        errorMessage = "Error deleting goal: ${e.message}"
+                    )
+                }
+            )
+        }
+    }
+
+    /**
+     * Resets the error and success messages to prevent them from showing repeatedly.
+     */
     fun resetMessages() {
         _uiState.value = _uiState.value.copy(errorMessage = null, successMessage = null)
     }

@@ -1,61 +1,66 @@
 package com.example.coinary.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.coinary.data.FirestoreManager
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.util.Calendar
 import java.util.Date
 
 /**
- * Enum representing the available time ranges for filtering data.
+ * Enum representing the available time ranges for filtering dashboard data.
  */
-enum class TimeRange { DAY, WEEK, MONTH, YEAR }
+enum class TimeRange {
+    DAY,
+    WEEK,
+    MONTH,
+    YEAR
+}
 
 /**
- * ViewModel for the Home Screen.
- * Handles the retrieval of total balances and manages the logic for filtering
- * categorized expenses based on selected time ranges.
+ * HomeViewModel: Manages the state for the Home Dashboard.
+ * Handles the retrieval of total balances (Income vs Expense) and categorized data
+ * for the Pie Chart, filtering everything based on the selected [TimeRange].
+ *
+ * @property firestoreManager The repository class for Firestore operations.
  */
 class HomeViewModel(
     private val firestoreManager: FirestoreManager = FirestoreManager()
 ) : ViewModel() {
 
-    // --- Dynamic Totals State (Filtered by TimeRange) ---
+    // --- State: Dynamic Totals (Filtered by TimeRange) ---
     private val _totalIncome = MutableStateFlow(0.0)
-    val totalIncome: StateFlow<Double> = _totalIncome
+    val totalIncome: StateFlow<Double> = _totalIncome.asStateFlow()
 
     private val _totalExpenses = MutableStateFlow(0.0)
-    val totalExpenses: StateFlow<Double> = _totalExpenses
+    val totalExpenses: StateFlow<Double> = _totalExpenses.asStateFlow()
 
-    // --- Filter State ---
-    // Tracks the currently selected time filter (defaults to WEEK)
+    // --- State: Filter Selection ---
     private val _selectedTimeRange = MutableStateFlow(TimeRange.WEEK)
-    val selectedTimeRange: StateFlow<TimeRange> = _selectedTimeRange
+    val selectedTimeRange: StateFlow<TimeRange> = _selectedTimeRange.asStateFlow()
 
-    // --- Filtered Data State ---
-    // Holds the expense data grouped by category, updated dynamically based on the selected TimeRange.
-    private val _weeklyCategorizedExpenses = MutableStateFlow<Map<String, Double>>(emptyMap())
-    val weeklyCategorizedExpenses: StateFlow<Map<String, Double>> = _weeklyCategorizedExpenses
+    // --- State: Filtered Categorized Data ---
+    private val _categorizedExpenses = MutableStateFlow<Map<String, Double>>(emptyMap())
+    val categorizedExpenses: StateFlow<Map<String, Double>> = _categorizedExpenses.asStateFlow()
 
     init {
-        // Initialize with the default time range (Week)
+        // Initialize dashboard with the default time range (Week-to-date)
         setTimeRange(TimeRange.WEEK)
     }
 
     /**
-     * Updates the selected time range and triggers a data fetch for the new period.
-     * Intended to be called from the UI layer.
+     * Updates the selected time range and triggers a multi-source data fetch.
+     * This refresh updates:
+     * 1. Categorized Expenses (for Pie Charts).
+     * 2. Total Income sum.
+     * 3. Total Expense sum.
      *
-     * This now updates 3 things:
-     * 1. The Pie Chart data (Categorized Expenses)
-     * 2. The Total Income Text
-     * 3. The Total Expense Text
-     *
-     * @param range The new TimeRange selected by the user.
+     * @param range The new [TimeRange] selected by the user.
      */
     fun setTimeRange(range: TimeRange) {
         _selectedTimeRange.value = range
@@ -63,28 +68,29 @@ class HomeViewModel(
     }
 
     /**
-     * Calculates the date bounds and requests filtered data from Firestore.
+     * Calculates date boundaries and launches parallel coroutines to fetch filtered data.
+     *
+     * @param range Selected period to calculate the (Start, End) date pair.
      */
     private fun fetchDataForRange(range: TimeRange) {
-        // 1. Calculate the start and end dates based on the selected filter
         val (startDate, endDate) = calculateDateRange(range)
         val startTs = Timestamp(startDate)
         val endTs = Timestamp(endDate)
 
         viewModelScope.launch {
-            // 2. Fetch Categorized Expenses for the Pie Chart
+            // Fetch Grouped Expenses by Category
             firestoreManager.getExpensesByCategoryByDateRangeRealtime(
                 startDate = startTs,
                 endDate = endTs,
                 onCategorizedExpensesLoaded = { categorizedData ->
-                    _weeklyCategorizedExpenses.value = categorizedData
+                    _categorizedExpenses.value = categorizedData
                 },
                 onFailure = { e ->
-                    println("Error fetching filtered expenses chart: ${e.message}")
+                    Log.e("HomeViewModel", "Error fetching categorized data: ${e.message}")
                 }
             )
 
-            // 3. Fetch Total Income for the selected range
+            // Fetch Total Income Sum
             firestoreManager.getIncomeSumByDateRangeRealtime(
                 startDate = startTs,
                 endDate = endTs,
@@ -92,11 +98,11 @@ class HomeViewModel(
                     _totalIncome.value = total
                 },
                 onFailure = { e ->
-                    println("Error fetching filtered total income: ${e.message}")
+                    Log.e("HomeViewModel", "Error fetching total income: ${e.message}")
                 }
             )
 
-            // 4. Fetch Total Expenses for the selected range
+            // Fetch Total Expense Sum
             firestoreManager.getExpenseSumByDateRangeRealtime(
                 startDate = startTs,
                 endDate = endTs,
@@ -104,53 +110,48 @@ class HomeViewModel(
                     _totalExpenses.value = total
                 },
                 onFailure = { e ->
-                    println("Error fetching filtered total expenses: ${e.message}")
+                    Log.e("HomeViewModel", "Error fetching total expenses: ${e.message}")
                 }
             )
         }
     }
 
     /**
-     * Helper function to calculate the Start and End Date objects based on the provided TimeRange.
-     * @return A Pair containing (StartDate, EndDate).
+     * Helper to determine the precise start and end of a time period.
+     * - Start: 00:00:00.000 of the calculated first day.
+     * - End: 23:59:59.999 of the current day.
+     *
+     * @return A [Pair] containing the Start [Date] and End [Date].
      */
     private fun calculateDateRange(range: TimeRange): Pair<Date, Date> {
-        val calendar = Calendar.getInstance()
+        val endCalendar = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 23)
+            set(Calendar.MINUTE, 59)
+            set(Calendar.SECOND, 59)
+            set(Calendar.MILLISECOND, 999)
+        }
 
-        // Configure the end of the range to be the very end of the current day (23:59:59.999)
-        val endCalendar = Calendar.getInstance()
-        endCalendar.set(Calendar.HOUR_OF_DAY, 23)
-        endCalendar.set(Calendar.MINUTE, 59)
-        endCalendar.set(Calendar.SECOND, 59)
-        endCalendar.set(Calendar.MILLISECOND, 999)
-
-        // Configure the start date initialization (00:00:00.000)
-        calendar.set(Calendar.HOUR_OF_DAY, 0)
-        calendar.set(Calendar.MINUTE, 0)
-        calendar.set(Calendar.SECOND, 0)
-        calendar.set(Calendar.MILLISECOND, 0)
+        val startCalendar = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
 
         when (range) {
-            TimeRange.DAY -> {
-                // Start: Today at 00:00
-                // End: Today at 23:59
-                // No additional manipulation needed for 'calendar' as it is already set to today.
-            }
+            TimeRange.DAY -> { /* Uses current day by default */ }
             TimeRange.WEEK -> {
-                // Adjust to the first day of the week (Monday)
-                calendar.firstDayOfWeek = Calendar.MONDAY
-                calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
+                startCalendar.firstDayOfWeek = Calendar.MONDAY
+                startCalendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
             }
             TimeRange.MONTH -> {
-                // Adjust to the first day of the current month
-                calendar.set(Calendar.DAY_OF_MONTH, 1)
+                startCalendar.set(Calendar.DAY_OF_MONTH, 1)
             }
             TimeRange.YEAR -> {
-                // Adjust to the first day of the current year (January 1st)
-                calendar.set(Calendar.DAY_OF_YEAR, 1)
+                startCalendar.set(Calendar.DAY_OF_YEAR, 1)
             }
         }
 
-        return Pair(calendar.time, endCalendar.time)
+        return Pair(startCalendar.time, endCalendar.time)
     }
 }

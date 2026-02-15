@@ -5,25 +5,33 @@ import com.example.coinary.data.ReminderItem
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
+/**
+ * ReminderStorage: A utility object dedicated to the local persistence of ReminderItem objects.
+ * Uses SharedPreferences as the storage engine and GSON for JSON serialization/deserialization.
+ */
 object ReminderStorage {
 
     private const val PREFS_NAME = "CoinaryReminders"
     private const val REMINDERS_KEY = "remindersList"
     private val gson = Gson()
+
     /**
-     * Guarda una lista de ReminderItem en SharedPreferences.
+     * Persists a complete list of [ReminderItem] into SharedPreferences.
+     * @param context Android context required to access SharedPreferences.
+     * @param reminders The list of reminder objects to be serialized and saved.
      */
     fun saveReminders(context: Context, reminders: List<ReminderItem>) {
         val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val editor = sharedPrefs.edit()
-        val json = gson.toJson(reminders) // Convierte la lista de objetos a una cadena JSON
-        editor.putString(REMINDERS_KEY, json) // Guarda la cadena JSON
-        editor.apply() // Aplica los cambios de forma asíncrona
+        val json = gson.toJson(reminders)
+        editor.putString(REMINDERS_KEY, json)
+        editor.apply()
     }
 
     /**
-     * Carga una lista de ReminderItem desde SharedPreferences.
-     * Retorna una lista vacía si no hay recordatorios guardados.
+     * Retrieves the stored list of [ReminderItem] from SharedPreferences.
+     * @param context Android context required to access SharedPreferences.
+     * @return A list of stored reminders, or an empty list if no data is found.
      */
     fun loadReminders(context: Context): List<ReminderItem> {
         val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -38,7 +46,9 @@ object ReminderStorage {
     }
 
     /**
-     * Añade un nuevo recordatorio a la lista existente y la guarda.
+     * Appends a new [ReminderItem] to the existing local collection.
+     * @param context Android context required for storage operations.
+     * @param newReminder The reminder object to be added.
      */
     fun addReminder(context: Context, newReminder: ReminderItem) {
         val currentReminders = loadReminders(context).toMutableList()
@@ -47,7 +57,9 @@ object ReminderStorage {
     }
 
     /**
-     * Elimina un recordatorio por su ID de la lista y la guarda.
+     * Removes a specific reminder from the local collection based on its unique ID.
+     * @param context Android context required for storage operations.
+     * @param reminderId The unique long identifier of the reminder to be deleted.
      */
     fun removeReminder(context: Context, reminderId: Long) {
         val currentReminders = loadReminders(context).toMutableList()

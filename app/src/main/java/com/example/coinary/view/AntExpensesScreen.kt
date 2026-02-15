@@ -2,18 +2,7 @@ package com.example.coinary.view
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -22,12 +11,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.TrendingDown
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
@@ -40,6 +24,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -54,7 +39,11 @@ import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-// --- 1. PANTALLA PRINCIPAL (El esqueleto que faltaba) ---
+/**
+ * AntExpensesScreen: Displays a detailed analysis of "Ant Expenses" (small, recurring leaks).
+ * Includes monthly impact totals, annual projections, and AI-driven insights based
+ * on spending patterns.
+ */
 @Composable
 fun AntExpensesScreen(
     navController: NavController,
@@ -63,12 +52,14 @@ fun AntExpensesScreen(
     val systemUiController = rememberSystemUiController()
     val uiState by viewModel.uiState.collectAsState()
 
-    // Obtenemos los gastos que el sistema marcó como hormiga (automática o manualmente)
+    // Filtered data stream specifically for expenses flagged as "Ant Expenses"
     val antExpenses = uiState.antExpenses
 
+    // Aggregated statistics for visual feedback
     val totalAntMonth = antExpenses.sumOf { it.amount }
     val projectionYear = totalAntMonth * 12
 
+    // Formatter instances prioritized for CO currency and localized dates
     val currencyFormat = remember {
         NumberFormat.getCurrencyInstance(Locale("es", "CO")).apply { maximumFractionDigits = 0 }
     }
@@ -79,7 +70,7 @@ fun AntExpensesScreen(
     }
 
     Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
-        // Fondo de la app
+        // --- BRANDING BACKGROUND ---
         Image(
             painter = painterResource(id = R.drawable.fondo_movimentos),
             contentDescription = null,
@@ -88,34 +79,38 @@ fun AntExpensesScreen(
         )
 
         Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
-            // Header / Barra superior
+            // --- HEADER SECTION ---
             Row(
                 modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = { navController.popBackStack() }) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Atrás", tint = Color.White)
+                    Icon(
+                        Icons.Default.ArrowBack,
+                        contentDescription = stringResource(R.string.back_desc),
+                        tint = Color.White
+                    )
                 }
                 Text(
-                    text = "Gastos Hormiga",
+                    text = stringResource(R.string.ant_expenses_title),
                     color = Color.White,
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
-                    fontFamily = InterFont, // Asegúrate de tener InterFont disponible o bórralo si da error
+                    fontFamily = InterFont,
                     modifier = Modifier.padding(start = 8.dp)
                 )
             }
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Tu Tarjeta de Impacto
+            // IMPACT SUMMARY: Highlights the monthly loss and projected yearly impact
             ImpactCard(
                 totalMonth = totalAntMonth,
                 projectionYear = projectionYear,
                 currencyFormat = currencyFormat
             )
 
-            // Tu Insight Inteligente
+            // DYNAMIC INSIGHT: Shows the top category leak using a localized template
             if (antExpenses.isNotEmpty()) {
                 AntInsight(antExpenses = antExpenses)
             } else {
@@ -123,14 +118,14 @@ fun AntExpensesScreen(
             }
 
             Text(
-                text = "Detecciones automáticas de Coinary",
+                text = stringResource(R.string.ant_auto_detection_label),
                 color = Color.Gray,
                 fontSize = 14.sp,
                 fontFamily = InterFont,
                 modifier = Modifier.padding(vertical = 8.dp)
             )
 
-            // Lista de Gastos
+            // --- LIST OF DETECTED LEAKS ---
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -140,10 +135,11 @@ fun AntExpensesScreen(
                     item {
                         Box(Modifier.fillParentMaxHeight(0.5f).fillMaxWidth(), contentAlignment = Alignment.Center) {
                             Text(
-                                "No se han detectado gastos hormiga aún.\nSigue registrando tus movimientos.",
+                                text = stringResource(R.string.ant_empty_state),
                                 color = Color.Gray,
                                 textAlign = TextAlign.Center,
-                                fontSize = 14.sp
+                                fontSize = 14.sp,
+                                fontFamily = InterFont
                             )
                         }
                     }
@@ -157,8 +153,9 @@ fun AntExpensesScreen(
     }
 }
 
-// --- 2. TUS COMPONENTES (Integrados aquí) ---
-
+/**
+ * ImpactCard: A high-contrast visual component to create awareness about financial leaks.
+ */
 @Composable
 fun ImpactCard(totalMonth: Double, projectionYear: Double, currencyFormat: NumberFormat) {
     val gradientBrush = Brush.verticalGradient(
@@ -183,7 +180,7 @@ fun ImpactCard(totalMonth: Double, projectionYear: Double, currencyFormat: Numbe
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Este mes has perdido",
+                text = stringResource(R.string.ant_impact_month_lost),
                 color = Color.White.copy(alpha = 0.7f),
                 fontSize = 14.sp,
                 fontFamily = InterFont
@@ -198,7 +195,6 @@ fun ImpactCard(totalMonth: Double, projectionYear: Double, currencyFormat: Numbe
             )
 
             Spacer(modifier = Modifier.height(16.dp))
-            // Usamos Divider o HorizontalDivider según tu versión de Material3
             HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -206,7 +202,7 @@ fun ImpactCard(totalMonth: Double, projectionYear: Double, currencyFormat: Numbe
                 Icon(Icons.Default.TrendingDown, contentDescription = null, tint = Color(0xFFFF5252), modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = "Proyección Anual: ",
+                    text = stringResource(R.string.ant_impact_projection) + " ",
                     color = Color.Gray,
                     fontSize = 13.sp,
                     fontFamily = InterFont
@@ -223,21 +219,26 @@ fun ImpactCard(totalMonth: Double, projectionYear: Double, currencyFormat: Numbe
     }
 }
 
+/**
+ * AntInsight: Analyzes spend patterns to present actionable financial advice.
+ */
 @Composable
 fun AntInsight(antExpenses: List<Expense>) {
+    // Determine which category has the highest frequency of small spends
     val topCategory = antExpenses.groupBy { it.category }
-        .maxByOrNull { it.value.size }?.key ?: "ninguna"
+        .maxByOrNull { it.value.size }?.key ?: "..."
 
     Card(
         modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF150F33).copy(alpha = 0.5f)), // Ajustado ligeramente para contraste
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF150F33).copy(alpha = 0.5f)),
         shape = RoundedCornerShape(16.dp)
     ) {
         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.Lightbulb, contentDescription = null, tint = Color(0xFFFFD700)) // Amarillo dorado
+            Icon(Icons.Default.Lightbulb, contentDescription = null, tint = Color(0xFFFFD700))
             Spacer(modifier = Modifier.width(12.dp))
             Text(
-                text = "Tu mayor fuga de dinero está en '$topCategory'. ¡Atento a esos pequeños consumos!",
+                // Usage of templated stringResource to inject the category name dynamically
+                text = stringResource(R.string.ant_insight_template, topCategory),
                 color = Color.White,
                 fontSize = 13.sp,
                 fontFamily = InterFont,
@@ -247,6 +248,9 @@ fun AntInsight(antExpenses: List<Expense>) {
     }
 }
 
+/**
+ * AntExpenseItem: Stateless list item representing an individual detected ant expense.
+ */
 @Composable
 fun AntExpenseItem(expense: Expense, currencyFormat: NumberFormat, dateFormat: SimpleDateFormat) {
     Row(

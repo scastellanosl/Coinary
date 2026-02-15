@@ -17,9 +17,17 @@ import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
+/**
+ * NavigationGraph: Defines the root navigation structure of the application.
+ * Determines the start destination based on the current Firebase Auth state
+ * and maps all top-level screens, authentication flows, and feature modules.
+ *
+ * @param navController The NavHostController used to manage app navigation.
+ */
 @Composable
 fun NavigationGraph(navController: NavHostController) {
 
+    // --- Authentication State Check ---
     val auth = remember { FirebaseAuth.getInstance() }
     val isUserLoggedIn = auth.currentUser != null
     val startDestination = if (isUserLoggedIn) "home" else "login"
@@ -28,13 +36,14 @@ fun NavigationGraph(navController: NavHostController) {
         navController = navController,
         startDestination = startDestination
     ) {
-        // --- Home Screen ---
+        // --- ROUTE: HOME DASHBOARD ---
         composable("home") {
             HomeScreen(
                 navController = navController,
-                // AQUÍ CONECTAMOS EL BOTÓN "+" DE LA HOME CON EL NUEVO MENÚ
+                // Navigates to the centralized "Add" menu (Grid layout)
                 onAddNewClick = { navController.navigate("add_menu") },
                 onLogout = {
+                    // Clear backstack and return to login
                     navController.navigate("login") {
                         popUpTo(0) { inclusive = true }
                         launchSingleTop = true
@@ -43,7 +52,7 @@ fun NavigationGraph(navController: NavHostController) {
             )
         }
 
-        // --- Login Screen ---
+        // --- ROUTE: LOGIN ---
         composable("login") {
             GoogleLoginScreen(
                 onLoginSuccess = {
@@ -57,12 +66,13 @@ fun NavigationGraph(navController: NavHostController) {
             )
         }
 
-        // --- Register Screen ---
+        // --- ROUTE: REGISTER ---
         composable("register") {
             val context = LocalContext.current
             val scope = rememberCoroutineScope()
             val googleAuthClient = remember { GoogleAuthClient(context) }
 
+            // Launcher handling the Google Sign-In intent result for registration
             val launcher = rememberLauncherForActivityResult(
                 contract = ActivityResultContracts.StartActivityForResult()
             ) { result ->
@@ -100,49 +110,49 @@ fun NavigationGraph(navController: NavHostController) {
             )
         }
 
-        // --- Reset Password ---
+        // --- ROUTE: RESET PASSWORD ---
         composable("reset_password") {
             ResetPasswordScreen(onBackToLogin = { navController.popBackStack() })
         }
 
-        // --- NUEVA PANTALLA DE MENÚ (+) ---
+        // --- ROUTE: ADD MENU (Central Action Hub) ---
         composable("add_menu") {
             AddMenuScreen(navController = navController)
         }
 
-        // --- DESTINOS DEL MENÚ ---
+        // --- MENU DESTINATIONS ---
 
-        // 1. Recordatorios (OJO: en AddMenuScreen pusimos 'reminder_screen', aquí lo mapeamos)
+        // 1. Reminders (Mapped from 'reminder_screen' in AddMenu)
         composable("reminder_screen") {
             ReminderScreen(navController = navController)
         }
 
-        // 2. Movimientos (Añadir Gasto/Ingreso)
+        // 2. Movements (Add Income/Expense)
         composable("movements_screen") {
             MovementScreen(navController = navController)
         }
 
-        // 3. Stats (Reportes)
-        composable("reports_screen") { // Antes era "stats"
+        // 3. Stats (Reports)
+        composable("reports_screen") {
             StatsScreen(navController = navController)
         }
 
-        // 4. Recomendaciones
+        // 4. Recommendations
         composable("recomendaciones") {
             RecomendacionesPantalla(navController = navController)
         }
 
-        // 5. Predicciones
+        // 5. Predictions
         composable("predicciones") {
             PrediccionesPantalla(navController = navController)
         }
 
-        // 6. Notificaciones
+        // 6. Notifications
         composable("notifications"){
             NotificationsScreen(navController = navController)
         }
 
-        // 7. Perfil
+        // 7. Profile
         composable("profile") {
             ProfileScreen(
                 navController = navController,

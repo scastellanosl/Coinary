@@ -15,17 +15,28 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+// Ensure this class exists and is imported correctly
+import com.example.coinary.view.PdfReportScreen
 
+/**
+ * MainScreen: The primary container for the authenticated application session.
+ * It sets up the Scaffold structure, manages the Bottom Navigation Bar visibility based on
+ * the current route, and hosts the navigation graph for all main application features.
+ *
+ * @param rootNavController The root navigation controller used for global navigation events
+ * (e.g., logging out and returning to the Login screen).
+ */
 @Composable
 fun MainScreen(rootNavController: NavHostController) {
-    // 1. Controlador interno para la navegación dentro del Scaffold
+    // 1. Internal controller for navigation within the Scaffold
     val mainNavController = rememberNavController()
 
-    // 2. Detectar ruta actual para decidir si mostrar la BottomBar
+    // 2. Detect current route to determine BottomBar visibility
     val navBackStackEntry by mainNavController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // 3. Configuración de visibilidad de la barra inferior
+    // 3. Configuration of bottom bar visibility
+    // Defines which screens should display the navigation bar
     val showBottomBar = currentRoute in listOf(
         "home",
         "stats",
@@ -36,7 +47,7 @@ fun MainScreen(rootNavController: NavHostController) {
         "recomendaciones",
         "predicciones",
         "add_menu",
-        "ant_expenses", // <--- Agregado para que se vea la barra en Gastos Hormiga
+        "ant_expenses",
         "debts_goals/{activeTab}"
     )
 
@@ -67,10 +78,9 @@ fun MainScreen(rootNavController: NavHostController) {
                 composable("home") {
                     HomeScreen(
                         navController = mainNavController,
-                        onAddNewClick = {
-                            mainNavController.navigate("add_menu")
-                        },
+                        onAddNewClick = { mainNavController.navigate("add_menu") },
                         onLogout = {
+                            // Navigate via root controller to clear session
                             rootNavController.navigate("login") {
                                 popUpTo("main") { inclusive = true }
                             }
@@ -78,17 +88,17 @@ fun MainScreen(rootNavController: NavHostController) {
                     )
                 }
 
-                // --- MENÚ PRINCIPAL (GRID) ---
+                // --- MAIN MENU (GRID) ---
                 composable("add_menu") {
                     AddMenuScreen(navController = mainNavController)
                 }
 
-                // --- GASTOS HORMIGA (RUTA QUE FALTABA) ---
+                // --- ANT EXPENSES ---
                 composable("ant_expenses") {
                     AntExpensesScreen(navController = mainNavController)
                 }
 
-                // --- DEUDAS Y METAS ---
+                // --- DEBTS AND GOALS ---
                 composable(
                     route = "debts_goals/{activeTab}",
                     arguments = listOf(navArgument("activeTab") { type = NavType.StringType })
@@ -101,7 +111,7 @@ fun MainScreen(rootNavController: NavHostController) {
                     )
                 }
 
-                // --- MOVIMIENTOS ---
+                // --- MOVEMENTS ---
                 composable("movement") {
                     MovementScreen(
                         navController = mainNavController,
@@ -109,17 +119,17 @@ fun MainScreen(rootNavController: NavHostController) {
                     )
                 }
 
-                // --- RECORDATORIOS ---
+                // --- REMINDERS ---
                 composable("reminder") {
                     ReminderScreen(navController = mainNavController)
                 }
 
-                // --- ESTADÍSTICAS ---
+                // --- STATISTICS ---
                 composable("stats") {
                     StatsScreen(navController = mainNavController)
                 }
 
-                // --- PERFIL ---
+                // --- PROFILE ---
                 composable("profile") {
                     ProfileScreen(
                         navController = mainNavController,
@@ -131,27 +141,37 @@ fun MainScreen(rootNavController: NavHostController) {
                     )
                 }
 
-                // --- NOTIFICACIONES ---
+                // --- NOTIFICATIONS ---
                 composable("notifications") {
                     NotificationsScreen(navController = mainNavController)
                 }
 
-                // --- RECOMENDACIONES ---
+                // --- RECOMMENDATIONS ---
                 composable("recomendaciones") {
                     RecomendacionesPantalla(navController = mainNavController)
                 }
 
-                // --- PREDICCIONES ---
+                // ALTERNATIVE ROUTE (redundancy check for potential character encoding issues)
+                composable("recomendaciones") {
+                    RecomendacionesPantalla(navController = mainNavController)
+                }
+
+                // --- PREDICTIONS ---
                 composable("predicciones") {
                     PrediccionesPantalla(navController = mainNavController)
                 }
 
-                // --- DIVISA ---
+                // --- CURRENCY CONVERSION ---
                 composable("currency_screen") {
                     CurrencyScreen(
                         navController = mainNavController,
                         onBackClick = { mainNavController.popBackStack() }
                     )
+                }
+
+                // --- PDF REPORTS ---
+                composable("pdf_report") {
+                    PdfReportScreen(navController = mainNavController)
                 }
             }
         }

@@ -13,106 +13,117 @@ import com.example.coinary.R
 import com.example.coinary.utils.NotificationScheduler
 import com.example.coinary.utils.ReminderStorage
 
+/**
+ * NotificationReceiver: Handles system broadcasts to trigger financial notifications.
+ * This receiver manages daily reminders, debt deadlines, and savings goal alerts,
+ * applying specific visual styles and behaviors based on the notification type.
+ */
 class NotificationReceiver : BroadcastReceiver() {
+
     override fun onReceive(context: Context?, intent: Intent?) {
         context?.let { ctx ->
-            // 1. Extraer datos del Intent
-            val title = intent?.getStringExtra("title") ?: "Recordatorio Coinary"
-            val message = intent?.getStringExtra("message") ?: "¡Es hora de revisar tus finanzas!"
+            // ====================================================================================
+            // REGION: DATA EXTRACTION
+            // ====================================================================================
+
+            val title = intent?.getStringExtra("title") ?: "Coinary Reminder"
+            val message = intent?.getStringExtra("message") ?: "It's time to check your finances!"
             val isDaily = intent?.getBooleanExtra("isDaily", false) ?: false
 
-            // NUEVO: Extraer datos de deuda/meta
+            // Context-specific IDs for navigation and logic
             val debtId = intent?.getStringExtra("debtId")
             val goalId = intent?.getStringExtra("goalId")
             val daysBefore = intent?.getIntExtra("daysBefore", -1) ?: -1
 
-            // ID fijo para diario (8888), aleatorio para otros
+            /** * ID Generation: Fixed ID for daily reminders to prevent stacking (replaces old),
+             * unique ID for specific debts or goals.
+             */
             val notificationId = if (isDaily) {
-                8888
+                DAILY_NOTIFICATION_ID
             } else {
                 intent?.getIntExtra("notificationId", System.currentTimeMillis().toInt()) ?: 0
             }
 
-            // 2. Asegurar que el canal existe
+            // Ensure the notification channel is registered with the system
             NotificationScheduler.createNotificationChannel(ctx)
 
-            // 3. Preparar acción al tocar (Abrir App)
+            // ====================================================================================
+            // REGION: INTENT & NAVIGATION PREPARATION
+            // ====================================================================================
+
             val resultIntent = Intent(ctx, MainActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
 
-                // NUEVO: Si es de deuda o meta, navegar a esa sección
+                // Route the user to the specific module based on notification type
                 when {
                     debtId != null -> putExtra("navigate_to", "debts")
                     goalId != null -> putExtra("navigate_to", "ahorros")
                 }
             }
 
-            val resultPendingIntent: PendingIntent? = PendingIntent.getActivity(
+            val resultPendingIntent: PendingIntent = PendingIntent.getActivity(
                 ctx,
-                0,
+                notificationId, // Use notificationId to keep PendingIntents unique
                 resultIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
 
-            // --- ESTÉTICA DE LA NOTIFICACIÓN ---
+            // ====================================================================================
+            // REGION: NOTIFICATION AESTHETICS & FEEDBACK
+            // ====================================================================================
 
-            // A. Icono Grande (A la derecha): Usamos tu logo original a color
             val appLogoBitmap = BitmapFactory.decodeResource(ctx.resources, R.mipmap.ic_launcher)
 
-            // NUEVO: Determinar el color según el tipo de notificación
-            val notificationColor = when {
-                debtId != null -> Color.parseColor("#FF5722") // Rojo/Naranja para deudas
-                goalId != null -> Color.parseColor("#4CAF50") // Verde para metas
-                else -> Color.parseColor("#4C6EF5") // Azul por defecto
+            /**
+             * Semantic Coloring:
+             * - Orange/Red: Urgent financial obligations (Debts).
+             * - Green: Positive financial growth (Savings Goals).
+             * - Blue: General application reminders.
+             */
+            val accentColor = when {
+                debtId != null -> Color.parseColor("#FF5722")
+                goalId != null -> Color.parseColor("#4CAF50")
+                else -> Color.parseColor("#4C6EF5")
             }
 
             val builder = NotificationCompat.Builder(ctx, NotificationScheduler.CHANNEL_ID)
-                // B. Icono Pequeño (Barra de estado): TU XML VECTORIAL
-                .setSmallIcon(R.drawable.ic_notification)
-
-                // C. Color de acento: Pinta tu icono ic_notification
-                .setColor(notificationColor)
-
-                // D. Asignar el icono grande a color
-                .setLargeIcon(appLogoBitmap)
-
+                .setSmallIcon(R.drawable.ic_notification) // Vectorial icon for status bar
+                .setColor(accentColor) // Tint for the small icon and notification name
+                .setLargeIcon(appLogoBitmap) // Full-color app logo for the expanded view
                 .setContentTitle(title)
                 .setContentText(message)
-
-                // NUEVO: Para mensajes largos, usar BigTextStyle
-                .setStyle(NotificationCompat.BigTextStyle().bigText(message))
-
+                .setStyle(NotificationCompat.BigTextStyle().bigText(message)) // Support for long messages
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setContentIntent(resultPendingIntent)
                 .setAutoCancel(true)
 
-            // NUEVO: Agregar vibración especial para deudas urgentes (1 día antes)
+            /**
+             * CRITICAL ALERT: Apply a specialized vibration pattern for urgent debts
+             * (triggered 1 day before the deadline).
+             */
             if (debtId != null && daysBefore == 1) {
                 builder.setVibrate(longArrayOf(0, 300, 200, 300))
             }
 
-            // 4. Mostrar
+            // ====================================================================================
+            // REGION: EXECUTION & POST-PROCESSING
+            // ====================================================================================
+
             try {
                 with(NotificationManagerCompat.from(ctx)) {
                     notify(notificationId, builder.build())
                 }
             } catch (e: SecurityException) {
-                e.printStackTrace()
+                // Fails silently if notification permissions are revoked;
+                // system-level errors are handled by Android.
             }
 
-            // 5. Gestión Post-Notificación
-
-            // Si NO es diario y NO es de deuda/meta, eliminar de la lista
-            if (!isDaily && debtId == null && goalId == null) {
+            // Cleanup: Remote one-time notifications from local storage to keep data fresh
+            if (!isDaily) {
                 ReminderStorage.removeReminder(ctx, notificationId.toLong())
             }
 
-            // Si es de deuda, eliminar del storage después de mostrar
-            if (debtId != null) {
-                ReminderStorage.removeReminder(ctx, notificationId.toLong())
-            }
-
-            // Si ES diario, reprogramar para mañana
+            // Persistence: Reschedule the daily reminder for the next day
             if (isDaily) {
                 val prefs = ctx.getSharedPreferences("profile_prefs", Context.MODE_PRIVATE)
                 val hour = prefs.getInt("daily_hour", 18)
@@ -121,5 +132,10 @@ class NotificationReceiver : BroadcastReceiver() {
                 NotificationScheduler.scheduleDailyReminder(ctx, hour, minute)
             }
         }
+    }
+
+    companion object {
+        /** Constant ID for daily reminders to ensure they overwrite each other. */
+        private const val DAILY_NOTIFICATION_ID = 8888
     }
 }

@@ -225,13 +225,132 @@
     <string name="pdf_report_title">Relatório Financeiro</string>
     <string name="pdf_period_label">Período:</string>
     <string name="pdf_type_label">Tipo de Relatório:</string>
-    <string name="pdf_total_income">Renda Total:</string>
+    <string name="pdf_total_income">Receita Total:</string>
     <string name="pdf_total_expense">Despesa Total:</string>
     <string name="pdf_net_balance">Saldo Líquido:</string>
-    <string name="back">Back\n</string>
-    <string name="debt">Deuda</string>
-    <string name="savings_goal">Meta de Ahorro\n</string>
+    <string name="back">Voltar\n</string>
+    <string name="debt">Dívida</string>
+    <string name="savings_goal">Meta de Economia\n</string>
     <string name="category_background">Categoria\n</string>
-    <string name="calendar">"Calendario "</string>
+    <string name="calendar">Calendário</string>
+    <string name="debts_tab">Dívidas\n</string>
+    <string name="goals_tab">Metas</string>
+    <string name="add_new_debt">Nova dívida\n</string>
+    <string name="add_new_goal">Nova meta</string>
+    <string name="progress_percent">Porcentagem de progresso\n</string>
 
+    /////////////// AddMenuScreen.kt //////////////////
+
+    <string name="menu_debts">Dívidas</string>
+    <string name="menu_movements">Movimentações</string>
+    <string name="menu_savings">Economias</string>
+    <string name="menu_reports">Relatórios</string>
+    <string name="menu_reminders">Lembretes</string>
+    <string name="menu_ant_expenses">Gastos Fantasma</string>
+    <string name="menu_export_pdf">Exportar PDF</string>
+    <string name="menu_currency">Câmbio</string>
+
+    <string name="back_desc">Voltar</string>
+    <string name="notifications_desc">Notificações</string>
+
+    /////////////// DebtsAndGoalsScreen.kt //////////////////
+
+    <string name="tab_debts">Dívidas</string>
+    <string name="tab_goals">Metas</string>
+
+    <string name="no_debts_registered">Nenhuma dívida registrada</string>
+    <string name="no_goals_registered">Nenhuma meta registrada</string>
+
+    <string name="btn_add_new_debt">Adicionar nova dívida</string>
+    <string name="btn_add_new_goal">Adicionar nova meta</string>
+
+    <string name="title_new_debt">Nova Dívida</string>
+    <string name="title_new_goal">Nova Meta</string>
+    <string name="label_amount_total">Valor total</string>
+    <string name="label_amount_target">Valor meta</string>
+    <string name="label_description_hint">Descrição (ex: Cartão)</string>
+    <string name="label_creditor_hint">Credor (ex: Banco)</string>
+    <string name="label_name_goal_hint">Nome da meta</string>
+    <string name="btn_date_deadline">Prazo final: %1$s</string>
+    <string name="btn_date_target">Data da meta: %1$s</string>
+    <string name="btn_create">Criar</string>
+    <string name="btn_cancel">Cancelar</string>
+    <string name="msg_fill_all_fields">Preencha todos os campos</string>
+
+    <string name="badge_debt_paid">Dívida Totalmente Paga</string>
+    <string name="badge_goal_completed">Meta Concluída</string>
+
+    <string name="label_debt_total">Dívida total</string>
+    <string name="label_goal_target">Meta</string>
+    <string name="label_deadline">Prazo</string>
+
+    <string name="label_progress_text">progresso de %1$d%%</string>
+    <string name="label_remaining">Restante: %1$s</string>
+
+    <string name="label_pay_amount">Valor do pagamento</string>
+    <string name="label_contribute_amount">Valor da contribuição</string>
+    <string name="checkbox_new_income">Registrar como nova receita</string>
+    <string name="msg_money_source">Marque se este dinheiro NÃO sair do seu saldo atual.</string>
+    <string name="btn_pay">Pagar</string>
+    <string name="btn_contribute">Contribuir</string>
+    <string name="btn_change_date">Alterar Data</string>
+
+    <string name="msg_invalid_amount">Valor inválido</string>
+    <string name="msg_amount_exceeds">O valor excede a dívida restante</string>
+
+    <string name="title_total_debts_summary">Total de Dívidas</string>
+    <string name="label_paid">Pago</string>
+    <string name="label_progress_general">Progresso geral: %1$d%%</string>
+
+    /////////////// AntExpensesScreen.kt //////////////////
+
+    <string name="ant_expenses_title">Gastos Fantasma</string>
+    <string name="ant_impact_month_lost">Você perdeu este mês</string>
+    <string name="ant_impact_projection">Projeção Anual:</string>
+    <string name="ant_auto_detection_label">Detecções automáticas do Coinary</string>
+    <string name="ant_empty_state">Nenhum gasto fantasma detectado ainda.\nContinue registrando seus movimentos.</string>
+
+    <string name="ant_insight_template">Sua maior perda está em \'%1$s\'. Fique atento a esses pequenos gastos!</string>
+
+    /////////////// CurrencyScreen.kt //////////////////
+
+    <string name="currency_title">Câmbio Hoje</string>
+    <string name="currency_refresh_desc">Atualizar</string>
+    <string name="currency_error_offline">Sem conexão. Usando valores aproximados.</string>
+
+    <string name="currency_base_label">Sua moeda base (COP)</string>
+    <string name="currency_cop_name">Peso Colombiano</string>
+    <string name="currency_input_label">Valor para converter</string>
+    <string name="currency_realtime_label">Conversão em tempo real</string>
+
+    <string name="currency_usd">Dólar Americano</string>
+    <string name="currency_eur">Euro</string>
+    <string name="currency_gbp">Libra Esterlina</string>
+    <string name="currency_mxn">Peso Mexicano</string>
+    <string name="currency_brl">Real Brasileiro</string>
+    <string name="currency_jpy">Iene Japonês</string>
+
+    /////////////// NotificationScheduler.kt //////////////////
+    <string name="channel_name">Lembretes Coinary</string>
+    <string name="channel_description">Notificações e alertas financeiros</string>
+
+    <string name="toast_permission_alarm_needed">Permissão para alarmes exatos não concedida.</string>
+    <string name="toast_permission_error">Erro de permissão.</string>
+    <string name="toast_invalid_date">Formato de data inválido</string>
+    <string name="toast_reminder_canceled">Lembrete cancelado</string>
+
+    <string name="notif_daily_title">Olá!</string>
+    <string name="notif_daily_message">É hora de registrar suas despesas do dia.</string>
+
+    <string name="notif_debt_1_day_title">Sua dívida vence amanhã</string>
+    <string name="notif_debt_8_days_title">Sua dívida vence em 8 dias</string>
+    <string name="notif_debt_15_days_title">Lembrete de dívida (faltam 15 dias)</string>
+    <string name="notif_debt_default_title">Lembrete de dívida</string>
+    <string name="notif_debt_body">Dívida: %1$s\nVence em %2$d %3$s</string>
+    <string name="day_singular">dia</string>
+    <string name="day_plural">dias</string>
+
+    <string name="notif_goal_title">Meta concluída!</string>
+    <string name="notif_goal_message">Parabéns! Você alcançou sua meta de economia "%1$s" (%2$s). Continue assim!</string>
+    <string name="notif_goal_short">Você alcançou sua meta: %1$s</string>
 </resources>

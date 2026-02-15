@@ -21,6 +21,11 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.coinary.R
 
+/**
+ * BottomNavigationBar: A custom navigation component for the main application interface.
+ * Instead of using standard Material BottomNavigation, it implements a bespoke design
+ * using stacked images and custom click handlers for a unique brand identity.
+ */
 @Composable
 fun BottomNavigationBar(
     navController: NavController,
@@ -35,10 +40,13 @@ fun BottomNavigationBar(
     ) {
         Row(
             modifier = Modifier.wrapContentWidth(),
-            horizontalArrangement = Arrangement.spacedBy(20.dp), // Aumenté un poco el espacio ya que hay menos botones
+            horizontalArrangement = Arrangement.spacedBy(20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // --- 1. Botón Home (SE QUEDA IGUAL) ---
+            // ====================================================================================
+            // REGION: HOME NAVIGATION
+            // Direct access to the main overview/dashboard.
+            // ====================================================================================
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(
                     contentAlignment = Alignment.Center,
@@ -59,10 +67,10 @@ fun BottomNavigationBar(
                 }
             }
 
-            // --- (ELIMINADO) Botón de Estadísticas ---
-
-            // --- 2. Botón de Añadir / Menú (SE QUEDA IGUAL) ---
-            // Este botón abre el menú Grid
+            // ====================================================================================
+            // REGION: QUICK ACTIONS / ADD MENU
+            // Triggers the modal or grid menu for adding new financial records.
+            // ====================================================================================
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(
                     contentAlignment = Alignment.Center,
@@ -83,14 +91,16 @@ fun BottomNavigationBar(
                 }
             }
 
-            // --- 3. Botón de Lápiz (MODIFICADO) ---
-            // Ahora lleva a "movement" (Agregar Movimiento)
+            // ====================================================================================
+            // REGION: TRANSACTION ENTRY (QUICK RECORD)
+            // Specialized button for rapid entry of movements (Incomes/Expenses).
+            // Uses the pencil icon to represent the 'record' action.
+            // ====================================================================================
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
                         .size(56.dp)
-                        // CAMBIO AQUÍ: Antes iba a "reminder", ahora va a "movement"
                         .clickable { navController.navigate("movement") }
                 ) {
                     Image(
@@ -98,10 +108,9 @@ fun BottomNavigationBar(
                         contentDescription = "Button background",
                         modifier = Modifier.fillMaxSize()
                     )
-                    // Mantenemos el icono del lápiz como pediste
                     Image(
                         painter = painterResource(id = R.drawable.pencil_icon),
-                        contentDescription = "Movement icon",
+                        contentDescription = "Movement entry icon",
                         modifier = Modifier.size(28.dp)
                     )
                 }

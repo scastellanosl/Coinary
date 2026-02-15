@@ -228,9 +228,129 @@
     <string name="pdf_total_income">Revenu Total :</string>
     <string name="pdf_total_expense">Dépense Totale :</string>
     <string name="pdf_net_balance">Solde Net :</string>
-    <string name="back">Back\n</string>
-    <string name="savings_goal">Meta de Ahorro\n</string>
-    <string name="category_background">Categoria\n</string>
-    <string name="calendar">"Calendario "</string>
+    <string name="back">Retour\n</string>
+    <string name="debt">Dette</string>
+    <string name="savings_goal">Objectif d\'Épargne\n</string>
+    <string name="category_background">Catégorie\n</string>
+    <string name="calendar">Calendrier</string>
+    <string name="debts_tab">Dettes\n</string>
+    <string name="goals_tab">Objectifs</string>
+    <string name="add_new_debt">Nouvelle dette\n</string>
+    <string name="add_new_goal">Nouvel objectif</string>
+    <string name="progress_percent">Pourcentage de progression\n</string>
 
+    /////////////// AddMenuScreen.kt //////////////////
+
+    <string name="menu_debts">Dettes</string>
+    <string name="menu_movements">Mouvements</string>
+    <string name="menu_savings">Épargne</string>
+    <string name="menu_reports">Rapports</string>
+    <string name="menu_reminders">Rappels</string>
+    <string name="menu_ant_expenses">Dépenses Fantômes</string>
+    <string name="menu_export_pdf">Exporter PDF</string>
+    <string name="menu_currency">Devises</string>
+
+    <string name="back_desc">Retour</string>
+    <string name="notifications_desc">Notifications</string>
+
+    /////////////// DebtsAndGoalsScreen.kt //////////////////
+
+    <string name="tab_debts">Dettes</string>
+    <string name="tab_goals">Objectifs</string>
+
+    <string name="no_debts_registered">Aucune dette enregistrée</string>
+    <string name="no_goals_registered">Aucun objectif enregistré</string>
+
+    <string name="btn_add_new_debt">Ajouter une dette</string>
+    <string name="btn_add_new_goal">Ajouter un objectif</string>
+
+    <string name="title_new_debt">Nouvelle Dette</string>
+    <string name="title_new_goal">Nouvel Objectif</string>
+    <string name="label_amount_total">Montant total</string>
+    <string name="label_amount_target">Montant cible</string>
+    <string name="label_description_hint">Description (ex: Carte)</string>
+    <string name="label_creditor_hint">Créancier (ex: Banque)</string>
+    <string name="label_name_goal_hint">Nom de l\'objectif</string>
+    <string name="btn_date_deadline">Date limite : %1$s</string>
+    <string name="btn_date_target">Date cible : %1$s</string>
+    <string name="btn_create">Créer</string>
+    <string name="btn_cancel">Annuler</string>
+    <string name="msg_fill_all_fields">Veuillez remplir tous les champs</string>
+
+    <string name="badge_debt_paid">Dette Entièrement Payée</string>
+    <string name="badge_goal_completed">Objectif Atteint</string>
+
+    <string name="label_debt_total">Dette totale</string>
+    <string name="label_goal_target">Objectif</string>
+    <string name="label_deadline">Échéance</string>
+
+    <string name="label_progress_text">progression de %1$d%%</string>
+    <string name="label_remaining">Restant : %1$s</string>
+
+    <string name="label_pay_amount">Montant du paiement</string>
+    <string name="label_contribute_amount">Montant de la contribution</string>
+    <string name="checkbox_new_income">Enregistrer comme nouveau revenu</string>
+    <string name="msg_money_source">Cochez si cet argent ne provient pas de votre solde actuel.</string>
+    <string name="btn_pay">Payer</string>
+    <string name="btn_contribute">Contribuer</string>
+    <string name="btn_change_date">Changer la date</string>
+
+    <string name="msg_invalid_amount">Montant invalide</string>
+    <string name="msg_amount_exceeds">Le montant dépasse la dette restante</string>
+
+    <string name="title_total_debts_summary">Total des Dettes</string>
+    <string name="label_paid">Payé</string>
+    <string name="label_progress_general">Progression globale : %1$d%%</string>
+
+    /////////////// AntExpensesScreen.kt //////////////////
+
+    <string name="ant_expenses_title">Dépenses Fantômes</string>
+    <string name="ant_impact_month_lost">Vous avez perdu ce mois-ci</string>
+    <string name="ant_impact_projection">Projection Annuelle :</string>
+    <string name="ant_auto_detection_label">Détections automatiques par Coinary</string>
+    <string name="ant_empty_state">Aucune dépense fantôme détectée.\nContinuez à suivre vos mouvements.</string>
+
+    <string name="ant_insight_template">Votre plus grande fuite est dans \'%1$s\'. Attention à ces petites dépenses !</string>
+
+    /////////////// CurrencyScreen.kt //////////////////
+
+    <string name="currency_title">Devises Aujourd\'hui</string>
+    <string name="currency_refresh_desc">Actualiser</string>
+    <string name="currency_error_offline">Aucune connexion. Utilisation de valeurs approximatives.</string>
+
+    <string name="currency_base_label">Votre devise de base (COP)</string>
+    <string name="currency_cop_name">Peso Colombien</string>
+    <string name="currency_input_label">Montant à convertir</string>
+    <string name="currency_realtime_label">Conversion en temps réel</string>
+
+    <string name="currency_usd">Dollar US</string>
+    <string name="currency_eur">Euro</string>
+    <string name="currency_gbp">Livre Sterling</string>
+    <string name="currency_mxn">Peso Mexicain</string>
+    <string name="currency_brl">Réal Brésilien</string>
+    <string name="currency_jpy">Yen Japonais</string>
+
+    /////////////// NotificationScheduler.kt //////////////////
+    <string name="channel_name">Rappels Coinary</string>
+    <string name="channel_description">Notifications et alertes financières</string>
+
+    <string name="toast_permission_alarm_needed">Permission pour alarmes exactes non accordée.</string>
+    <string name="toast_permission_error">Erreur de permission.</string>
+    <string name="toast_invalid_date">Format de date invalide</string>
+    <string name="toast_reminder_canceled">Rappel annulé</string>
+
+    <string name="notif_daily_title">Bonjour !</string>
+    <string name="notif_daily_message">Il est temps d\'enregistrer vos dépenses du jour.</string>
+
+    <string name="notif_debt_1_day_title">Votre dette expire demain</string>
+    <string name="notif_debt_8_days_title">Votre dette expire dans 8 jours</string>
+    <string name="notif_debt_15_days_title">Rappel de dette (15 jours restants)</string>
+    <string name="notif_debt_default_title">Rappel de dette</string>
+    <string name="notif_debt_body">Dette : %1$s\nExpire dans %2$d %3$s</string>
+    <string name="day_singular">jour</string>
+    <string name="day_plural">jours</string>
+
+    <string name="notif_goal_title">Objectif atteint !</string>
+    <string name="notif_goal_message">Félicitations ! Vous avez atteint votre objectif d\'épargne "%1$s" (%2$s). Continuez comme ça !</string>
+    <string name="notif_goal_short">Vous avez atteint votre objectif : %1$s</string>
 </resources>

@@ -16,17 +16,24 @@ import kotlinx.coroutines.launch
 import java.util.Calendar
 import java.util.Date
 
-// Enum para los tipos de gráfica (LINE eliminado)
+/**
+ * Enum for Chart Types supported in the Stats Screen.
+ */
 enum class ChartType {
     BAR, PIE
 }
 
-// Enum para los tipos de filtro de transacción
+/**
+ * Enum for filtering the transaction list.
+ */
 enum class TransactionFilter {
     ALL, INCOME, EXPENSE
 }
 
-// Data class para el resumen mensual (para la gráfica de barras)
+/**
+ * Data class representing a monthly financial summary.
+ * Used for populating the Bar Chart.
+ */
 data class MonthlySummary(
     val month: Int, // 1-12
     val year: Int,
@@ -34,37 +41,44 @@ data class MonthlySummary(
     val totalExpense: Double
 )
 
+/**
+ * StatsViewModel: Manages the state and data fetching for the Statistics Screen.
+ * Handles the aggregation of monthly data for charts and the filtered list of transactions.
+ *
+ * @param firestoreManager Repository class for Firestore operations.
+ */
 class StatsViewModel(
     private val firestoreManager: FirestoreManager = FirestoreManager()
 ) : ViewModel() {
 
-    // Estado para el mes y año seleccionados
+    // --- State: Date Selection ---
     private val _selectedMonth = MutableStateFlow(Calendar.getInstance().get(Calendar.MONTH) + 1)
     val selectedMonth: StateFlow<Int> = _selectedMonth
 
     private val _selectedYear = MutableStateFlow(Calendar.getInstance().get(Calendar.YEAR))
     val selectedYear: StateFlow<Int> = _selectedYear
 
-    // Estado para el tipo de gráfica seleccionada
+    // --- State: UI Controls ---
     private val _selectedChartType = MutableStateFlow(ChartType.BAR)
     val selectedChartType: StateFlow<ChartType> = _selectedChartType
 
-    // Estado para el tipo de filtro de transacción
     private val _selectedTransactionFilter = MutableStateFlow(TransactionFilter.ALL)
     val selectedTransactionFilter: StateFlow<TransactionFilter> = _selectedTransactionFilter
 
-    // Datos para las gráficas (ingresos y gastos mensuales del mes seleccionado)
+    // --- State: Monthly Data (Real-time for Pie Chart & List) ---
     private val _monthlyIncomes = MutableStateFlow<List<Income>>(emptyList())
     val monthlyIncomes: StateFlow<List<Income>> = _monthlyIncomes
 
     private val _monthlyExpenses = MutableStateFlow<List<Expense>>(emptyList())
     val monthlyExpenses: StateFlow<List<Expense>> = _monthlyExpenses
 
-    // Nuevo StateFlow para los resúmenes mensuales (para la gráfica de barras multi-mes)
+    // --- State: Multi-Month Summary (One-time fetch for Bar Chart) ---
+    // Holds data for the selected month and the 2 preceding months.
     private val _monthlySummaries = MutableStateFlow<List<MonthlySummary>>(emptyList())
     val monthlySummaries: StateFlow<List<MonthlySummary>> = _monthlySummaries
 
-    // Transacciones filtradas para el registro de abajo (combinando ingresos y gastos)
+    // --- Derived State: Filtered Transaction List ---
+    // Combines Incomes and Expenses, sorts by date descending, and applies the selected filter.
     val filteredTransactions: StateFlow<List<Any>> = combine(
         _monthlyIncomes,
         _monthlyExpenses,
@@ -75,7 +89,7 @@ class StatsViewModel(
                 when (it) {
                     is Income -> it.date.toDate()
                     is Expense -> it.date.toDate()
-                    else -> Date(0) // Fallback date
+                    else -> Date(0) // Fallback for safety
                 }
             }
             TransactionFilter.INCOME -> incomes.sortedByDescending { it.date.toDate() }
@@ -88,97 +102,100 @@ class StatsViewModel(
     )
 
     init {
-        // Iniciar la carga de datos cuando el ViewModel se crea
-        fetchMonthlyData() // Carga datos para el mes seleccionado (real-time)
-        fetchChartDataForMonths() // Carga datos para la gráfica de barras multi-mes (one-time)
+        // Initial data load
+        fetchMonthlyData()      // Current month details (Real-time)
+        fetchChartDataForMonths() // 3-month summary (One-time)
     }
 
     /**
-     * Actualiza el mes y año seleccionados y recarga los datos.
-     * Esto activará tanto las cargas de datos de un solo mes como de varios meses.
+     * Updates the selected date and refreshes all data sources.
+     *
+     * @param month The new month (1-12).
+     * @param year The new year.
      */
     fun updateSelectedDate(month: Int, year: Int) {
         _selectedMonth.value = month
         _selectedYear.value = year
-        fetchMonthlyData() // Recargar datos de un solo mes
-        fetchChartDataForMonths() // Recargar datos de varios meses para la gráfica de barras
+
+        fetchMonthlyData()
+        fetchChartDataForMonths()
     }
 
     /**
-     * Actualiza el tipo de gráfica seleccionada.
+     * Updates the currently displayed chart type.
      */
     fun updateChartType(chartType: ChartType) {
         _selectedChartType.value = chartType
     }
 
     /**
-     * Actualiza el tipo de filtro para las transacciones.
+     * Updates the filter applied to the transaction list.
      */
     fun updateTransactionFilter(filter: TransactionFilter) {
         _selectedTransactionFilter.value = filter
     }
 
     /**
-     * Carga los datos de ingresos y gastos para el mes y año seleccionados (real-time).
-     * Estos datos se usan para la gráfica de torta y la lista de transacciones.
+     * Fetches detailed Income and Expense data for the specifically selected month/year.
+     * This data feeds the Pie Chart and the Detailed Transaction List.
+     * Uses real-time listeners.
      */
     private fun fetchMonthlyData() {
-        viewModelScope.launch {
-            val currentMonth = _selectedMonth.value
-            val currentYear = _selectedYear.value
+        val currentMonth = _selectedMonth.value
+        val currentYear = _selectedYear.value
 
-            // Cargar ingresos mensuales en tiempo real
-            firestoreManager.getMonthlyIncomesRealtime(
-                month = currentMonth,
-                year = currentYear,
-                onIncomesLoaded = { incomes -> _monthlyIncomes.value = incomes },
-                onFailure = { e -> println("Error fetching monthly incomes (realtime): ${e.message}") }
-            )
+        // Fetch Monthly Incomes
+        firestoreManager.getMonthlyIncomesRealtime(
+            month = currentMonth,
+            year = currentYear,
+            onIncomesLoaded = { incomes -> _monthlyIncomes.value = incomes },
+            onFailure = { e -> println("Error fetching monthly incomes (realtime): ${e.message}") }
+        )
 
-            // Cargar gastos mensuales en tiempo real
-            firestoreManager.getMonthlyExpensesRealtime(
-                month = currentMonth,
-                year = currentYear,
-                onExpensesLoaded = { expenses -> _monthlyExpenses.value = expenses },
-                onFailure = { e -> println("Error fetching monthly expenses (realtime): ${e.message}") }
-            )
-        }
+        // Fetch Monthly Expenses
+        firestoreManager.getMonthlyExpensesRealtime(
+            month = currentMonth,
+            year = currentYear,
+            onExpensesLoaded = { expenses -> _monthlyExpenses.value = expenses },
+            onFailure = { e -> println("Error fetching monthly expenses (realtime): ${e.message}") }
+        )
     }
 
     /**
-     * Carga los datos de ingresos y gastos para la gráfica de barras multi-mes (one-time fetch).
-     * Obtiene datos para el mes seleccionado y los dos meses anteriores.
+     * Fetches aggregated totals for the selected month AND the two preceding months.
+     * This data feeds the Bar Chart for trend analysis.
+     * Uses one-time fetch logic (Suspend functions/CompletableDeferred).
      */
     private fun fetchChartDataForMonths() {
         viewModelScope.launch {
             val currentMonth = _selectedMonth.value
             val currentYear = _selectedYear.value
 
-            val monthsToFetch = mutableListOf<Pair<Int, Int>>() // Par: mes, año
-
-            // Calcular los tres meses a obtener (actual y dos anteriores)
+            // Prepare list of (Month, Year) pairs to fetch: [Month-2, Month-1, CurrentMonth]
+            val monthsToFetch = mutableListOf<Pair<Int, Int>>()
             val calendar = Calendar.getInstance().apply {
                 set(Calendar.MONTH, currentMonth - 1)
                 set(Calendar.YEAR, currentYear)
             }
 
-            // Añadir mes actual
+            // 1. Current Month
             monthsToFetch.add(Pair(calendar.get(Calendar.MONTH) + 1, calendar.get(Calendar.YEAR)))
 
-            // Añadir mes anterior
+            // 2. Previous Month
             calendar.add(Calendar.MONTH, -1)
             monthsToFetch.add(0, Pair(calendar.get(Calendar.MONTH) + 1, calendar.get(Calendar.YEAR)))
 
-            // Añadir dos meses atrás
+            // 3. Two Months Ago
             calendar.add(Calendar.MONTH, -1)
             monthsToFetch.add(0, Pair(calendar.get(Calendar.MONTH) + 1, calendar.get(Calendar.YEAR)))
 
+            // Execute fetches in parallel
             val deferredSummaries = monthsToFetch.map { (month, year) ->
                 async {
                     var totalIncome = 0.0
                     var totalExpense = 0.0
 
-                    // Usando CompletableDeferred para convertir las callbacks de Firestore en suspend functions
+                    // Wrapper to use callback-based Firestore methods in coroutines
                     val incomesDeferred = CompletableDeferred<List<Income>>()
                     firestoreManager.getMonthlyIncomesOnce(month, year,
                         onSuccess = { incomesDeferred.complete(it) },
@@ -192,38 +209,52 @@ class StatsViewModel(
                     )
 
                     try {
-                        totalIncome = incomesDeferred.await().sumOf { it.amount }
-                        totalExpense = expensesDeferred.await().sumOf { it.amount }
+                        // Wait for both to complete and calculate sums
+                        val incomes = incomesDeferred.await()
+                        val expenses = expensesDeferred.await()
+                        totalIncome = incomes.sumOf { it.amount }
+                        totalExpense = expenses.sumOf { it.amount }
                     } catch (e: Exception) {
-                        println("Error fetching data for month $month/$year: ${e.message}")
+                        println("Error fetching summary for $month/$year: ${e.message}")
                     }
+
                     MonthlySummary(month, year, totalIncome, totalExpense)
                 }
             }
-            // Esperar a que todas las cargas se completen y ordenar por año y mes
-            _monthlySummaries.value = deferredSummaries.awaitAll().sortedWith(compareBy({ it.year }, { it.month }))
+
+            // Wait for all months to process and update state
+            val summaries = deferredSummaries.awaitAll()
+            // Ensure they are sorted chronologically
+            _monthlySummaries.value = summaries.sortedWith(compareBy({ it.year }, { it.month }))
         }
     }
 
     /**
-     * Prepara los datos para la gráfica de pastel (total por categoría).
-     * @return Un mapa donde la clave es la categoría y el valor es el monto total.
+     * Groups transactions by category and calculates the total amount for each.
+     * Used by the Pie Chart.
+     *
+     * @param transactions A mixed list of Income and Expense objects.
+     * @return A Map where Key = Category Name, Value = Total Amount.
      */
     fun getCategorizedTotalsForPieChart(transactions: List<Any>): Map<String, Double> {
         val categorizedTotals = mutableMapOf<String, Double>()
+
         transactions.forEach { transaction ->
             val category = when (transaction) {
                 is Income -> transaction.category
                 is Expense -> transaction.category
-                else -> "Desconocido"
+                else -> "Unknown"
             }
+
             val amount = when (transaction) {
                 is Income -> transaction.amount
                 is Expense -> transaction.amount
                 else -> 0.0
             }
+
             categorizedTotals[category] = (categorizedTotals[category] ?: 0.0) + amount
         }
+
         return categorizedTotals
     }
 }

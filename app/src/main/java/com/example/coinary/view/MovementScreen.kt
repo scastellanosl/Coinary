@@ -41,6 +41,15 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
+/**
+ * MovementScreen: A comprehensive form interface for recording financial transactions.
+ * Handles input for Incomes and Expenses, category selection, date picking,
+ * and smart validation alerts (e.g., debt creation warning).
+ *
+ * @param navController Navigation controller for screen transitions.
+ * @param onBackClick Callback for navigating back to the previous screen.
+ * @param onLogout Callback for ending the user session (optional in this context).
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MovementScreen(
@@ -53,15 +62,15 @@ fun MovementScreen(
     val systemUiController = rememberSystemUiController()
     val uiState by movementViewModel.uiState.collectAsState()
 
-    // Estados del formulario
+    // --- Form State Management ---
     var selectedMovementType by remember { mutableStateOf(context.getString(R.string.income)) }
-    var expanded by remember { mutableStateOf(false) }
+    var expanded by remember { mutableStateOf(false) } // Dropdown visibility state
     var selectedCategory by remember { mutableStateOf(context.getString(R.string.select_category)) }
     var amount by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var selectedDate by remember { mutableStateOf(Calendar.getInstance()) }
 
-    // Configuración de UI
+    // --- UI Configuration & Theming ---
     SideEffect {
         systemUiController.setStatusBarColor(color = Color.Black, darkIcons = false)
     }
@@ -69,15 +78,19 @@ fun MovementScreen(
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
     val screenHeight = configuration.screenHeightDp.dp
+
+    // Responsive sizing logic
     val titleFontSize = if (screenWidth < 360.dp) 22.sp else 26.sp
     val labelFontSize = if (screenWidth < 360.dp) 14.sp else 16.sp
     val buttonHeight = if (screenHeight < 600.dp) 40.dp else 44.dp
     val buttonHorizontalPadding = if (screenWidth < 360.dp) 12.dp else 20.dp
 
+    // Category loading based on transaction type
     val incomeCategories = remember { context.resources.getStringArray(R.array.income_categories).toList() }
     val expenseCategories = remember { context.resources.getStringArray(R.array.expense_categories).toList() }
     val currentCategories = if (selectedMovementType == context.getString(R.string.income)) incomeCategories else expenseCategories
 
+    // Reusable modifier for form fields
     val commonFieldModifier = Modifier
         .fillMaxWidth()
         .padding(horizontal = buttonHorizontalPadding)
@@ -85,11 +98,14 @@ fun MovementScreen(
 
     val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 
-    // Efectos de guardado exitoso/error
+    // --- Feedback Handling (Success/Error Toasts) ---
     LaunchedEffect(uiState) {
         uiState.successMessage?.let { message ->
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-            amount = ""; description = ""; selectedCategory = context.getString(R.string.select_category)
+            // Reset form on success
+            amount = ""
+            description = ""
+            selectedCategory = context.getString(R.string.select_category)
             selectedDate = Calendar.getInstance()
             movementViewModel.resetMessages()
             navController.popBackStack()
@@ -100,21 +116,22 @@ fun MovementScreen(
         }
     }
 
-    // Alerta de Deuda Automática
+    // --- Automatic Debt Alert Dialog ---
     if (uiState.showDebtConfirmation) {
         AlertDialog(
             onDismissRequest = { movementViewModel.cancelDebtCreation() },
             containerColor = Color(0xFF1E1E1E),
-            title = { Text(text = "¡Saldo Insuficiente!", color = Color(0xFFFF5252), fontWeight = FontWeight.Bold, fontFamily = InterFont) },
-            text = { Text(text = "El gasto supera tus ingresos. ¿Crear deuda?", color = Color.White, fontFamily = InterFont) },
-            confirmButton = { Button(onClick = { movementViewModel.confirmDebtCreation() }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF5252))) { Text("Sí", color = Color.White) } },
-            dismissButton = { TextButton(onClick = { movementViewModel.cancelDebtCreation() }) { Text("Cancelar", color = Color.White) } }
+            title = { Text(text = "Insufficient Balance!", color = Color(0xFFFF5252), fontWeight = FontWeight.Bold, fontFamily = InterFont) },
+            text = { Text(text = "This expense exceeds your current income. Create a debt record?", color = Color.White, fontFamily = InterFont) },
+            confirmButton = { Button(onClick = { movementViewModel.confirmDebtCreation() }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF5252))) { Text("Yes", color = Color.White) } },
+            dismissButton = { TextButton(onClick = { movementViewModel.cancelDebtCreation() }) { Text("Cancel", color = Color.White) } }
         )
     }
 
     val scrollState = rememberScrollState()
 
     Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
+        // Background Layer
         Image(
             painter = painterResource(id = R.drawable.fondo_movimentos),
             contentDescription = null,
@@ -123,7 +140,7 @@ fun MovementScreen(
         )
 
         Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp).verticalScroll(scrollState)) {
-            // Header
+            // Header Section
             Row(modifier = Modifier.fillMaxWidth().padding(top = 1.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = { navController.popBackStack() }) {
                     Icon(imageVector = Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back), tint = Color.White)
@@ -139,7 +156,7 @@ fun MovementScreen(
 
             Spacer(modifier = Modifier.height(30.dp))
 
-            // Botones Tipo
+            // Transaction Type Toggle Buttons
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)) {
                 MovementTypeButton(text = stringResource(R.string.income), isSelected = selectedMovementType == stringResource(R.string.income), onClick = { selectedMovementType = context.getString(R.string.income); selectedCategory = context.getString(R.string.select_category) }, modifier = Modifier.weight(1f).height(buttonHeight), backgroundColor = Color(0xFF4c6ef5), textColor = Color.White)
                 MovementTypeButton(text = stringResource(R.string.expense), isSelected = selectedMovementType == context.getString(R.string.expense), onClick = { selectedMovementType = context.getString(R.string.expense); selectedCategory = context.getString(R.string.select_category) }, modifier = Modifier.weight(1f).height(buttonHeight), backgroundColor = Color.White, textColor = Color.Black)
@@ -147,14 +164,14 @@ fun MovementScreen(
 
             Spacer(modifier = Modifier.height(30.dp))
 
-            // Contenedor Campos
+            // Form Container
             Box(modifier = Modifier.align(Alignment.CenterHorizontally).padding(15.dp)) {
                 Image(painter = painterResource(id = R.drawable.fondo_contenedor_categoria), contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.FillBounds)
 
                 Column(modifier = Modifier.fillMaxWidth().padding(16.dp).align(Alignment.TopCenter)) {
                     Text(text = stringResource(R.string.select_category), fontFamily = InterFont, fontWeight = FontWeight.SemiBold, color = Color.White, fontSize = (labelFontSize.value + 4).sp, modifier = Modifier.align(Alignment.CenterHorizontally).padding(bottom = 10.dp))
 
-                    // Categoría
+                    // Category Dropdown Field
                     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = !expanded }, modifier = commonFieldModifier) {
                         TextField(value = selectedCategory, onValueChange = {}, readOnly = true, label = { Text(stringResource(R.string.select_category), color = Color(0xFF868686)) }, trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) }, modifier = Modifier.fillMaxWidth().menuAnchor(), textStyle = TextStyle(fontFamily = InterFont, color = Color.White, fontSize = labelFontSize), colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, unfocusedTextColor = Color.White, focusedTextColor = Color.White))
                         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }, modifier = Modifier.background(Color.DarkGray.copy(alpha = 0.9f))) {
@@ -166,7 +183,7 @@ fun MovementScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Monto
+                    // Amount Input Field
                     TextField(
                         value = amount,
                         onValueChange = { newValue ->
@@ -181,11 +198,9 @@ fun MovementScreen(
                         colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, unfocusedTextColor = Color.White, focusedTextColor = Color.White)
                     )
 
-                    // [TEXTO DE AVISO HORMIGA ELIMINADO AQUÍ]
-
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Fecha
+                    // Date Picker Field
                     val datePickerDialog = DatePickerDialog(context, { _: DatePicker, y: Int, m: Int, d: Int -> selectedDate.set(y, m, d) }, selectedDate.get(Calendar.YEAR), selectedDate.get(Calendar.MONTH), selectedDate.get(Calendar.DAY_OF_MONTH))
 
                     TextField(value = dateFormatter.format(selectedDate.time), onValueChange = {}, readOnly = true, label = { Text(stringResource(R.string.date), color = Color(0xFF868686)) }, singleLine = true, modifier = commonFieldModifier.clickable { datePickerDialog.show() }, textStyle = TextStyle(fontFamily = InterFont, color = Color.White, fontSize = labelFontSize), leadingIcon = { Icon(imageVector = Icons.Default.CalendarMonth, contentDescription = null, tint = Color.White) }, trailingIcon = { Icon(imageVector = Icons.Filled.ArrowDropDown, contentDescription = null, tint = Color.White) }, colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, unfocusedTextColor = Color.White, focusedTextColor = Color.White))
@@ -195,12 +210,12 @@ fun MovementScreen(
                     Text(text = stringResource(R.string.short_description), color = Color.White, fontFamily = InterFont, fontSize = (labelFontSize.value - 2).sp, fontWeight = FontWeight.Thin, textAlign = TextAlign.Center, modifier = Modifier.align(Alignment.CenterHorizontally).padding(horizontal = 30.dp))
                     Spacer(modifier = Modifier.height(15.dp))
 
-                    // Descripción
+                    // Description Input Field
                     TextField(value = description, onValueChange = { description = it }, label = { Text(stringResource(R.string.add_description), color = Color(0xFF868686)) }, singleLine = true, modifier = commonFieldModifier, textStyle = TextStyle(fontFamily = InterFont, color = Color.White, fontSize = labelFontSize), colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, unfocusedTextColor = Color.White, focusedTextColor = Color.White))
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    // Botones
+                    // Action Buttons (Save/Cancel)
                     Row(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally), verticalAlignment = Alignment.CenterVertically) {
                         MovementTypeButton(
                             text = stringResource(R.string.save),
@@ -214,8 +229,7 @@ fun MovementScreen(
                                 if (selectedMovementType == context.getString(R.string.income)) {
                                     movementViewModel.saveIncome(amt, description, selectedCategory, selectedDate.time)
                                 } else {
-                                    // La lógica "Pro" sigue funcionando internamente
-                                    movementViewModel.saveExpensePro(amt, description, selectedCategory, selectedDate.time)
+                                    movementViewModel.saveExpense(amt, description, selectedCategory, selectedDate.time)
                                 }
                             },
                             modifier = Modifier.weight(1f).height(50.dp),
@@ -232,6 +246,10 @@ fun MovementScreen(
     }
 }
 
+/**
+ * MovementTypeButton: A custom styled button for toggling transaction types
+ * and triggering form actions. Supports loading states.
+ */
 @Composable
 fun MovementTypeButton(
     text: String,

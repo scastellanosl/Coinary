@@ -44,42 +44,49 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import java.text.NumberFormat
 import java.util.Locale
 import kotlin.math.min
-
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 /**
- * Pantalla principal del dashboard.
- * Muestra el balance, gráfico de gastos y categorías principales.
+ * HomeScreen: The central dashboard of the application.
+ * Displays financial health indicators including total balance, a donut chart
+ * of categorized expenses, and top spending categories.
+ *
+ * @param navController Navigation controller for screen transitions.
+ * @param onAddNewClick Compatibility callback for adding new records (not currently used visually).
+ * @param onLogout Triggers session termination and returns to login.
+ * @param homeViewModel Business logic provider for financial calculations.
  */
 @SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
 fun HomeScreen(
     navController: NavController,
-    onAddNewClick: () -> Unit, // Callback mantenido por compatibilidad, aunque ya no se usa aquí visualmente
+    onAddNewClick: () -> Unit,
     onLogout: () -> Unit,
     homeViewModel: HomeViewModel = viewModel()
 ) {
-    // --- Configuración de UI del Sistema ---
+    // --- System UI Configuration ---
     val systemUiController = rememberSystemUiController()
-    val statusBarColor = Color(0xFF150F33) // Color oscuro para la barra de estado
+    val statusBarColor = Color(0xFF150F33) // Dark color for the status bar
 
-    // --- Contexto y Autenticación ---
+    // --- Context and Authentication ---
     val context = LocalContext.current
     val googleAuthClient = remember { GoogleAuthClient(context) }
     val user = googleAuthClient.getSignedInUser()
 
-    // --- Estados del ViewModel ---
+    // --- ViewModel States ---
     val totalIncome by homeViewModel.totalIncome.collectAsState()
     val totalExpenses by homeViewModel.totalExpenses.collectAsState()
-    val categorizedExpenses by homeViewModel.weeklyCategorizedExpenses.collectAsState()
+    val categorizedExpenses by homeViewModel.categorizedExpenses.collectAsState()
     val selectedTimeRange by homeViewModel.selectedTimeRange.collectAsState()
 
-    // --- Formato de Moneda ---
+    // --- Currency Format ---
     val currencyFormatter = remember { NumberFormat.getCurrencyInstance(Locale.getDefault()) }
 
-    // Cargar arrays de recursos
+    // Load resource arrays
     val expenseCategories = context.resources.getStringArray(R.array.expense_categories)
     val incomeCategories = context.resources.getStringArray(R.array.income_categories)
 
-    // --- Mapa de Traducción de Categorías ---
+    // --- Category Translation Map ---
     val categoryTranslationMap = remember(expenseCategories) {
         mapOf(
             "Comida" to expenseCategories[0], "Food" to expenseCategories[0],
@@ -94,22 +101,22 @@ fun HomeScreen(
         )
     }
 
-    // --- Mapa de Colores ---
+    // --- Color Map ---
     val categoryColorMap = remember(expenseCategories, incomeCategories) {
         mapOf(
-            expenseCategories[0] to Color(0xFFF2E423), // Comida
-            expenseCategories[1] to Color(0xFF4D54BF), // Transporte
-            expenseCategories[2] to Color(0xFFFFFFFF), // Vivienda
-            expenseCategories[3] to Color(0xFFE91E63), // Ocio
-            expenseCategories[4] to Color(0xFFFF9800), // Servicios
-            expenseCategories[5] to Color(0xFF9C27B0), // Compras
-            expenseCategories[6] to Color(0xFF00BCD4), // Salud
-            expenseCategories[7] to Color(0xFF8BC34A), // Educación
-            expenseCategories[8] to Color(0xFF03A9F4)  // Otros
+            expenseCategories[0] to Color(0xFFF2E423), // Food
+            expenseCategories[1] to Color(0xFF4D54BF), // Transport
+            expenseCategories[2] to Color(0xFFFFFFFF), // Housing
+            expenseCategories[3] to Color(0xFFE91E63), // Entertainment
+            expenseCategories[4] to Color(0xFFFF9800), // Services
+            expenseCategories[5] to Color(0xFF9C27B0), // Shopping
+            expenseCategories[6] to Color(0xFF00BCD4), // Health
+            expenseCategories[7] to Color(0xFF8BC34A), // Education
+            expenseCategories[8] to Color(0xFF03A9F4)  // Other
         )
     }
 
-    // --- Mapa de Iconos ---
+    // --- Icon Map ---
     val categoryIconMap = remember(expenseCategories) {
         mapOf(
             expenseCategories[0] to R.drawable.food_icon,
@@ -124,12 +131,12 @@ fun HomeScreen(
         )
     }
 
-    // --- Configuración de Pantalla ---
+    // --- Screen Configuration ---
     val configuration = LocalConfiguration.current
     val screenHeight = configuration.screenHeightDp.dp
     val screenWidth = configuration.screenWidthDp.dp
 
-    // --- Preferencias de Usuario ---
+    // --- User Preferences ---
     val prefs = remember { context.getSharedPreferences("profile_prefs", android.content.Context.MODE_PRIVATE) }
     val photoUri = remember { mutableStateOf(prefs.getString("photo_uri", null)?.toUri()) }
     val defaultUserName = stringResource(R.string.default_user_name)
@@ -147,7 +154,7 @@ fun HomeScreen(
     }
 
     Scaffold(
-        // HE ELIMINADO EL FLOATING ACTION BUTTON DE AQUÍ
+        // REMOVED FLOATING ACTION BUTTON FROM HERE
         containerColor = Color.Black
     ) { paddingValues ->
 
@@ -157,7 +164,7 @@ fun HomeScreen(
                 .padding(paddingValues)
                 .background(Color.Black)
         ) {
-            // --- 1. CABECERA (Perfil y Notificaciones) ---
+            // --- 1. HEADER (Profile and Notifications) ---
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                 Image(
                     painter = painterResource(id = R.drawable.marco_superior),
@@ -172,7 +179,7 @@ fun HomeScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Avatar y Saludo
+                    // Avatar and Greeting
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(screenWidth * 0.02f)
@@ -180,7 +187,7 @@ fun HomeScreen(
                         if (photoUri.value != null) {
                             AsyncImage(
                                 model = photoUri.value,
-                                contentDescription = "Foto perfil",
+                                contentDescription = "Profile Photo",
                                 modifier = Modifier
                                     .size(screenHeight * 0.045f)
                                     .clip(CircleShape)
@@ -190,7 +197,7 @@ fun HomeScreen(
                         } else {
                             Image(
                                 painter = painterResource(id = R.drawable.user_icon),
-                                contentDescription = "Foto perfil defecto",
+                                contentDescription = "Default Profile Photo",
                                 modifier = Modifier
                                     .size(screenHeight * 0.045f)
                                     .clip(CircleShape)
@@ -213,28 +220,28 @@ fun HomeScreen(
                             )
                         }
                     }
-                    // Iconos de Acción
+                    // Action Icons
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Icon(
                             Icons.Default.Notifications,
-                            "Notificaciones",
+                            "Notifications",
                             tint = Color(0xFFF2E423),
                             modifier = Modifier
                                 .size(32.dp)
                                 .clickable { navController.navigate("notifications") })
                         Icon(
                             Icons.Default.Lightbulb,
-                            "Recomendaciones",
+                            "Recommendations",
                             tint = Color(0xFFF2E423),
                             modifier = Modifier
                                 .size(28.dp)
                                 .clickable { navController.navigate("recomendaciones") })
                         Icon(
                             Icons.Default.TrendingUp,
-                            "Predicciones",
+                            "Predictions",
                             tint = Color(0xFFF2E423),
                             modifier = Modifier
                                 .size(28.dp)
@@ -243,7 +250,7 @@ fun HomeScreen(
                 }
             }
 
-            // --- 2. BALANCE Y FILTRO ---
+            // --- 2. BALANCE AND FILTER ---
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -272,7 +279,7 @@ fun HomeScreen(
                         textAlign = TextAlign.Center
                     )
 
-                    // GASTOS TOTALES (Grande)
+                    // TOTAL EXPENSES (Large)
                     Text(
                         text = currencyFormatter.format(totalExpenses),
                         fontWeight = FontWeight.Bold,
@@ -281,7 +288,7 @@ fun HomeScreen(
                         modifier = Modifier.padding(top = screenHeight * 0.015f)
                     )
 
-                    // INGRESOS (Pequeño)
+                    // INCOME (Small)
                     Text(
                         text = stringResource(R.string.total_income),
                         fontWeight = FontWeight.Thin,
@@ -297,7 +304,7 @@ fun HomeScreen(
                         modifier = Modifier.offset(y = (-screenHeight * 0.005f))
                     )
 
-                    // --- Filtro de Tiempo (Dropdown) ---
+                    // --- Time Filter (Dropdown) ---
                     var expanded by remember { mutableStateOf(false) }
                     Box(modifier = Modifier.offset(y = (-screenHeight * 0.003f))) {
                         Button(
@@ -371,7 +378,7 @@ fun HomeScreen(
                 }
             }
 
-            // --- 3. GRÁFICO (Chart) ---
+            // --- 3. CHART SECTION ---
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -382,7 +389,7 @@ fun HomeScreen(
                         .fillMaxWidth()
                         .height(screenHeight * 0.3f)
                 ) {
-                    Spacer(modifier = Modifier.weight(0.18f)) // Espacio izq para centrar visualmente en el diseño
+                    Spacer(modifier = Modifier.weight(0.18f)) // Left space to center visually in the design
                     Box(
                         modifier = Modifier
                             .weight(0.62f)
@@ -416,7 +423,7 @@ fun HomeScreen(
                             )
                             Spacer(modifier = Modifier.height(screenHeight * 0.022f))
 
-                            // Canvas del Gráfico
+                            // Chart Canvas
                             Box(
                                 modifier = Modifier
                                     .width(screenWidth * 0.42f)
@@ -432,7 +439,7 @@ fun HomeScreen(
                                     totalAmount = translatedData.values.sum(),
                                     categoryColors = categoryColorMap
                                 )
-                                // Texto central del gráfico (Donut)
+                                // Chart Center Text (Donut)
                                 Column(
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
@@ -452,13 +459,13 @@ fun HomeScreen(
                             }
                         }
                     }
-                    Spacer(modifier = Modifier.weight(0.2f)) // Espacio der
+                    Spacer(modifier = Modifier.weight(0.2f)) // Right space
                 }
             }
 
             Spacer(modifier = Modifier.height(screenHeight * 0.01f))
 
-            // --- 4. LISTA DE GASTOS TOP ---
+            // --- 4. TOP EXPENSES LIST ---
             Box(
                 modifier = Modifier
                     .fillMaxWidth(0.95f)
@@ -483,7 +490,7 @@ fun HomeScreen(
                             bottom = screenHeight * 0.02f
                         )
                 ) {
-                    // Título muy arriba
+                    // Title very high up
                     Text(
                         text = stringResource(R.string.top_expenses),
                         color = Color.White,
@@ -499,10 +506,10 @@ fun HomeScreen(
                         )
                     )
 
-                    // ESPACIADOR ENORME para separar título de tarjetas
+                    // HUGE SPACER to separate title from cards
                     Spacer(modifier = Modifier.height(screenHeight * 0.12f))
 
-                    // Top 3 categorías
+                    // Top 3 categories
                     val topExpenses =
                         categorizedExpenses.entries.sortedByDescending { it.value }.take(3)
                     val cardBackgrounds = listOf(
@@ -511,7 +518,7 @@ fun HomeScreen(
                         R.drawable.rectangle3
                     )
 
-                    // Contenedor de tarjetas - HORIZONTALES Y COMPACTAS
+                    // Card Container - HORIZONTAL AND COMPACT
                     Row(
                         modifier = Modifier
                             .fillMaxWidth(0.92f)
@@ -532,14 +539,14 @@ fun HomeScreen(
                                 val categoryDisplayColor =
                                     categoryColorMap[displayCategory] ?: Color.Gray
 
-                                // Tarjeta MÁS ANCHA y MÁS BAJA (horizontal)
+                                // Card WIDER and LOWER (horizontal)
                                 Box(
                                     modifier = Modifier
                                         .weight(1f)
-                                        .aspectRatio(1.1f), // MÁS ANCHA QUE ALTA (horizontal)
+                                        .aspectRatio(1.1f), // WIDER THAN TALL (horizontal)
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    // Fondo de la tarjeta
+                                    // Card Background
                                     Image(
                                         painter = painterResource(id = bgRes),
                                         contentDescription = null,
@@ -548,7 +555,7 @@ fun HomeScreen(
                                         alpha = 0.95f
                                     )
 
-                                    // Contenido de la tarjeta - COMPACTO
+                                    // Card Content - COMPACT
                                     Column(
                                         horizontalAlignment = Alignment.CenterHorizontally,
                                         verticalArrangement = Arrangement.Center,
@@ -559,7 +566,7 @@ fun HomeScreen(
                                                 horizontal = screenWidth * 0.012f
                                             )
                                     ) {
-                                        // Etiqueta de categoría MÁS GRANDE
+                                        // Category Label LARGER
                                         Row(
                                             verticalAlignment = Alignment.CenterVertically,
                                             horizontalArrangement = Arrangement.Center,
@@ -575,7 +582,7 @@ fun HomeScreen(
                                             Text(
                                                 text = displayCategory,
                                                 color = Color.White,
-                                                fontSize = 12.sp, // MÁS GRANDE
+                                                fontSize = 12.sp, // LARGER
                                                 fontWeight = FontWeight.Bold,
                                                 maxLines = 1,
                                                 overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
@@ -594,21 +601,21 @@ fun HomeScreen(
 
                                         Spacer(modifier = Modifier.height(screenHeight * 0.005f))
 
-                                        // Ícono MÁS PEQUEÑO
+                                        // Icon SMALLER
                                         Image(
                                             painter = painterResource(id = iconRes),
                                             contentDescription = null,
                                             modifier = Modifier
-                                                .size(screenHeight * 0.038f) // MÁS PEQUEÑO
+                                                .size(screenHeight * 0.038f) // SMALLER
                                         )
 
                                         Spacer(modifier = Modifier.height(screenHeight * 0.005f))
 
-                                        // Precio MÁS GRANDE Y VISIBLE
+                                        // Price LARGER AND VISIBLE
                                         Text(
                                             text = currencyFormatter.format(entry.value),
                                             color = Color.White,
-                                            fontSize = 12.sp, // MÁS GRANDE
+                                            fontSize = 12.sp, // LARGER
                                             fontWeight = FontWeight.Bold,
                                             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                                             maxLines = 1,
@@ -628,7 +635,7 @@ fun HomeScreen(
                                     }
                                 }
                             } else {
-                                // Tarjeta vacía horizontal
+                                // Horizontal empty card
                                 Box(
                                     modifier = Modifier
                                         .weight(1f)
@@ -655,7 +662,7 @@ fun HomeScreen(
                         }
                     }
 
-                    // Espacio inferior
+                    // Bottom space
                     Spacer(modifier = Modifier.weight(1f))
                 }
             }
@@ -664,7 +671,7 @@ fun HomeScreen(
 }
 
 /**
- * Componente Canvas personalizado para dibujar el gráfico de tipo Donut.
+ * Custom Canvas component to draw the Donut type chart.
  */
 @Composable
 fun PieChartCanvas(
@@ -696,9 +703,9 @@ fun PieChartCanvas(
         val strokeWidth = diameter * 0.2f
         val topLeft = Offset((size.width - diameter) / 2f, (size.height - diameter) / 2f)
         val rect = Size(diameter, diameter)
-        var startAngle = -90f // Empezar desde arriba
+        var startAngle = -90f // Start from top
 
-        // Ordenar de mayor a menor para mejor visualización
+        // Sort descending for better visualization
         data.entries.sortedByDescending { it.value }.forEach { entry ->
             val sweepAngle = (entry.value.toFloat() / totalAmount.toFloat()) * 360f
             val sectionColor = categoryColors.getOrElse(entry.key) { Color.Gray }
@@ -707,7 +714,7 @@ fun PieChartCanvas(
                 color = sectionColor,
                 startAngle = startAngle,
                 sweepAngle = sweepAngle,
-                useCenter = false, // false = Donut (hueco), true = Pie (relleno)
+                useCenter = false, // false = Donut (hollow), true = Pie (filled)
                 topLeft = topLeft,
                 size = rect,
                 style = Stroke(width = strokeWidth)

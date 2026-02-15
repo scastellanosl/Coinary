@@ -7,30 +7,39 @@ import android.graphics.Typeface
 import android.graphics.pdf.PdfDocument
 import android.widget.Toast
 import com.example.coinary.R
+import com.example.coinary.model.Debt
 import com.example.coinary.model.Expense
 import com.example.coinary.model.Income
 import com.example.coinary.model.SavingsGoal
-import com.example.coinary.model.Debt
 import java.io.OutputStream
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Locale
-import androidx.core.graphics.toColorInt
 
 /**
- * Utility class responsible for generating PDF financial reports.
- * Now includes sections for Savings Goals and Debts with detailed progress information.
+ * PdfGenerator: Utility class responsible for creating PDF financial reports.
+ * It renders transactions, savings goals, and debts into a paginated PDF document.
+ *
+ * @param context The application context used to access resources and strings.
  */
 class PdfGenerator(private val context: Context) {
 
     /**
      * Generates a PDF report and writes it to the provided OutputStream.
+     *
+     * @param outputStream The stream where the PDF file will be written.
+     * @param transactions Mixed list of Income and Expense objects to list in the report.
+     * @param savingsGoals List of active savings goals to visualize progress.
+     * @param debts List of outstanding debts with payment progress.
+     * @param month The target month for the report context.
+     * @param year The target year for the report context.
+     * @param filterType Description of the applied filter (e.g., "Monthly", "Yearly").
      */
     fun generateReport(
         outputStream: OutputStream,
         transactions: List<Any>,
-        savingsGoals: List<SavingsGoal> = emptyList(),
-        debts: List<Debt> = emptyList(),
+        savingsGoals: List<SavingsGoal>,
+        debts: List<Debt>,
         month: String,
         year: String,
         filterType: String
@@ -39,32 +48,33 @@ class PdfGenerator(private val context: Context) {
         val paint = Paint()
         val titlePaint = Paint()
 
+        // Page Configuration (Standard A4 size approx: 595x842 points)
         val pageInfo = PdfDocument.PageInfo.Builder(595, 842, 1).create()
         var page = pdfDocument.startPage(pageInfo)
         var canvas = page.canvas
 
+        // --- Category Translation Map ---
         val expenseCategories = context.resources.getStringArray(R.array.expense_categories)
         val incomeCategories = context.resources.getStringArray(R.array.income_categories)
-
         val categoryNameMap = mapOf(
-            "Comida" to expenseCategories[0], "Food" to expenseCategories[0], "Nourriture" to expenseCategories[0], "Alimentação" to expenseCategories[0],
-            "Transporte" to expenseCategories[1], "Transport" to expenseCategories[1], "Transports" to expenseCategories[1],
-            "Vivienda" to expenseCategories[2], "Housing" to expenseCategories[2], "Habitação" to expenseCategories[2], "Logement" to expenseCategories[2],
-            "Ocio" to expenseCategories[3], "Entertainment" to expenseCategories[3], "Lazer" to expenseCategories[3], "Divertissement" to expenseCategories[3],
-            "Servicios" to expenseCategories[4], "Services" to expenseCategories[4], "Serviços" to expenseCategories[4],
-            "Compras" to expenseCategories[5], "Shopping" to expenseCategories[5], "Achats" to expenseCategories[5],
-            "Salud" to expenseCategories[6], "Health" to expenseCategories[6], "Saúde" to expenseCategories[6], "Santé" to expenseCategories[6],
-            "Educación" to expenseCategories[7], "Education" to expenseCategories[7], "Educação" to expenseCategories[7],
-            "Otros Gastos" to expenseCategories[8], "Other Expenses" to expenseCategories[8], "Outros" to expenseCategories[8], "Autres" to expenseCategories[8],
-            "Pago Deuda" to "Pago Deuda",
-            "Ahorro" to "Ahorro",
-            "Salario" to incomeCategories[0], "Salary" to incomeCategories[0], "Salário" to incomeCategories[0], "Salaire" to incomeCategories[0],
-            "Regalo" to incomeCategories[1], "Gift" to incomeCategories[1], "Presente" to incomeCategories[1], "Cadeau" to incomeCategories[1],
-            "Ventas" to incomeCategories[2], "Sales" to incomeCategories[2], "Vendas" to incomeCategories[2], "Ventes" to incomeCategories[2],
-            "Inversión" to incomeCategories[3], "Investment" to incomeCategories[3], "Investimento" to incomeCategories[3], "Investissement" to incomeCategories[3],
-            "Otros Ingresos" to incomeCategories[4], "Other Income" to incomeCategories[4], "Outros" to incomeCategories[4], "Autres revenus" to incomeCategories[4]
+            "Comida" to expenseCategories[0], "Food" to expenseCategories[0],
+            "Transporte" to expenseCategories[1], "Transport" to expenseCategories[1],
+            "Vivienda" to expenseCategories[2], "Housing" to expenseCategories[2],
+            "Ocio" to expenseCategories[3], "Entertainment" to expenseCategories[3],
+            "Servicios" to expenseCategories[4], "Services" to expenseCategories[4],
+            "Compras" to expenseCategories[5], "Shopping" to expenseCategories[5],
+            "Salud" to expenseCategories[6], "Health" to expenseCategories[6],
+            "Educación" to expenseCategories[7], "Education" to expenseCategories[7],
+            "Otros Gastos" to expenseCategories[8], "Other Expenses" to expenseCategories[8],
+            "Pago Deuda" to "Debt Payment", "Ahorro" to "Savings",
+            "Salario" to incomeCategories[0], "Salary" to incomeCategories[0],
+            "Regalo" to incomeCategories[1], "Gift" to incomeCategories[1],
+            "Ventas" to incomeCategories[2], "Sales" to incomeCategories[2],
+            "Inversión" to incomeCategories[3], "Investment" to incomeCategories[3],
+            "Otros Ingresos" to incomeCategories[4], "Other Income" to incomeCategories[4]
         )
 
+        // Font Configuration
         titlePaint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
         titlePaint.textSize = 24f
         titlePaint.color = Color.BLACK
@@ -78,48 +88,48 @@ class PdfGenerator(private val context: Context) {
         val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
         val currencyFormat = NumberFormat.getCurrencyInstance(Locale.getDefault())
 
+        // --- Pagination Helper ---
         fun checkPagination(neededSpace: Float = 50f) {
             if (yPosition > pageInfo.pageHeight - neededSpace) {
                 pdfDocument.finishPage(page)
                 page = pdfDocument.startPage(pageInfo)
                 canvas = page.canvas
-                yPosition = 50f
+                yPosition = 50f // Reset Y position for new page
             }
         }
 
-        // Header
+        // --- HEADER SECTION ---
         val appName = context.getString(R.string.app_name)
-        val reportTitle = context.getString(R.string.pdf_report_title)
+        val reportTitle = "Financial Report"
         canvas.drawText("$appName - $reportTitle", xMargin, yPosition, titlePaint)
         yPosition += 40f
 
         paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
         paint.textSize = 14f
-
-        canvas.drawText("${context.getString(R.string.pdf_period_label)} $month $year", xMargin, yPosition, paint)
+        canvas.drawText("Period: $month $year", xMargin, yPosition, paint)
         yPosition += 20f
-        canvas.drawText("${context.getString(R.string.pdf_type_label)} $filterType", xMargin, yPosition, paint)
+        canvas.drawText("Filter: $filterType", xMargin, yPosition, paint)
         yPosition += 40f
 
-        // TRANSACTIONS SECTION
+        // --- SECTION: TRANSACTIONS ---
         paint.textSize = 16f
-        paint.color = "#4D54BF".toColorInt()
-        canvas.drawText(" TRANSACCIONES", xMargin, yPosition, paint)
+        paint.color = Color.parseColor("#4D54BF") // Brand Blue
+        canvas.drawText("TRANSACTIONS", xMargin, yPosition, paint)
         yPosition += 30f
 
+        // Table Headers
         paint.textSize = 12f
         paint.color = Color.DKGRAY
-        canvas.drawText(context.getString(R.string.pdf_header_date), xMargin, yPosition, paint)
-        canvas.drawText(context.getString(R.string.pdf_header_category), xMargin + 80, yPosition, paint)
-        canvas.drawText(context.getString(R.string.pdf_header_description), xMargin + 200, yPosition, paint)
-        canvas.drawText(context.getString(R.string.pdf_header_amount), xMargin + 400, yPosition, paint)
+        canvas.drawText("Date", xMargin, yPosition, paint)
+        canvas.drawText("Category", xMargin + 80, yPosition, paint)
+        canvas.drawText("Description", xMargin + 200, yPosition, paint)
+        canvas.drawText("Amount", xMargin + 400, yPosition, paint)
 
         paint.strokeWidth = 1f
         canvas.drawLine(xMargin, yPosition + 5, pageInfo.pageWidth - xMargin, yPosition + 5, paint)
         yPosition += 25f
 
         paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
-        paint.color = Color.BLACK
         paint.textSize = 11f
 
         var totalIncome = 0.0
@@ -132,6 +142,7 @@ class PdfGenerator(private val context: Context) {
             var originalCategory = ""
             var description = ""
             var amount = 0.0
+            var amountColor = Color.BLACK
 
             if (item is Income) {
                 dateStr = dateFormat.format(item.date.toDate())
@@ -139,31 +150,35 @@ class PdfGenerator(private val context: Context) {
                 description = item.description
                 amount = item.amount
                 totalIncome += amount
-                paint.color = "#2E7D32".toColorInt()
+                amountColor = Color.parseColor("#2E7D32") // Green
             } else if (item is Expense) {
                 dateStr = dateFormat.format(item.date.toDate())
                 originalCategory = item.category
                 description = item.description
                 amount = item.amount
                 totalExpense += amount
-                paint.color = "#C62828".toColorInt()
+                amountColor = Color.parseColor("#C62828") // Red
             }
 
             val displayCategory = categoryNameMap[originalCategory] ?: originalCategory
 
+            paint.color = Color.BLACK
             canvas.drawText(dateStr, xMargin, yPosition, paint)
+
             val safeCategory = if (displayCategory.length > 15) displayCategory.substring(0, 15) + "..." else displayCategory
             canvas.drawText(safeCategory, xMargin + 80, yPosition, paint)
+
             val safeDesc = if (description.length > 25) description.substring(0, 25) + "..." else description
             canvas.drawText(safeDesc, xMargin + 200, yPosition, paint)
+
+            paint.color = amountColor
             canvas.drawText(currencyFormat.format(amount), xMargin + 400, yPosition, paint)
 
             yPosition += 20f
         }
 
-        // Totals
+        // --- TOTALS SUMMARY ---
         yPosition += 20f
-        paint.strokeWidth = 1f
         paint.color = Color.BLACK
         canvas.drawLine(xMargin, yPosition, pageInfo.pageWidth - xMargin, yPosition, paint)
         yPosition += 30f
@@ -172,134 +187,125 @@ class PdfGenerator(private val context: Context) {
         paint.textSize = 12f
 
         if (totalIncome > 0) {
-            paint.color = "#2E7D32".toColorInt()
-            canvas.drawText("${context.getString(R.string.pdf_total_income)} ${currencyFormat.format(totalIncome)}", xMargin, yPosition, paint)
+            paint.color = Color.parseColor("#2E7D32")
+            canvas.drawText("Total Income: ${currencyFormat.format(totalIncome)}", xMargin, yPosition, paint)
             yPosition += 20f
         }
         if (totalExpense > 0) {
-            paint.color = "#C62828".toColorInt()
-            canvas.drawText("${context.getString(R.string.pdf_total_expense)} ${currencyFormat.format(totalExpense)}", xMargin, yPosition, paint)
+            paint.color = Color.parseColor("#C62828")
+            canvas.drawText("Total Expenses: ${currencyFormat.format(totalExpense)}", xMargin, yPosition, paint)
             yPosition += 20f
         }
 
         val balance = totalIncome - totalExpense
         paint.color = Color.BLACK
-        canvas.drawText("${context.getString(R.string.pdf_net_balance)} ${currencyFormat.format(balance)}", xMargin, yPosition, paint)
+        canvas.drawText("Net Balance: ${currencyFormat.format(balance)}", xMargin, yPosition, paint)
         yPosition += 50f
 
-        // SAVINGS GOALS SECTION
+        // --- SECTION: SAVINGS GOALS ---
         if (savingsGoals.isNotEmpty()) {
-            checkPagination(150f)
+            checkPagination(100f) // Ensure space for header + at least one item
 
             paint.textSize = 16f
-            paint.color = "#4CAF50".toColorInt()
+            paint.color = Color.parseColor("#4CAF50") // Material Green
             paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
-            canvas.drawText("METAS DE AHORRO", xMargin, yPosition, paint)
+            canvas.drawText("SAVINGS GOALS", xMargin, yPosition, paint)
             yPosition += 30f
 
-            paint.textSize = 11f
-            paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
-
             for (goal in savingsGoals) {
-                checkPagination(100f)
+                checkPagination(100f) // Space for one goal card
 
                 val percentage = if (goal.targetAmount > 0) {
                     ((goal.currentAmount / goal.targetAmount) * 100).toInt()
                 } else 0
 
-                // Box background
-                paint.color = "#E8F5E9".toColorInt()
-                paint.style = Paint.Style.FILL
-                canvas.drawRect(xMargin, yPosition - 15, pageInfo.pageWidth - xMargin, yPosition + 70, paint)
+                // Card Background
+                val boxTop = yPosition - 15
+                val boxBottom = yPosition + 70
 
-                // Border
-                paint.color = "#4CAF50".toColorInt()
+                paint.color = Color.parseColor("#E8F5E9") // Very light green
+                paint.style = Paint.Style.FILL
+                canvas.drawRect(xMargin, boxTop, pageInfo.pageWidth - xMargin, boxBottom, paint)
+
+                // Card Border
+                paint.color = Color.parseColor("#4CAF50")
                 paint.style = Paint.Style.STROKE
                 paint.strokeWidth = 2f
-                canvas.drawRect(xMargin, yPosition - 15, pageInfo.pageWidth - xMargin, yPosition + 70, paint)
+                canvas.drawRect(xMargin, boxTop, pageInfo.pageWidth - xMargin, boxBottom, paint)
 
+                // Text Content
                 paint.style = Paint.Style.FILL
+                paint.strokeWidth = 0f
                 paint.color = Color.BLACK
-
-                // Title
                 paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
                 paint.textSize = 12f
                 canvas.drawText(" ${goal.name}", xMargin + 10, yPosition, paint)
 
                 paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
                 paint.textSize = 10f
+                canvas.drawText("Target: ${currencyFormat.format(goal.targetAmount)}", xMargin + 10, yPosition + 18, paint)
 
-                // Target
-                canvas.drawText("Meta: ${currencyFormat.format(goal.targetAmount)}", xMargin + 10, yPosition + 18, paint)
+                paint.color = Color.parseColor("#2E7D32")
+                canvas.drawText("Saved: ${currencyFormat.format(goal.currentAmount)}", xMargin + 10, yPosition + 33, paint)
 
-                // Current
-                paint.color = "#2E7D32".toColorInt()
-                canvas.drawText("Aportado: ${currencyFormat.format(goal.currentAmount)}", xMargin + 10, yPosition + 33, paint)
+                paint.color = Color.parseColor("#1976D2")
+                canvas.drawText("Progress: $percentage%", xMargin + 10, yPosition + 48, paint)
 
-                // Progress
-                paint.color = "#1976D2".toColorInt()
-                canvas.drawText("Progreso: $percentage%", xMargin + 10, yPosition + 48, paint)
-
-                // Progress Bar
+                // Visual Progress Bar
                 val barWidth = 150f
                 val barHeight = 8f
                 val barX = xMargin + 250
                 val barY = yPosition + 20
 
-                paint.color = "#E0E0E0".toColorInt()
-                paint.style = Paint.Style.FILL
+                // Bar Background
+                paint.color = Color.LTGRAY
                 canvas.drawRect(barX, barY, barX + barWidth, barY + barHeight, paint)
 
+                // Bar Progress
                 val progressWidth = (barWidth * percentage / 100f).coerceAtMost(barWidth)
-                paint.color = "#4CAF50".toColorInt()
+                paint.color = Color.parseColor("#4CAF50")
                 canvas.drawRect(barX, barY, barX + progressWidth, barY + barHeight, paint)
 
-                paint.style = Paint.Style.FILL
-                paint.color = Color.BLACK
-
-                yPosition += 85f
+                yPosition += 95f // Space for next item
             }
-
-            yPosition += 20f
         }
 
-        // DEBTS SECTION
+        // --- SECTION: DEBTS ---
         if (debts.isNotEmpty()) {
-            checkPagination(150f)
+            checkPagination(100f)
 
             paint.textSize = 16f
-            paint.color = "#FF5722".toColorInt()
+            paint.color = Color.parseColor("#FF5722") // Deep Orange/Red
             paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
-            canvas.drawText("DEUDAS", xMargin, yPosition, paint)
+            canvas.drawText("DEBTS", xMargin, yPosition, paint)
             yPosition += 30f
 
-            paint.textSize = 11f
-            paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
-
             for (debt in debts) {
-                checkPagination(120f)
+                checkPagination(120f) // Space for one debt card
 
                 val percentage = if (debt.amount > 0) {
                     ((debt.amountPaid / debt.amount) * 100).toInt()
                 } else 0
-
                 val remaining = debt.amount - debt.amountPaid
 
-                // Box background
-                paint.color = "#FFEBEE".toColorInt()
-                paint.style = Paint.Style.FILL
-                canvas.drawRect(xMargin, yPosition - 15, pageInfo.pageWidth - xMargin, yPosition + 85, paint)
+                // Card Background
+                val boxTop = yPosition - 15
+                val boxBottom = yPosition + 85
 
-                // Border
-                paint.color = "#FF5722".toColorInt()
+                paint.color = Color.parseColor("#FFEBEE") // Very light red
+                paint.style = Paint.Style.FILL
+                canvas.drawRect(xMargin, boxTop, pageInfo.pageWidth - xMargin, boxBottom, paint)
+
+                // Card Border
+                paint.color = Color.parseColor("#FF5722")
                 paint.style = Paint.Style.STROKE
                 paint.strokeWidth = 2f
-                canvas.drawRect(xMargin, yPosition - 15, pageInfo.pageWidth - xMargin, yPosition + 85, paint)
+                canvas.drawRect(xMargin, boxTop, pageInfo.pageWidth - xMargin, boxBottom, paint)
 
+                // Text Content
                 paint.style = Paint.Style.FILL
+                paint.strokeWidth = 0f
                 paint.color = Color.BLACK
-
-                // Title
                 paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
                 paint.textSize = 12f
                 canvas.drawText(" ${debt.description}", xMargin + 10, yPosition, paint)
@@ -307,21 +313,19 @@ class PdfGenerator(private val context: Context) {
                 paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
                 paint.textSize = 10f
 
-                // Total
                 canvas.drawText("Total: ${currencyFormat.format(debt.amount)}", xMargin + 10, yPosition + 18, paint)
 
-                // Paid
                 paint.color = Color.parseColor("#2E7D32")
-                canvas.drawText("Pagado: ${currencyFormat.format(debt.amountPaid)}", xMargin + 10, yPosition + 33, paint)
+                canvas.drawText("Paid: ${currencyFormat.format(debt.amountPaid)}", xMargin + 10, yPosition + 33, paint)
 
-                // Remaining
-                paint.color = "#C62828".toColorInt()
-                canvas.drawText("Restante: ${currencyFormat.format(remaining)}", xMargin + 10, yPosition + 48, paint)
+                paint.color = Color.parseColor("#C62828")
+                canvas.drawText("Remaining: ${currencyFormat.format(remaining)}", xMargin + 10, yPosition + 48, paint)
 
-                // Deadline
-                paint.color = "#F57C00".toColorInt()
-                val deadlineStr = dateFormat.format(debt.dueDate.toDate())
-                canvas.drawText("Fecha límite: $deadlineStr", xMargin + 10, yPosition + 63, paint)
+                paint.color = Color.parseColor("#F57C00")
+                val deadlineStr = try {
+                    dateFormat.format(debt.dueDate.toDate())
+                } catch (e: Exception) { "No Date" }
+                canvas.drawText("Deadline: $deadlineStr", xMargin + 10, yPosition + 63, paint)
 
                 // Progress Bar
                 val barWidth = 120f
@@ -329,32 +333,31 @@ class PdfGenerator(private val context: Context) {
                 val barX = xMargin + 280
                 val barY = yPosition + 20
 
-                paint.color = "#E0E0E0".toColorInt()
-                paint.style = Paint.Style.FILL
+                paint.color = Color.LTGRAY
                 canvas.drawRect(barX, barY, barX + barWidth, barY + barHeight, paint)
 
                 val progressWidth = (barWidth * percentage / 100f).coerceAtMost(barWidth)
-                paint.color = "#FF5722".toColorInt()
+                paint.color = Color.parseColor("#FF5722")
                 canvas.drawRect(barX, barY, barX + progressWidth, barY + barHeight, paint)
 
-                paint.style = Paint.Style.FILL
                 paint.color = Color.BLACK
                 paint.textSize = 9f
                 canvas.drawText("$percentage%", barX + barWidth + 10, barY + 6, paint)
 
-                paint.color = Color.BLACK
-                yPosition += 100f
+                yPosition += 110f
             }
         }
 
+        // Finish the last page
         pdfDocument.finishPage(page)
 
         try {
             pdfDocument.writeTo(outputStream)
-            Toast.makeText(context, context.getString(R.string.pdf_generated_msg), Toast.LENGTH_LONG).show()
+            Toast.makeText(context, "PDF Report generated successfully", Toast.LENGTH_LONG).show()
         } catch (e: Exception) {
             e.printStackTrace()
-            Toast.makeText(context, context.getString(R.string.pdf_error_msg, e.message), Toast.LENGTH_SHORT).show()
+            // Kept as Toast because PDF generation errors are critical and user-facing for immediate feedback
+            Toast.makeText(context, "Error generating PDF: ${e.message}", Toast.LENGTH_SHORT).show()
         } finally {
             pdfDocument.close()
             outputStream.close()

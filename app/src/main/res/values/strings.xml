@@ -239,4 +239,120 @@
     <string name="add_new_goal">Nueva meta</string>
     <string name="progress_percent">Porcentaje de avance\n</string>
 
+    /////////////// AddMenuScreen.kt //////////////////
+
+    <string name="menu_debts">Debts</string>
+    <string name="menu_movements">Movements</string>
+    <string name="menu_savings">Savings</string>
+    <string name="menu_reports">Reports</string>
+    <string name="menu_reminders">Reminders</string>
+    <string name="menu_ant_expenses">Ant Expenses</string>
+    <string name="menu_export_pdf">Export PDF</string>
+    <string name="menu_currency">Currency</string>
+
+    <string name="back_desc">Go back</string>
+    <string name="notifications_desc">Notifications</string>
+
+
+    /////////////// DebtsAndGoalsScreen.kt //////////////////
+
+    <string name="tab_debts">Debts</string>
+    <string name="tab_goals">Goals</string>
+
+    <string name="no_debts_registered">No debts registered</string>
+    <string name="no_goals_registered">No goals registered</string>
+
+    <string name="btn_add_new_debt">Add new debt</string>
+    <string name="btn_add_new_goal">Add new goal</string>
+
+    <string name="title_new_debt">New Debt</string>
+    <string name="title_new_goal">New Goal</string>
+    <string name="label_amount_total">Total amount</string>
+    <string name="label_amount_target">Target Amount</string>
+    <string name="label_description_hint">Description (e.g. Card)</string>
+    <string name="label_creditor_hint">Creditor (e.g. Bank)</string>
+    <string name="label_name_goal_hint">Goal name</string>
+    <string name="btn_date_deadline">Deadline: %1$s</string>
+    <string name="btn_date_target">Target Date: %1$s</string>
+    <string name="btn_create">Create</string>
+    <string name="btn_cancel">Cancel</string>
+    <string name="msg_fill_all_fields">Fill all fields</string>
+
+    <string name="badge_debt_paid">Debt Fully Paid</string>
+    <string name="badge_goal_completed">Goal Completed</string>
+
+    <string name="label_debt_total">Total debt</string>
+    <string name="label_goal_target">Goal</string>
+    <string name="label_deadline">Deadline</string>
+
+    <string name="label_progress_text">progress of %1$d%%</string>
+    <string name="label_remaining">Remaining: %1$s</string>
+
+    <string name="label_pay_amount">Payment amount</string>
+    <string name="label_contribute_amount">Contribution amount</string>
+    <string name="checkbox_new_income">Register as new income</string>
+    <string name="msg_money_source">Check if this money does NOT come from your current balance.</string>
+    <string name="btn_pay">Pay</string>
+    <string name="btn_contribute">Contribute</string>
+    <string name="btn_change_date">Change Date</string>
+
+    <string name="msg_invalid_amount">Invalid amount</string>
+    <string name="msg_amount_exceeds">Amount exceeds remaining debt</string>
+
+    <string name="title_total_debts_summary">Total Debts</string>
+    <string name="label_paid">Paid</string>
+    <string name="label_progress_general">Overall progress: %1$d%%</string>
+
+    /////////////// AntExpensesScreen.kt //////////////////
+
+    <string name="ant_expenses_title">Ant Expenses</string>
+    <string name="ant_impact_month_lost">You lost this month</string>
+    <string name="ant_impact_projection">Annual Projection:</string>
+    <string name="ant_auto_detection_label">Automatic detections by Coinary</string>
+    <string name="ant_empty_state">No ant expenses detected yet.\nKeep tracking your movements.</string>
+
+    <string name="ant_insight_template">Your biggest leak is in \'%1$s\'. Watch out for those small expenses!</string>
+
+    /////////////// CurrencyScreen.kt //////////////////
+
+    <string name="currency_title">Currency Today</string>
+    <string name="currency_refresh_desc">Refresh</string>
+    <string name="currency_error_offline">No connection. Using approximate values.</string>
+
+    <string name="currency_base_label">Your base currency (COP)</string>
+    <string name="currency_cop_name">Colombian Peso</string>
+    <string name="currency_input_label">Amount to convert</string>
+    <string name="currency_realtime_label">Real-time conversion</string>
+
+    <string name="currency_usd">US Dollar</string>
+    <string name="currency_eur">Euro</string>
+    <string name="currency_gbp">British Pound</string>
+    <string name="currency_mxn">Mexican Peso</string>
+    <string name="currency_brl">Brazilian Real</string>
+    <string name="currency_jpy">Japanese Yen</string>
+
+    /////////////// NotificationScheduler.kt //////////////////
+
+    <string name="channel_name">Coinary Reminders</string>
+    <string name="channel_description">Financial notifications and alerts</string>
+
+    <string name="toast_permission_alarm_needed">Exact alarm permission not granted.</string>
+    <string name="toast_permission_error">Permission error.</string>
+    <string name="toast_invalid_date">Invalid date format</string>
+    <string name="toast_reminder_canceled">Reminder canceled</string>
+
+    <string name="notif_daily_title">Hello!</string>
+    <string name="notif_daily_message">It\'s time to log your daily expenses.</string>
+
+    <string name="notif_debt_1_day_title">Your debt is due tomorrow</string>
+    <string name="notif_debt_8_days_title">Your debt is due in 8 days</string>
+    <string name="notif_debt_15_days_title">Debt reminder (15 days left)</string>
+    <string name="notif_debt_default_title">Debt Reminder</string>
+    <string name="notif_debt_body">Debt: %1$s\nDue in %2$d %3$s</string>
+    <string name="day_singular">day</string>
+    <string name="day_plural">days</string>
+
+    <string name="notif_goal_title">Goal Completed!</string>
+    <string name="notif_goal_message">Congratulations! You reached your savings goal "%1$s" (%2$s). Keep it up! </string>
+    <string name="notif_goal_short">You reached your goal: %1$s</string>
 </resources>

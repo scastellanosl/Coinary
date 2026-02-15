@@ -5,26 +5,34 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 
+/**
+ * HomeNavGraph: Orchestrates the internal navigation flow of the main application.
+ * This nested graph manages transitions between core features like Home, Movements, and Profile.
+ * * @param mainNavController The controller responsible for navigating within the main app shell.
+ * @param rootNavController The top-level controller used for global actions like logging out or opening the full-screen menu.
+ */
 @Composable
 fun HomeNavGraph(
-    mainNavController: NavHostController, // Para navegar entre pestañas (Home, Profile, etc)
-    rootNavController: NavHostController  // Para salir al Login o ir al Menú (+)
+    mainNavController: NavHostController, // Internal tab navigation (Home, Profile, etc)
+    rootNavController: NavHostController  // Global navigation for Login or Add Menu (+)
 ) {
     NavHost(
         navController = mainNavController,
         startDestination = "home"
     ) {
-        // --- 1. HOME ---
+        /**
+         * Route: home
+         * Entry point of the authenticated application area.
+         */
         composable("home") {
             HomeScreen(
                 navController = mainNavController,
                 onAddNewClick = {
-                    // Usamos root para que el menú tape la barra inferior (opcional)
-                    // O mainNavController si quieres que se mantenga la barra
+                    // Navigate through the root controller to overlay the bottom bar with the Add Menu
                     rootNavController.navigate("add_menu")
                 },
                 onLogout = {
-                    // Usamos root para volver al login y matar la sesión
+                    // Clear the backstack and return to the login flow
                     rootNavController.navigate("login") {
                         popUpTo("main") { inclusive = true }
                     }
@@ -32,19 +40,29 @@ fun HomeNavGraph(
             )
         }
 
-        // --- 2. MOVEMENT (¡ESTO FALTABA Y CAUSABA EL ERROR!) ---
+        /**
+         * Route: movement
+         * Handles the entry and editing of financial records.
+         */
         composable("movement") {
             MovementScreen(
                 navController = mainNavController,
-                onLogout = { /* Lógica opcional */ }
+                onLogout = { /* Optional session handling */ }
             )
         }
 
-        // --- 3. OTRAS PESTAÑAS ---
+        /**
+         * Route: stats
+         * Displays financial analytics and charts.
+         */
         composable("stats") {
             StatsScreen(navController = mainNavController)
         }
 
+        /**
+         * Route: profile
+         * Manages user account settings and session termination.
+         */
         composable("profile") {
             ProfileScreen(
                 navController = mainNavController,
@@ -56,19 +74,35 @@ fun HomeNavGraph(
             )
         }
 
+        /**
+         * Route: notifications
+         * Displays system and financial alerts.
+         */
         composable("notifications") {
             NotificationsScreen(navController = mainNavController)
         }
 
-        composable("reminder") { // O "reminder_screen" según tu menú
+        /**
+         * Route: reminder
+         * Interface for managing scheduled financial alerts.
+         */
+        composable("reminder") {
             ReminderScreen(navController = mainNavController)
         }
 
-        composable("recomendaciones") {
+        /**
+         * Route: recommendations (Recommendations)
+         * Provides AI-driven financial advice.
+         */
+        composable("recommendations") {
             RecomendacionesPantalla(navController = mainNavController)
         }
 
-        composable("predicciones") {
+        /**
+         * Route: predictions (Predictions)
+         * Forecasts future financial scenarios based on history.
+         */
+        composable("predictions") {
             PrediccionesPantalla(navController = mainNavController)
         }
     }

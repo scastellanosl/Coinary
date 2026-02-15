@@ -6,15 +6,50 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.AccountBalance
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -23,11 +58,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -38,10 +73,11 @@ import com.example.coinary.model.SavingsGoal
 import com.example.coinary.utils.ThousandSeparatorTransformation
 import com.example.coinary.viewmodel.DebtGoalViewModel
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import com.google.firebase.Timestamp
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun DebtsAndGoalsScreen(
@@ -60,15 +96,16 @@ fun DebtsAndGoalsScreen(
         )
     }
 
-    val startTab = if (initialTab.equals("ahorros", ignoreCase = true)) "Metas" else "Deudas"
+    // Logic for initial tab (mapped to English internal keys)
+    val startTab = if (initialTab.equals("ahorros", ignoreCase = true)) "Goals" else "Debts"
 
     var selectedTab by remember { mutableStateOf(startTab) }
 
-    // Estados para selección (acciones existentes)
+    // Estados para selección
     var selectedDebt by remember { mutableStateOf<Debt?>(null) }
     var selectedGoal by remember { mutableStateOf<SavingsGoal?>(null) }
 
-    // Estados para CREACIÓN (Nuevos diálogos)
+    // Estados para CREACIÓN
     var showAddDebtDialog by remember { mutableStateOf(false) }
     var showAddGoalDialog by remember { mutableStateOf(false) }
 
@@ -86,7 +123,7 @@ fun DebtsAndGoalsScreen(
         }
     }
 
-    // --- DIÁLOGOS DE ACCIÓN (Pagar / Aportar) ---
+    // --- DIÁLOGOS DE ACCIÓN ---
     selectedDebt?.let { debt ->
         DebtActionDialog(
             debt = debt,
@@ -169,7 +206,7 @@ fun DebtsAndGoalsScreen(
                 IconButton(onClick = onBackClick) {
                     Icon(
                         imageVector = Icons.Default.ArrowBack,
-                        contentDescription = "Atrás",
+                        contentDescription = stringResource(R.string.back_desc),
                         tint = Color.White
                     )
                 }
@@ -177,7 +214,7 @@ fun DebtsAndGoalsScreen(
                 IconButton(onClick = { navController.navigate("notifications") }) {
                     Icon(
                         imageVector = Icons.Default.Notifications,
-                        contentDescription = "Notificaciones",
+                        contentDescription = stringResource(R.string.notifications_desc),
                         tint = Color.White
                     )
                 }
@@ -193,16 +230,16 @@ fun DebtsAndGoalsScreen(
                 horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally)
             ) {
                 TabButton(
-                    text = "Deudas",
-                    isSelected = selectedTab == "Deudas",
-                    onClick = { selectedTab = "Deudas" },
+                    text = stringResource(R.string.tab_debts),
+                    isSelected = selectedTab == "Debts",
+                    onClick = { selectedTab = "Debts" },
                     modifier = Modifier.weight(1f)
                 )
 
                 TabButton(
-                    text = "Metas",
-                    isSelected = selectedTab == "Metas",
-                    onClick = { selectedTab = "Metas" },
+                    text = stringResource(R.string.tab_goals),
+                    isSelected = selectedTab == "Goals",
+                    onClick = { selectedTab = "Goals" },
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -216,23 +253,31 @@ fun DebtsAndGoalsScreen(
                     .padding(horizontal = 16.dp)
             ) {
                 when (selectedTab) {
-                    "Deudas" -> {
+                    "Debts" -> {
                         if (uiState.debts.isEmpty() && !uiState.isLoading) {
                             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                Text("No tienes deudas registradas", color = Color.White.copy(alpha = 0.6f), fontSize = 16.sp, fontFamily = InterFont)
+                                Text(
+                                    stringResource(R.string.no_debts_registered),
+                                    color = Color.White.copy(alpha = 0.6f),
+                                    fontSize = 16.sp,
+                                    fontFamily = InterFont
+                                )
                             }
                         } else {
-                            // padding bottom extra para que el botón no tape el último item
                             DebtsList(debts = uiState.debts, onDebtClick = { debt -> selectedDebt = debt })
                         }
                     }
-                    "Metas" -> {
+                    "Goals" -> {
                         if (uiState.goals.isEmpty() && !uiState.isLoading) {
                             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                Text("No tienes metas registradas", color = Color.White.copy(alpha = 0.6f), fontSize = 16.sp, fontFamily = InterFont)
+                                Text(
+                                    stringResource(R.string.no_goals_registered),
+                                    color = Color.White.copy(alpha = 0.6f),
+                                    fontSize = 16.sp,
+                                    fontFamily = InterFont
+                                )
                             }
                         } else {
-                            // padding bottom extra para que el botón no tape el último item
                             GoalsList(goals = uiState.goals, onGoalClick = { goal -> selectedGoal = goal })
                         }
                     }
@@ -246,10 +291,10 @@ fun DebtsAndGoalsScreen(
             }
         }
 
-        // --- NUEVO BOTÓN INFERIOR ESTILO IMAGEN (MODIFICADO) ---
+        // --- BOTÓN INFERIOR ---
         Button(
             onClick = {
-                if (selectedTab == "Deudas") {
+                if (selectedTab == "Debts") {
                     showAddDebtDialog = true
                 } else {
                     showAddGoalDialog = true
@@ -257,18 +302,18 @@ fun DebtsAndGoalsScreen(
             },
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 20.dp) // MODIFICADO: Menos espacio desde el fondo (más abajo)
-                .fillMaxWidth(0.65f) // MODIFICADO: Menos ancho (65% de la pantalla)
-                .height(45.dp), // MODIFICADO: Menos altura
+                .padding(bottom = 20.dp)
+                .fillMaxWidth(0.65f)
+                .height(45.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFFD9D9D9) // Gris claro estilo imagen
+                containerColor = Color(0xFFD9D9D9)
             ),
-            shape = RoundedCornerShape(22.5.dp) // Ajustado para que sea perfectamente redondo en los bordes
+            shape = RoundedCornerShape(22.5.dp)
         ) {
             Text(
-                text = if (selectedTab == "Deudas") "Añadir nueva deuda" else "Añadir nueva meta",
+                text = if (selectedTab == "Debts") stringResource(R.string.btn_add_new_debt) else stringResource(R.string.btn_add_new_goal),
                 color = Color.Black,
-                fontSize = 14.sp, // MODIFICADO: Letra un poco más pequeña
+                fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
                 fontFamily = InterFont
             )
@@ -277,7 +322,7 @@ fun DebtsAndGoalsScreen(
 }
 
 // ----------------------------------------------------------------------------------
-// --- DIÁLOGOS DE ACCIÓN (PAGAR/APORTAR) CON CHECKBOX ---
+// --- DIÁLOGOS DE ACCIÓN ---
 // ----------------------------------------------------------------------------------
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -301,7 +346,6 @@ fun DebtActionDialog(
     var isNewIncome by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
-    // DETECTAR SI ESTÁ COMPLETAMENTE PAGADA
     val isPaid = debt.isPaid || debt.amountPaid >= debt.amount
 
     AlertDialog(
@@ -321,7 +365,6 @@ fun DebtActionDialog(
                     overflow = TextOverflow.Ellipsis
                 )
 
-                //  MOSTRAR BADGE SI ESTÁ PAGADA
                 if (isPaid) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Box(
@@ -332,7 +375,7 @@ fun DebtActionDialog(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = " Deuda Pagada Completamente",
+                            text = stringResource(R.string.badge_debt_paid),
                             color = Color.White,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
@@ -356,7 +399,7 @@ fun DebtActionDialog(
                             fontFamily = InterFont
                         )
                         Text(
-                            text = "Deuda total",
+                            text = stringResource(R.string.label_debt_total),
                             fontSize = 12.sp,
                             color = Color.White.copy(alpha = 0.6f),
                             fontFamily = InterFont
@@ -371,7 +414,7 @@ fun DebtActionDialog(
                             fontFamily = InterFont
                         )
                         Text(
-                            text = "Fecha límite",
+                            text = stringResource(R.string.label_deadline),
                             fontSize = 12.sp,
                             color = Color.White.copy(alpha = 0.6f),
                             fontFamily = InterFont
@@ -404,7 +447,7 @@ fun DebtActionDialog(
 
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "llevas un progreso del ${progressPercentage.toInt()}%",
+                    text = stringResource(R.string.label_progress_text, progressPercentage.toInt()),
                     fontSize = 14.sp,
                     color = Color.White.copy(alpha = 0.8f),
                     fontFamily = InterFont,
@@ -412,8 +455,9 @@ fun DebtActionDialog(
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
+                val remainingStr = currencyFormat.format(remainingAmount).replace("COP", "")
                 Text(
-                    text = "Restante: ${currencyFormat.format(remainingAmount).replace("COP", "")}",
+                    text = stringResource(R.string.label_remaining, remainingStr),
                     fontSize = 14.sp,
                     color = Color.White.copy(alpha = 0.7f),
                     fontFamily = InterFont
@@ -421,7 +465,6 @@ fun DebtActionDialog(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                //  DESHABILITAR CAMPO SI ESTÁ PAGADA
                 TextField(
                     value = paymentAmount,
                     onValueChange = { newValue ->
@@ -436,7 +479,7 @@ fun DebtActionDialog(
                     },
                     label = {
                         Text(
-                            text = "Monto a pagar",
+                            text = stringResource(R.string.label_pay_amount),
                             fontFamily = InterFont,
                             color = Color(0xFF868686)
                         )
@@ -464,7 +507,6 @@ fun DebtActionDialog(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                //  DESHABILITAR CHECKBOX SI ESTÁ PAGADA
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
@@ -484,7 +526,7 @@ fun DebtActionDialog(
                         )
                     )
                     Text(
-                        text = "Registrar como nuevo ingreso",
+                        text = stringResource(R.string.checkbox_new_income),
                         color = if (isPaid) Color.Gray else Color.White,
                         fontSize = 14.sp,
                         fontFamily = InterFont
@@ -492,7 +534,7 @@ fun DebtActionDialog(
                 }
 
                 Text(
-                    text = "Marca si este dinero NO sale de tu saldo actual.",
+                    text = stringResource(R.string.msg_money_source),
                     color = Color.Gray,
                     fontSize = 10.sp,
                     fontFamily = InterFont,
@@ -501,18 +543,17 @@ fun DebtActionDialog(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                //  DESHABILITAR BOTÓN DE PAGAR SI ESTÁ PAGADA
                 Button(
                     onClick = {
                         val amount = paymentAmount.toDoubleOrNull()
                         if (amount == null || amount <= 0) {
-                            Toast.makeText(context, "Ingresa un monto válido", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(R.string.msg_invalid_amount), Toast.LENGTH_SHORT).show()
                             return@Button
                         }
                         if (amount > remainingAmount) {
                             Toast.makeText(
                                 context,
-                                "El monto excede la deuda restante",
+                                context.getString(R.string.msg_amount_exceeds),
                                 Toast.LENGTH_SHORT
                             ).show()
                             return@Button
@@ -525,12 +566,12 @@ fun DebtActionDialog(
                         .height(50.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF4c6ef5),
-                        disabledContainerColor = Color.Gray //
+                        disabledContainerColor = Color.Gray
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Text(
-                        text = "Pagar",
+                        text = stringResource(R.string.btn_pay),
                         color = Color.White,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold,
@@ -562,7 +603,6 @@ fun GoalActionDialog(
     var isNewIncome by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
-    //  DETECTAR SI ESTÁ COMPLETADA
     val isCompleted = goal.isCompleted || goal.currentAmount >= goal.targetAmount
 
     AlertDialog(
@@ -582,7 +622,6 @@ fun GoalActionDialog(
                     overflow = TextOverflow.Ellipsis
                 )
 
-                //  MOSTRAR BADGE SI ESTÁ COMPLETADA
                 if (isCompleted) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Box(
@@ -593,7 +632,7 @@ fun GoalActionDialog(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = " Meta Completada",
+                            text = stringResource(R.string.badge_goal_completed),
                             color = Color.White,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
@@ -613,7 +652,7 @@ fun GoalActionDialog(
                             color = Color.White,
                             fontFamily = InterFont
                         )
-                        Text(text = "Meta", fontSize = 12.sp, color = Color.White.copy(alpha = 0.6f), fontFamily = InterFont)
+                        Text(text = stringResource(R.string.label_goal_target), fontSize = 12.sp, color = Color.White.copy(alpha = 0.6f), fontFamily = InterFont)
                     }
                     Column(horizontalAlignment = Alignment.End) {
                         Text(
@@ -623,7 +662,7 @@ fun GoalActionDialog(
                             color = Color.White,
                             fontFamily = InterFont
                         )
-                        Text(text = "Fecha límite", fontSize = 12.sp, color = Color.White.copy(alpha = 0.6f), fontFamily = InterFont)
+                        Text(text = stringResource(R.string.label_deadline), fontSize = 12.sp, color = Color.White.copy(alpha = 0.6f), fontFamily = InterFont)
                     }
                 }
 
@@ -642,8 +681,9 @@ fun GoalActionDialog(
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
+                val remainingStr = currencyFormat.format(remainingAmount).replace("COP", "")
                 Text(
-                    text = "Restante: ${currencyFormat.format(remainingAmount).replace("COP", "")}",
+                    text = stringResource(R.string.label_remaining, remainingStr),
                     fontSize = 14.sp,
                     color = Color.White.copy(alpha = 0.7f),
                     fontFamily = InterFont
@@ -651,7 +691,6 @@ fun GoalActionDialog(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                //  DESHABILITAR CAMPO SI ESTÁ COMPLETADA
                 TextField(
                     value = contributionAmount,
                     onValueChange = { newValue ->
@@ -662,7 +701,7 @@ fun GoalActionDialog(
                             }
                         }
                     },
-                    label = { Text("Monto a aportar", fontFamily = InterFont, color = Color(0xFF868686)) },
+                    label = { Text(stringResource(R.string.label_contribute_amount), fontFamily = InterFont, color = Color(0xFF868686)) },
                     enabled = !isCompleted,
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -684,7 +723,6 @@ fun GoalActionDialog(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                //  DESHABILITAR CHECKBOX SI ESTÁ COMPLETADA
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
@@ -701,22 +739,21 @@ fun GoalActionDialog(
                             checkmarkColor = Color.White
                         )
                     )
-                    Text("Registrar como nuevo ingreso", color = Color.White, fontSize = 14.sp, fontFamily = InterFont)
+                    Text(stringResource(R.string.checkbox_new_income), color = Color.White, fontSize = 14.sp, fontFamily = InterFont)
                 }
                 Text(
-                    text = "Marca si este dinero NO sale de tu saldo actual.",
+                    text = stringResource(R.string.msg_money_source),
                     color = Color.Gray,
                     fontSize = 10.sp,
                     modifier = Modifier.padding(start = 12.dp, bottom = 16.dp)
                 )
 
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    //  DESHABILITAR BOTÓN DE APORTAR SI ESTÁ COMPLETADA
                     Button(
                         onClick = {
                             val amount = contributionAmount.toDoubleOrNull()
                             if (amount == null || amount <= 0) {
-                                Toast.makeText(context, "Ingresa un monto válido", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, context.getString(R.string.msg_invalid_amount), Toast.LENGTH_SHORT).show()
                                 return@Button
                             }
                             onContribute(amount, isNewIncome)
@@ -729,7 +766,7 @@ fun GoalActionDialog(
                         ),
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("Aportar", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, fontFamily = InterFont)
+                        Text(stringResource(R.string.btn_contribute), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, fontFamily = InterFont)
                     }
 
                     Button(
@@ -751,14 +788,13 @@ fun GoalActionDialog(
                         colors = ButtonDefaults.buttonColors(containerColor = Color.White),
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("Cambiar Fecha", color = Color.Black, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, fontFamily = InterFont)
+                        Text(stringResource(R.string.btn_change_date), color = Color.Black, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, fontFamily = InterFont)
                     }
                 }
             }
         }
     )
 }
-
 
 // ----------------------------------------------------------------------------------
 // --- COMPONENTES AUXILIARES ---
@@ -793,7 +829,7 @@ fun AddDebtDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = Color(0xFF1E1E1E),
-        title = { Text("Nueva Deuda", color = Color.White, fontFamily = InterFont) },
+        title = { Text(stringResource(R.string.title_new_debt), color = Color.White, fontFamily = InterFont) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 TextField(
@@ -802,7 +838,7 @@ fun AddDebtDialog(
                         val cleaned = it.replace(".", "").replace(",", "")
                         if (cleaned.matches(Regex("^\\d*\\.?\\d{0,2}$"))) amount = cleaned
                     },
-                    label = { Text("Monto total", color = Color.Gray) },
+                    label = { Text(stringResource(R.string.label_amount_total), color = Color.Gray) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     visualTransformation = ThousandSeparatorTransformation(),
                     colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedTextColor = Color.White, unfocusedTextColor = Color.White),
@@ -811,14 +847,14 @@ fun AddDebtDialog(
                 TextField(
                     value = description,
                     onValueChange = { description = it },
-                    label = { Text("Descripción (ej. Tarjeta)", color = Color.Gray) },
+                    label = { Text(stringResource(R.string.label_description_hint), color = Color.Gray) },
                     colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedTextColor = Color.White, unfocusedTextColor = Color.White),
                     modifier = Modifier.border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
                 )
                 TextField(
                     value = creditor,
                     onValueChange = { creditor = it },
-                    label = { Text("Acreedor (ej. Banco)", color = Color.Gray) },
+                    label = { Text(stringResource(R.string.label_creditor_hint), color = Color.Gray) },
                     colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedTextColor = Color.White, unfocusedTextColor = Color.White),
                     modifier = Modifier.border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
                 )
@@ -827,7 +863,8 @@ fun AddDebtDialog(
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2D2D2D)),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Fecha Límite: ${dateFormat.format(selectedDate)}", color = Color.White)
+                    val dateStr = dateFormat.format(selectedDate)
+                    Text(stringResource(R.string.btn_date_deadline, dateStr), color = Color.White)
                 }
             }
         },
@@ -838,17 +875,17 @@ fun AddDebtDialog(
                     if (amountDouble != null && description.isNotEmpty() && creditor.isNotEmpty()) {
                         onConfirm(amountDouble, description, creditor, selectedDate)
                     } else {
-                        Toast.makeText(context, "Completa todos los campos", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.msg_fill_all_fields), Toast.LENGTH_SHORT).show()
                     }
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4c6ef5))
             ) {
-                Text("Crear", color = Color.White)
+                Text(stringResource(R.string.btn_create), color = Color.White)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancelar", color = Color.White)
+                Text(stringResource(R.string.btn_cancel), color = Color.White)
             }
         }
     )
@@ -882,13 +919,13 @@ fun AddGoalDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = Color(0xFF1E1E1E),
-        title = { Text("Nueva Meta", color = Color.White, fontFamily = InterFont) },
+        title = { Text(stringResource(R.string.title_new_goal), color = Color.White, fontFamily = InterFont) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 TextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Nombre de la meta", color = Color.Gray) },
+                    label = { Text(stringResource(R.string.label_name_goal_hint), color = Color.Gray) },
                     colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedTextColor = Color.White, unfocusedTextColor = Color.White),
                     modifier = Modifier.border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
                 )
@@ -898,7 +935,7 @@ fun AddGoalDialog(
                         val cleaned = it.replace(".", "").replace(",", "")
                         if (cleaned.matches(Regex("^\\d*\\.?\\d{0,2}$"))) targetAmount = cleaned
                     },
-                    label = { Text("Monto Objetivo", color = Color.Gray) },
+                    label = { Text(stringResource(R.string.label_amount_target), color = Color.Gray) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     visualTransformation = ThousandSeparatorTransformation(),
                     colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedTextColor = Color.White, unfocusedTextColor = Color.White),
@@ -909,7 +946,8 @@ fun AddGoalDialog(
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2D2D2D)),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Fecha Objetivo: ${dateFormat.format(selectedDate)}", color = Color.White)
+                    val dateStr = dateFormat.format(selectedDate)
+                    Text(stringResource(R.string.btn_date_target, dateStr), color = Color.White)
                 }
             }
         },
@@ -920,17 +958,17 @@ fun AddGoalDialog(
                     if (amountDouble != null && name.isNotEmpty()) {
                         onConfirm(name, amountDouble, selectedDate)
                     } else {
-                        Toast.makeText(context, "Completa todos los campos", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.msg_fill_all_fields), Toast.LENGTH_SHORT).show()
                     }
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4c6ef5))
             ) {
-                Text("Crear", color = Color.White)
+                Text(stringResource(R.string.btn_create), color = Color.White)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancelar", color = Color.White)
+                Text(stringResource(R.string.btn_cancel), color = Color.White)
             }
         }
     )
@@ -971,7 +1009,6 @@ fun DebtsList(debts: List<Debt>, onDebtClick: (Debt) -> Unit) {
     LazyColumn(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
-        // AUMENTAMOS PADDING PARA QUE EL BOTÓN NO TAPE EL ULTIMO ITEM
         contentPadding = PaddingValues(bottom = 100.dp)
     ) {
         items(debts) { debt -> DebtCard(debt = debt, onClick = { onDebtClick(debt) }) }
@@ -989,7 +1026,6 @@ fun GoalsList(goals: List<SavingsGoal>, onGoalClick: (SavingsGoal) -> Unit) {
     LazyColumn(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
-        // AUMENTAMOS PADDING PARA QUE EL BOTÓN NO TAPE EL ULTIMO ITEM
         contentPadding = PaddingValues(bottom = 100.dp)
     ) {
         items(goals) { goal -> GoalCard(goal = goal, onClick = { onGoalClick(goal) }) }
@@ -1022,7 +1058,7 @@ fun DebtCard(debt: Debt, onClick: () -> Unit) {
                         Box(modifier = Modifier.fillMaxWidth(progressPercentage / 100f).fillMaxHeight().background(brush = Brush.horizontalGradient(colors = listOf(Color(0xFF4c6ef5), Color(0xFF5E7EFF))), shape = RoundedCornerShape(4.dp)))
                     }
                     Spacer(modifier = Modifier.height(6.dp))
-                    Text(text = "llevas un progreso del ${progressPercentage.toInt()}%", fontSize = 12.sp, color = Color.White.copy(alpha = 0.7f), fontFamily = InterFont)
+                    Text(text = stringResource(R.string.label_progress_text, progressPercentage.toInt()), fontSize = 12.sp, color = Color.White.copy(alpha = 0.7f), fontFamily = InterFont)
                 }
             }
         }
@@ -1055,7 +1091,7 @@ fun GoalCard(goal: SavingsGoal, onClick: () -> Unit) {
                         Box(modifier = Modifier.fillMaxWidth(progressPercentage / 100f).fillMaxHeight().background(brush = Brush.horizontalGradient(colors = listOf(Color(0xFF4c6ef5), Color(0xFF5E7EFF))), shape = RoundedCornerShape(4.dp)))
                     }
                     Spacer(modifier = Modifier.height(6.dp))
-                    Text(text = "llevas un progreso del ${progressPercentage.toInt()}%", fontSize = 12.sp, color = Color.White.copy(alpha = 0.7f), fontFamily = InterFont)
+                    Text(text = stringResource(R.string.label_progress_text, progressPercentage.toInt()), fontSize = 12.sp, color = Color.White.copy(alpha = 0.7f), fontFamily = InterFont)
                 }
             }
         }
@@ -1073,7 +1109,7 @@ fun TotalDebtSummaryCard(totalDebt: Double, totalPaid: Double) {
             Column(modifier = Modifier.fillMaxWidth().padding(20.dp)) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Column {
-                        Text(text = "Total de Deudas", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Color.White.copy(alpha = 0.8f), fontFamily = InterFont)
+                        Text(text = stringResource(R.string.title_total_debts_summary), fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Color.White.copy(alpha = 0.8f), fontFamily = InterFont)
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(text = currencyFormat.format(totalRemaining).replace("COP", "$"), fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Color.White, fontFamily = InterFont)
                     }
@@ -1082,11 +1118,11 @@ fun TotalDebtSummaryCard(totalDebt: Double, totalPaid: Double) {
                 Spacer(modifier = Modifier.height(16.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Column {
-                        Text(text = "Deuda total", fontSize = 12.sp, color = Color.White.copy(alpha = 0.6f), fontFamily = InterFont)
+                        Text(text = stringResource(R.string.label_debt_total), fontSize = 12.sp, color = Color.White.copy(alpha = 0.6f), fontFamily = InterFont)
                         Text(text = currencyFormat.format(totalDebt).replace("COP", "$"), fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Color.White, fontFamily = InterFont)
                     }
                     Column(horizontalAlignment = Alignment.End) {
-                        Text(text = "Pagado", fontSize = 12.sp, color = Color.White.copy(alpha = 0.6f), fontFamily = InterFont)
+                        Text(text = stringResource(R.string.label_paid), fontSize = 12.sp, color = Color.White.copy(alpha = 0.6f), fontFamily = InterFont)
                         Text(text = currencyFormat.format(totalPaid).replace("COP", "$"), fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF4c6ef5), fontFamily = InterFont)
                     }
                 }
@@ -1095,7 +1131,7 @@ fun TotalDebtSummaryCard(totalDebt: Double, totalPaid: Double) {
                     Box(modifier = Modifier.fillMaxWidth(progressPercentage / 100f).fillMaxHeight().background(brush = Brush.horizontalGradient(colors = listOf(Color(0xFF4c6ef5), Color(0xFF5E7EFF))), shape = RoundedCornerShape(4.dp)))
                 }
                 Spacer(modifier = Modifier.height(6.dp))
-                Text(text = "Progreso general: ${progressPercentage.toInt()}%", fontSize = 12.sp, color = Color.White.copy(alpha = 0.7f), fontFamily = InterFont)
+                Text(text = stringResource(R.string.label_progress_general, progressPercentage.toInt()), fontSize = 12.sp, color = Color.White.copy(alpha = 0.7f), fontFamily = InterFont)
             }
         }
     }

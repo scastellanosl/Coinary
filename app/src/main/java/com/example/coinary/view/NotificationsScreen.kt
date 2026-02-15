@@ -32,6 +32,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -40,7 +41,16 @@ import com.example.coinary.data.ReminderItem
 import com.example.coinary.utils.NotificationScheduler
 import com.example.coinary.utils.ReminderStorage
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import androidx.compose.ui.res.stringResource
 
+/**
+ * NotificationsScreen: Displays a list of scheduled reminders.
+ * Allows users to view details and delete pending notifications.
+ *
+ * @param navController Navigation controller.
+ * @param onBackClick Callback for back navigation.
+ * @param onLogout Callback for logout (optional).
+ */
 @Composable
 fun NotificationsScreen(
     navController: NavController,
@@ -50,6 +60,7 @@ fun NotificationsScreen(
     val context = LocalContext.current
     val systemUiController = rememberSystemUiController()
     val statusBarColor = Color.Black
+
     SideEffect {
         systemUiController.setStatusBarColor(
             color = statusBarColor,
@@ -57,35 +68,35 @@ fun NotificationsScreen(
         )
     }
 
+    // Mutable list to hold the current reminders
     val reminders = remember { mutableStateListOf<ReminderItem>() }
 
-    // Función para recargar los recordatorios
+    // Function to reload reminders from storage
     val loadReminders: () -> Unit = {
         reminders.clear()
         reminders.addAll(ReminderStorage.loadReminders(context))
     }
 
-    // Cargar los recordatorios cuando el composable entra en la composición
+    // Initial load when entering the screen
     LaunchedEffect(Unit) {
         loadReminders()
     }
 
-    // ************ NUEVO: Función para manejar el borrado de recordatorios ************
+    /**
+     * Handles the deletion logic for a reminder item.
+     * 1. Cancels the system alarm.
+     * 2. Removes data from local storage.
+     * 3. Updates the UI list instantly.
+     */
     val onDeleteReminder: (ReminderItem) -> Unit = { reminderToDelete ->
-        // 1. Cancelar la alarma del sistema
         NotificationScheduler.cancelNotification(context, reminderToDelete.id)
-
-        // 2. Eliminar el recordatorio de SharedPreferences
         ReminderStorage.removeReminder(context, reminderToDelete.id)
-
-        // 3. Actualizar la lista en la UI
         reminders.remove(reminderToDelete)
-
-        Toast.makeText(context, "Recordatorio eliminado: ${reminderToDelete.title}", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, "Reminder deleted", Toast.LENGTH_SHORT).show()
     }
-    // *********************************************************************************
 
     Column(modifier = Modifier.fillMaxSize()) {
+        // --- Header Section ---
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -102,8 +113,15 @@ fun NotificationsScreen(
                     tint = Color.White
                 )
             }
-            Text(text = context.getString(R.string.notifications), color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
+            Text(
+                text = stringResource(R.string.notifications),
+                color = Color.White,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.SemiBold
+            )
         }
+
+        // --- Content Section ---
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -111,7 +129,7 @@ fun NotificationsScreen(
         ) {
             Image(
                 painter = painterResource(R.drawable.fondo_contenedor_categoria),
-                contentDescription = "Notification background",
+                contentDescription = "Background",
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.FillBounds
             )
@@ -128,7 +146,7 @@ fun NotificationsScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = context.getString(R.string.no_reminders_yet),
+                            text = stringResource(R.string.no_reminders_yet),
                             color = Color.White.copy(alpha = 0.7f),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Normal
@@ -154,7 +172,8 @@ fun NotificationsScreen(
 }
 
 /**
- * composable reutilizable para una tarjeta de notificación individual
+ * NotificationCard: Reusable component for a single notification item.
+ * Implements TextOverflow.Ellipsis to prevent layout breaking on long texts.
  */
 @Composable
 fun NotificationCard(
@@ -163,8 +182,6 @@ fun NotificationCard(
     modifier: Modifier = Modifier,
     onDeleteClick: () -> Unit
 ) {
-    val context = LocalContext.current
-
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -184,31 +201,41 @@ fun NotificationCard(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(modifier = Modifier.weight(1f)) {
+            // Text Column with Weight to occupy available space
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 8.dp) // Padding to avoid touching the delete button
+            ) {
                 Text(
                     text = title,
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 15.sp
+                    fontSize = 15.sp,
+                    maxLines = 1, // Limit title to 1 line
+                    overflow = TextOverflow.Ellipsis // Add "..." if too long
                 )
                 Text(
                     text = message,
                     color = Color.White,
                     fontWeight = FontWeight.Thin,
-                    fontSize = 12.sp
+                    fontSize = 12.sp,
+                    maxLines = 2, // Limit message to 2 lines to fit card height
+                    overflow = TextOverflow.Ellipsis // Add "..." if too long
                 )
             }
+
+            // Delete Action
             IconButton(
                 onClick = onDeleteClick,
                 modifier = Modifier.size(48.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.Delete,
-                    contentDescription = "Eliminar recordatorio",
+                    contentDescription = "Delete Reminder",
                     tint = Color.Red
                 )
             }
-
         }
     }
 }

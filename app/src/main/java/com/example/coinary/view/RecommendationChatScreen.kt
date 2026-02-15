@@ -24,26 +24,38 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.coinary.R
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.coinary.viewmodel.RecommendationViewModel
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
+/**
+ * RecomendacionesPantalla: Financial Recommendations Chat Interface.
+ * Provides a conversational UI where users can ask for and receive
+ * personalized financial advice based on their transaction history.
+ *
+ * @param navController Navigation controller for screen transitions.
+ * @param recommendationViewModel ViewModel managing the recommendation logic and API calls.
+ * @param onLogout Optional callback for logout actions.
+ */
 @Composable
 fun RecomendacionesPantalla(
     navController: NavController,
     recommendationViewModel: RecommendationViewModel = viewModel(),
     onLogout: () -> Unit = {}
 ) {
+    // --- State Observation ---
     val uiState by recommendationViewModel.uiState.collectAsState()
     var message by remember { mutableStateOf("") }
 
+    // --- System UI Configuration ---
     val systemUiController = rememberSystemUiController()
     SideEffect {
         systemUiController.setStatusBarColor(Color.Black, darkIcons = false)
     }
 
+    // --- Responsive Configuration ---
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
     val titleFontSize = if (screenWidth < 360.dp) 22.sp else 26.sp
@@ -53,11 +65,14 @@ fun RecomendacionesPantalla(
             .fillMaxSize()
             .background(Color.Black)
     ) {
+        // Background Image
         Image(
             painter = painterResource(id = R.drawable.fondo_movimentos),
             contentDescription = null,
             contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter)
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.TopCenter)
         )
 
         Column(
@@ -65,7 +80,7 @@ fun RecomendacionesPantalla(
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
         ) {
-            // Header
+            // --- Header Section ---
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -76,21 +91,23 @@ fun RecomendacionesPantalla(
                 IconButton(onClick = { navController.popBackStack() }) {
                     Icon(
                         imageVector = Icons.Default.ArrowBack,
-                        contentDescription = "Volver",
+                        contentDescription = "Back",
                         tint = Color.White
                     )
                 }
 
                 Text(
-                    text = "Recomendacion Financiera",
+                    text = "Financial Recommendations",
                     fontSize = titleFontSize,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
                 )
 
+                // Spacer to balance layout (centering the title)
                 Spacer(modifier = Modifier.size(48.dp))
             }
 
+            // --- Chat List Section ---
             LazyColumn(
                 modifier = Modifier
                     .weight(1f)
@@ -98,16 +115,19 @@ fun RecomendacionesPantalla(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 items(uiState.messages) { msg ->
-                    com.example.coinary.view.ChatBubble(message = msg)
+                    // Using shared ChatBubble component (ensure this exists in the view package)
+                    ChatBubble(message = msg)
                 }
 
                 if (uiState.isLoading) {
                     item {
-                        com.example.coinary.view.TypingIndicator()
+                        // Using shared TypingIndicator component
+                        TypingIndicator()
                     }
                 }
             }
 
+            // --- Input Field Section ---
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -130,7 +150,7 @@ fun RecomendacionesPantalla(
                     ),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                     placeholder = {
-                        Text("Pide recomendaciones financieras...", color = Color.Gray)
+                        Text("Ask for financial advice...", color = Color.Gray)
                     }
                 )
 
@@ -147,13 +167,20 @@ fun RecomendacionesPantalla(
                         .size(48.dp)
                         .background(Color(0xFF4D54BF), shape = CircleShape)
                 ) {
-                    Icon(Icons.Default.Send, contentDescription = "Enviar", tint = Color.White)
+                    Icon(Icons.Default.Send, contentDescription = "Send", tint = Color.White)
                 }
             }
         }
     }
 }
 
+/**
+ * ChatMessage: Data model representing a single message in the chat.
+ * Note: Consider moving this to a shared 'model' package if used across multiple screens.
+ *
+ * @param text The content of the message.
+ * @param isUser True if the message is sent by the user, false if by the AI.
+ */
 data class ChatMessage(
     val text: String,
     val isUser: Boolean

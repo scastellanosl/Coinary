@@ -37,16 +37,14 @@ import com.example.coinary.repository.GoogleAuthClient
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
-// Define global font family
+/**
+ * InterFont: Custom brand typography.
+ */
 val InterFont = FontFamily(Font(R.font.inter))
 
 /**
- * The main login screen composable.
- * Handles Email/Password authentication and Google Sign-In via [GoogleAuthClient].
- *
- * @param onLoginSuccess Callback triggered when authentication is successful.
- * @param onNavigateToRegister Callback to navigate to the registration screen.
- * @param onForgotPasswordClick Callback to navigate to the password reset screen.
+ * GoogleLoginScreen: Professional authentication interface.
+ * Handles credential-based login and Google Sign-In with localized feedback.
  */
 @Composable
 fun GoogleLoginScreen(
@@ -59,51 +57,51 @@ fun GoogleLoginScreen(
     var isLoading by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
 
-    // Check if user is already signed in when the screen launches
+    // Persistent Session Check
     LaunchedEffect(Unit) {
         if (googleAuthClient.getSignedInUser() != null) {
             onLoginSuccess()
         }
     }
 
-    // --- Google Sign-In Launcher ---
+    /**
+     * Google Sign-In Activity Result Handler.
+     * Replaces technical error logs with user-centric alerts.
+     */
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
         isLoading = true
         coroutineScope.launch {
             try {
-                // Attempt to sign in with the intent result
                 val user = googleAuthClient.signInWithIntent(result.data ?: return@launch)
                 if (user.isSuccess) {
+                    // Short toast for a smooth transition confirmation
                     Toast.makeText(context, context.getString(R.string.login_success), Toast.LENGTH_SHORT).show()
                     onLoginSuccess()
                 } else {
-                    // Format error message using string resource with placeholder (%1$s)
+                    // IMPORTANT ALERT: Clearly state that the external authentication failed
                     val errorMsg = user.exceptionOrNull()?.message ?: ""
-                    Toast.makeText(context, context.getString(R.string.error_msg_prefix, errorMsg), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.error_msg_prefix, errorMsg), Toast.LENGTH_LONG).show()
                 }
             } catch (e: Exception) {
                 val errorMsg = e.message ?: ""
-                Toast.makeText(context, context.getString(R.string.error_msg_prefix, errorMsg), Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(R.string.error_msg_prefix, errorMsg), Toast.LENGTH_LONG).show()
             } finally {
                 isLoading = false
             }
         }
     }
 
-    // Local state for form inputs
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
-    // Use BoxWithConstraints to make layout responsive to screen width
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
             .verticalScroll(rememberScrollState())
     ) {
-        // Calculate padding based on available width (Responsive Design)
         val screenWidth = maxWidth
         val contentPadding = if (screenWidth < 600.dp) 20.dp else 40.dp
 
@@ -113,7 +111,6 @@ fun GoogleLoginScreen(
                 .padding(horizontal = contentPadding),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // --- Header Image ---
             Image(
                 painter = painterResource(id = R.drawable.ic_images),
                 contentDescription = stringResource(id = R.string.collage_desc),
@@ -123,7 +120,6 @@ fun GoogleLoginScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // --- App Description ---
             Text(
                 text = stringResource(id = R.string.lildescriptor),
                 fontFamily = InterFont,
@@ -136,7 +132,6 @@ fun GoogleLoginScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // --- Email Input ---
             CustomTextField(
                 value = email,
                 label = stringResource(id = R.string.mail_label),
@@ -145,7 +140,6 @@ fun GoogleLoginScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // --- Password Input ---
             CustomTextField(
                 value = password,
                 label = stringResource(id = R.string.password_label),
@@ -155,7 +149,10 @@ fun GoogleLoginScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // --- Login Button (Email/Password) ---
+            /**
+             * Login Button: Authenticates with Firebase and provides contextual alerts
+             * for empty fields or invalid credentials.
+             */
             AuthButton(
                 text = stringResource(id = R.string.continue_button),
                 loading = isLoading,
@@ -169,11 +166,13 @@ fun GoogleLoginScreen(
                                 if (task.isSuccessful) {
                                     onLoginSuccess()
                                 } else {
+                                    // SECURITY ALERT: Detailed feedback on failed credentials
                                     val errorMsg = task.exception?.message ?: ""
                                     Toast.makeText(context, context.getString(R.string.error_msg_prefix, errorMsg), Toast.LENGTH_LONG).show()
                                 }
                             }
                     } else {
+                        // VALIDATION ALERT: Immediate feedback for missing required input
                         Toast.makeText(context, context.getString(R.string.empty_fields), Toast.LENGTH_SHORT).show()
                     }
                 }
@@ -181,7 +180,6 @@ fun GoogleLoginScreen(
 
             Spacer(modifier = Modifier.height(30.dp))
 
-            // --- Google Sign-In Button ---
             AuthButton(
                 text = stringResource(id = R.string.continue_with_google),
                 icon = R.drawable.ic_google,
@@ -192,14 +190,11 @@ fun GoogleLoginScreen(
                 }
             )
 
-            // --- Navigation Links ---
             ForgotPasswordText(onClick = onForgotPasswordClick)
             SignUpText(onClick = onNavigateToRegister)
 
-            Spacer(modifier = Modifier.height(20.dp))
-            Spacer(modifier = Modifier.height(30.dp))
+            Spacer(modifier = Modifier.height(50.dp))
 
-            // --- Policies Text ---
             Text(
                 text = stringResource(id = R.string.policies),
                 color = Color.White,
@@ -215,7 +210,7 @@ fun GoogleLoginScreen(
 }
 
 /**
- * A styled TextField component used for Authentication forms.
+ * CustomTextField: Reusable input component with stylized branding.
  */
 @Composable
 fun CustomTextField(
@@ -255,7 +250,7 @@ fun CustomTextField(
 }
 
 /**
- * A reusable Button component with loading state support and optional icon.
+ * AuthButton: Primary action button supporting loading states and iconography.
  */
 @Composable
 fun AuthButton(
@@ -309,10 +304,9 @@ fun SignUpText(onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 12.dp, bottom = 8.dp),
-        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
+        horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // "You don't have an account? "
         Text(
             text = stringResource(id = R.string.dont_account) + " ",
             style = TextStyle(
@@ -321,8 +315,6 @@ fun SignUpText(onClick: () -> Unit) {
                 fontFamily = InterFont
             )
         )
-
-        // "Sign up" link
         Text(
             text = stringResource(id = R.string.sign_up),
             style = TextStyle(
@@ -345,7 +337,6 @@ fun ForgotPasswordText(onClick: () -> Unit) {
             .padding(top = 16.dp, bottom = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // "Forgot your password?"
         Text(
             text = stringResource(id = R.string.forgot_password_question),
             style = TextStyle(
@@ -354,10 +345,7 @@ fun ForgotPasswordText(onClick: () -> Unit) {
                 fontFamily = InterFont
             )
         )
-
         Spacer(modifier = Modifier.height(4.dp))
-
-        // "Reset password" link
         Text(
             text = stringResource(id = R.string.reset_password),
             style = TextStyle(
