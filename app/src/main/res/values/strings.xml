@@ -355,4 +355,12 @@
     <string name="notif_goal_title">Goal Completed!</string>
     <string name="notif_goal_message">Congratulations! You reached your savings goal "%1$s" (%2$s). Keep it up! </string>
     <string name="notif_goal_short">You reached your goal: %1$s</string>
+    <string name="currency_carousel_title">currencys</string>
+    <string name="currency_carousel_equivalent">currency carrousel\n</string>
+    <string name="currency_carousel_went_up">currency down\n</string>
+    <string name="currency_carousel_went_down">currency down\n</string>
+    <string name="currency_carousel_no_change">currency no change\n</string>
+    <string name="currency_carousel_vs_previous">currency vs cop\n</string>
+    <string name="currency_carousel_no_data">currency no data\n</string>
+    <string name="currency_carousel_update_hint">currency update\n</string>
 </resources>
