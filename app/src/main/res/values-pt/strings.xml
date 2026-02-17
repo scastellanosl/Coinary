@@ -302,6 +302,13 @@
     <string name="label_paid">Pago</string>
     <string name="label_progress_general">Progresso geral: %1$d%%</string>
 
+    <string name="title_delete_confirm">Confirmar exclusão</string>
+    <string name="msg_delete_completed_warning">Este item já está concluído. O dinheiro alocado NÃO retornará ao seu saldo disponível.</string>
+    <string name="msg_delete_incomplete_refund">Ao excluir este item, o valor pago será liberado e retornará ao seu saldo disponível.</string>
+    <string name="btn_delete_confirm">Excluir</string>
+    <string name="msg_completed_actions_restricted">Ação restrita: Este registro já está concluído.</string>
+    <string name="currency_carousel_title">Taxas de Câmbio</string>
+
     /////////////// AntExpensesScreen.kt //////////////////
 
     <string name="ant_expenses_title">Gastos Fantasma</string>
@@ -329,6 +336,14 @@
     <string name="currency_mxn">Peso Mexicano</string>
     <string name="currency_brl">Real Brasileiro</string>
     <string name="currency_jpy">Iene Japonês</string>
+
+    <string name="currency_carousel_equivalent">Equivalente a</string>
+    <string name="currency_carousel_went_up">Subiu</string>
+    <string name="currency_carousel_went_down">Caiu</string>
+    <string name="currency_carousel_no_change">Sem alterações</string>
+    <string name="currency_carousel_vs_previous">vs. fechamento ant.</string>
+    <string name="currency_carousel_no_data">Sem dados</string>
+    <string name="currency_carousel_update_hint">Toque para atualizar</string>
 
     /////////////// NotificationScheduler.kt //////////////////
     <string name="channel_name">Lembretes Coinary</string>

@@ -300,6 +300,13 @@
     <string name="label_paid">Pagado</string>
     <string name="label_progress_general">Progreso general: %1$d%%</string>
 
+    <string name="title_delete_confirm">Confirmar eliminación</string>
+    <string name="msg_delete_completed_warning">Este ítem ya está completado. El dinero destinado NO volverá a tu saldo disponible (solo se borrará el registro).</string>
+    <string name="msg_delete_incomplete_refund">Al eliminar este ítem, el dinero abonado se liberará y volverá a tu saldo disponible.</string>
+    <string name="btn_delete_confirm">Eliminar</string>
+    <string name="msg_completed_actions_restricted">Acción restringida: Este registro ya está completado.</string>
+    <string name="currency_carousel_title">Tasas de Cambio</string>
+
     /////////////// AntExpensesScreen.kt //////////////////
 
     <string name="ant_expenses_title">Gastos Hormiga</string>
@@ -327,6 +334,14 @@
     <string name="currency_mxn">Peso Mexicano</string>
     <string name="currency_brl">Real Brasileño</string>
     <string name="currency_jpy">Yen Japonés</string>
+
+    <string name="currency_carousel_equivalent">Equivalente a</string>
+    <string name="currency_carousel_went_up">Subió</string>
+    <string name="currency_carousel_went_down">Bajó</string>
+    <string name="currency_carousel_no_change">Sin cambios</string>
+    <string name="currency_carousel_vs_previous">vs. cierre anterior</string>
+    <string name="currency_carousel_no_data">Sin datos de mercado</string>
+    <string name="currency_carousel_update_hint">Toca para actualizar</string>
 
     /////////////// NotificationScheduler.kt //////////////////
     <string name="channel_name">Recordatorios Coinary</string>

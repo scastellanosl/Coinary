@@ -121,8 +121,8 @@ fun MovementScreen(
         AlertDialog(
             onDismissRequest = { movementViewModel.cancelDebtCreation() },
             containerColor = Color(0xFF1E1E1E),
-            title = { Text(text = "Insufficient Balance!", color = Color(0xFFFF5252), fontWeight = FontWeight.Bold, fontFamily = InterFont) },
-            text = { Text(text = "This expense exceeds your current income. Create a debt record?", color = Color.White, fontFamily = InterFont) },
+            title = { Text(text = "Insufficient Balance!", color = Color(0xFFFF5252), fontWeight = FontWeight.Bold) },
+            text = { Text(text = "This expense exceeds your current income. Create a debt record?", color = Color.White) },
             confirmButton = { Button(onClick = { movementViewModel.confirmDebtCreation() }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF5252))) { Text("Yes", color = Color.White) } },
             dismissButton = { TextButton(onClick = { movementViewModel.cancelDebtCreation() }) { Text("Cancel", color = Color.White) } }
         )
@@ -152,7 +152,7 @@ fun MovementScreen(
 
             Spacer(modifier = Modifier.height(30.dp))
 
-            Text(text = stringResource(R.string.add_movement), fontFamily = InterFont, fontSize = titleFontSize, fontWeight = FontWeight.Bold, color = Color.White, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+            Text(text = stringResource(R.string.add_movement), fontSize = titleFontSize, fontWeight = FontWeight.Bold, color = Color.White, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
 
             Spacer(modifier = Modifier.height(30.dp))
 
@@ -169,14 +169,14 @@ fun MovementScreen(
                 Image(painter = painterResource(id = R.drawable.fondo_contenedor_categoria), contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.FillBounds)
 
                 Column(modifier = Modifier.fillMaxWidth().padding(16.dp).align(Alignment.TopCenter)) {
-                    Text(text = stringResource(R.string.select_category), fontFamily = InterFont, fontWeight = FontWeight.SemiBold, color = Color.White, fontSize = (labelFontSize.value + 4).sp, modifier = Modifier.align(Alignment.CenterHorizontally).padding(bottom = 10.dp))
+                    Text(text = stringResource(R.string.select_category), fontWeight = FontWeight.SemiBold, color = Color.White, fontSize = (labelFontSize.value + 4).sp, modifier = Modifier.align(Alignment.CenterHorizontally).padding(bottom = 10.dp))
 
                     // Category Dropdown Field
                     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = !expanded }, modifier = commonFieldModifier) {
-                        TextField(value = selectedCategory, onValueChange = {}, readOnly = true, label = { Text(stringResource(R.string.select_category), color = Color(0xFF868686)) }, trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) }, modifier = Modifier.fillMaxWidth().menuAnchor(), textStyle = TextStyle(fontFamily = InterFont, color = Color.White, fontSize = labelFontSize), colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, unfocusedTextColor = Color.White, focusedTextColor = Color.White))
+                        TextField(value = selectedCategory, onValueChange = {}, readOnly = true, label = { Text(stringResource(R.string.select_category), color = Color(0xFF868686)) }, trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) }, modifier = Modifier.fillMaxWidth().menuAnchor(), textStyle = TextStyle(color = Color.White, fontSize = labelFontSize), colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, unfocusedTextColor = Color.White, focusedTextColor = Color.White))
                         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }, modifier = Modifier.background(Color.DarkGray.copy(alpha = 0.9f))) {
                             currentCategories.forEach { category ->
-                                DropdownMenuItem(text = { Text(fontFamily = InterFont, fontWeight = FontWeight.Normal, fontSize = labelFontSize, text = category, color = Color.White) }, onClick = { selectedCategory = category; expanded = false })
+                                DropdownMenuItem(text = { Text(fontWeight = FontWeight.Normal, fontSize = labelFontSize, text = category, color = Color.White) }, onClick = { selectedCategory = category; expanded = false })
                             }
                         }
                     }
@@ -190,10 +190,10 @@ fun MovementScreen(
                             val cleaned = newValue.replace(".", "").replace(",", "")
                             if (cleaned.isEmpty()) amount = "" else if (cleaned.matches(Regex("^\\d*\\.?\\d{0,2}$"))) amount = cleaned
                         },
-                        label = { Text(text = stringResource(R.string.amount), fontFamily = InterFont, fontWeight = FontWeight.Normal, fontSize = labelFontSize, color = Color(0xFF868686)) },
+                        label = { Text(text = stringResource(R.string.amount), fontWeight = FontWeight.Normal, fontSize = labelFontSize, color = Color(0xFF868686)) },
                         singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         visualTransformation = ThousandSeparatorTransformation(), modifier = commonFieldModifier,
-                        textStyle = TextStyle(fontFamily = InterFont, color = Color.White, fontSize = labelFontSize),
+                        textStyle = TextStyle(color = Color.White, fontSize = labelFontSize),
                         leadingIcon = { Icon(imageVector = Icons.Default.AttachMoney, contentDescription = null, tint = Color.White) },
                         colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, unfocusedTextColor = Color.White, focusedTextColor = Color.White)
                     )
@@ -201,17 +201,61 @@ fun MovementScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     // Date Picker Field
-                    val datePickerDialog = DatePickerDialog(context, { _: DatePicker, y: Int, m: Int, d: Int -> selectedDate.set(y, m, d) }, selectedDate.get(Calendar.YEAR), selectedDate.get(Calendar.MONTH), selectedDate.get(Calendar.DAY_OF_MONTH))
+                    // We define a function to create and show the restricted DatePickerDialog
+                    fun showDatePicker() {
+                        val calendarLimits = Calendar.getInstance()
+                        val maxDate = calendarLimits.timeInMillis // Today
 
-                    TextField(value = dateFormatter.format(selectedDate.time), onValueChange = {}, readOnly = true, label = { Text(stringResource(R.string.date), color = Color(0xFF868686)) }, singleLine = true, modifier = commonFieldModifier.clickable { datePickerDialog.show() }, textStyle = TextStyle(fontFamily = InterFont, color = Color.White, fontSize = labelFontSize), leadingIcon = { Icon(imageVector = Icons.Default.CalendarMonth, contentDescription = null, tint = Color.White) }, trailingIcon = { Icon(imageVector = Icons.Filled.ArrowDropDown, contentDescription = null, tint = Color.White) }, colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, unfocusedTextColor = Color.White, focusedTextColor = Color.White))
+                        calendarLimits.add(Calendar.DAY_OF_YEAR, -7)
+                        val minDate = calendarLimits.timeInMillis // 7 days ago
+
+                        val dialog = DatePickerDialog(
+                            context,
+                            { _: DatePicker, y: Int, m: Int, d: Int ->
+                                val newDate = Calendar.getInstance()
+                                newDate.set(y, m, d)
+                                selectedDate = newDate
+                            },
+                            selectedDate.get(Calendar.YEAR),
+                            selectedDate.get(Calendar.MONTH),
+                            selectedDate.get(Calendar.DAY_OF_MONTH)
+                        )
+
+                        dialog.datePicker.maxDate = maxDate
+                        dialog.datePicker.minDate = minDate
+                        dialog.show()
+                    }
+
+                    // TextField wrapper for the date picker
+                    // Changed to a Box with clickable to ensure click capture
+                    Box(modifier = Modifier.fillMaxWidth().clickable { showDatePicker() }) {
+                        TextField(
+                            value = dateFormatter.format(selectedDate.time),
+                            onValueChange = {},
+                            readOnly = true,
+                            enabled = false, // Disabled to allow click on Box
+                            label = { Text(stringResource(R.string.date), color = Color(0xFF868686)) },
+                            singleLine = true,
+                            modifier = commonFieldModifier,
+                            textStyle = TextStyle(color = Color.White, fontSize = labelFontSize),
+                            leadingIcon = { Icon(imageVector = Icons.Default.CalendarMonth, contentDescription = null, tint = Color.White) },
+                            trailingIcon = { Icon(imageVector = Icons.Filled.ArrowDropDown, contentDescription = null, tint = Color.White) },
+                            colors = TextFieldDefaults.colors(
+                                disabledContainerColor = Color.Transparent,
+                                disabledIndicatorColor = Color.Transparent,
+                                disabledLabelColor = Color(0xFF868686),
+                                disabledTextColor = Color.White
+                            )
+                        )
+                    }
 
                     Spacer(modifier = Modifier.height(30.dp))
 
-                    Text(text = stringResource(R.string.short_description), color = Color.White, fontFamily = InterFont, fontSize = (labelFontSize.value - 2).sp, fontWeight = FontWeight.Thin, textAlign = TextAlign.Center, modifier = Modifier.align(Alignment.CenterHorizontally).padding(horizontal = 30.dp))
+                    Text(text = stringResource(R.string.short_description), color = Color.White, fontSize = (labelFontSize.value - 2).sp, fontWeight = FontWeight.Thin, textAlign = TextAlign.Center, modifier = Modifier.align(Alignment.CenterHorizontally).padding(horizontal = 30.dp))
                     Spacer(modifier = Modifier.height(15.dp))
 
                     // Description Input Field
-                    TextField(value = description, onValueChange = { description = it }, label = { Text(stringResource(R.string.add_description), color = Color(0xFF868686)) }, singleLine = true, modifier = commonFieldModifier, textStyle = TextStyle(fontFamily = InterFont, color = Color.White, fontSize = labelFontSize), colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, unfocusedTextColor = Color.White, focusedTextColor = Color.White))
+                    TextField(value = description, onValueChange = { description = it }, label = { Text(stringResource(R.string.add_description), color = Color(0xFF868686)) }, singleLine = true, modifier = commonFieldModifier, textStyle = TextStyle(color = Color.White, fontSize = labelFontSize), colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, unfocusedTextColor = Color.White, focusedTextColor = Color.White))
 
                     Spacer(modifier = Modifier.height(20.dp))
 
@@ -278,7 +322,7 @@ fun MovementTypeButton(
         if (isLoading) {
             CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White, strokeWidth = 2.dp)
         } else {
-            Text(text = text, color = if (isSelected) textColor else backgroundColor, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, fontFamily = InterFont)
+            Text(text = text, color = if (isSelected) textColor else backgroundColor, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
         }
     }
 }

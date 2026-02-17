@@ -302,6 +302,13 @@
     <string name="label_paid">Payé</string>
     <string name="label_progress_general">Progression globale : %1$d%%</string>
 
+    <string name="title_delete_confirm">Confirmer la suppression</string>
+    <string name="msg_delete_completed_warning">Cet élément est déjà terminé. L\'argent alloué ne reviendra PAS à votre solde disponible.</string>
+    <string name="msg_delete_incomplete_refund">En supprimant cet élément, le montant payé sera libéré et retourné à votre solde disponible.</string>
+    <string name="btn_delete_confirm">Supprimer</string>
+    <string name="msg_completed_actions_restricted">Action restreinte : Cet enregistrement est déjà terminé.</string>
+    <string name="currency_carousel_title">Taux de Change</string>
+
     /////////////// AntExpensesScreen.kt //////////////////
 
     <string name="ant_expenses_title">Dépenses Fantômes</string>
@@ -329,6 +336,14 @@
     <string name="currency_mxn">Peso Mexicain</string>
     <string name="currency_brl">Réal Brésilien</string>
     <string name="currency_jpy">Yen Japonais</string>
+
+    <string name="currency_carousel_equivalent">Équivalent à</string>
+    <string name="currency_carousel_went_up">En hausse</string>
+    <string name="currency_carousel_went_down">En baisse</string>
+    <string name="currency_carousel_no_change">Pas de changement</string>
+    <string name="currency_carousel_vs_previous">vs clôture préc.</string>
+    <string name="currency_carousel_no_data">Pas de données</string>
+    <string name="currency_carousel_update_hint">Appuyez pour mettre à jour</string>
 
     /////////////// NotificationScheduler.kt //////////////////
     <string name="channel_name">Rappels Coinary</string>

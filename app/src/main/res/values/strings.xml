@@ -302,6 +302,12 @@
     <string name="title_total_debts_summary">Total Debts</string>
     <string name="label_paid">Paid</string>
     <string name="label_progress_general">Overall progress: %1$d%%</string>
+    <string name="msg_completed_actions_restricted">Action restricted: This record is already completed.</string>
+    <string name="title_delete_confirm">Confirm deletion</string>
+    <string name="msg_delete_completed_warning">This item is already completed. The allocated money will NOT return to your available balance (record only).</string>
+    <string name="msg_delete_incomplete_refund">By deleting this item, the paid amount will be released and returned to your available balance.</string>
+    <string name="btn_delete_confirm">Delete</string>
+    <string name="currency_carousel_title">Exchange Rates</string>
 
     /////////////// AntExpensesScreen.kt //////////////////
 
@@ -331,6 +337,14 @@
     <string name="currency_brl">Brazilian Real</string>
     <string name="currency_jpy">Japanese Yen</string>
 
+    <string name="currency_carousel_equivalent">currency carrousel\n</string>
+    <string name="currency_carousel_went_up">currency down\n</string>
+    <string name="currency_carousel_went_down">currency down\n</string>
+    <string name="currency_carousel_no_change">currency no change\n</string>
+    <string name="currency_carousel_vs_previous">currency vs cop\n</string>
+    <string name="currency_carousel_no_data">currency no data\n</string>
+    <string name="currency_carousel_update_hint">currency update\n</string>
+
     /////////////// NotificationScheduler.kt //////////////////
 
     <string name="channel_name">Coinary Reminders</string>
@@ -355,12 +369,4 @@
     <string name="notif_goal_title">Goal Completed!</string>
     <string name="notif_goal_message">Congratulations! You reached your savings goal "%1$s" (%2$s). Keep it up! </string>
     <string name="notif_goal_short">You reached your goal: %1$s</string>
-    <string name="currency_carousel_title">currencys</string>
-    <string name="currency_carousel_equivalent">currency carrousel\n</string>
-    <string name="currency_carousel_went_up">currency down\n</string>
-    <string name="currency_carousel_went_down">currency down\n</string>
-    <string name="currency_carousel_no_change">currency no change\n</string>
-    <string name="currency_carousel_vs_previous">currency vs cop\n</string>
-    <string name="currency_carousel_no_data">currency no data\n</string>
-    <string name="currency_carousel_update_hint">currency update\n</string>
 </resources>
